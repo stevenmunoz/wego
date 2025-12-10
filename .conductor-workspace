@@ -1,0 +1,8 @@
+# Conductor Workspace Configuration
+WORKSPACE_NAME=brisbane
+WORKSPACE_PATH=/Users/stevenmunoz/conductor/wego/.conductor/brisbane
+PROJECT_ROOT=/Users/stevenmunoz/conductor/wego/.conductor/brisbane
+SETUP_DATE=2025-12-10T21:41:31Z
+ROOT_PATH=/Users/stevenmunoz/conductor/wego
+PYTHON_VERSION=3.11
+NODE_VERSION=21.2

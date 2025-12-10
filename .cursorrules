@@ -1,0 +1,327 @@
+# WeGo - Cursor Rules
+# Internal transportation management platform
+# Slogan: "Seguro para ti, cómodo para tu mascota"
+
+## Project Context
+
+You are working on WeGo, an internal management platform for a transportation service that handles:
+- People transportation
+- Pet transportation
+- Senior citizens with special needs
+- Premium services
+
+This is a React + TypeScript frontend with a Node.js backend.
+
+## Language Rules
+
+### User-Facing Copy
+- ALL user-visible text MUST be in Spanish (Colombia)
+- Use formal but friendly tone (tú, not usted)
+- Slogan: "Seguro para ti, cómodo para tu mascota"
+
+### Code and Documentation
+- Variable names: English
+- Function names: English
+- Comments: English
+- Type names: English
+- Documentation files: English
+
+## Design System
+
+ALWAYS use the existing design system located in `design-system/`:
+
+### Colors (from brand)
+```css
+--color-primary-800: #1E2A3A;  /* Navy - main brand color */
+--color-accent-600: #F05365;   /* Coral - CTAs, highlights */
+```
+
+### Semantic Colors
+```css
+--color-success-600: #16A34A;  /* Completed rides */
+--color-warning-500: #EAB308;  /* Pending */
+--color-error-500: #EF4444;    /* Cancelled, errors */
+--color-info-500: #0EA5E9;     /* In progress */
+```
+
+### Typography
+```css
+/* Headings */
+font-family: 'Plus Jakarta Sans', sans-serif;
+
+/* Body text */
+font-family: 'Inter', sans-serif;
+
+/* Numbers/data */
+font-family: 'JetBrains Mono', monospace;
+```
+
+### Use Design System Classes
+```tsx
+// Buttons
+<button className="btn btn-primary">Asignar</button>
+<button className="btn btn-secondary">Ver detalles</button>
+<button className="btn btn-outline">Cancelar</button>
+
+// Cards
+<div className="card">
+  <div className="card-header">...</div>
+  <div className="card-body">...</div>
+</div>
+
+// Status badges
+<span className="table-badge table-badge-completed">Completado</span>
+<span className="table-badge table-badge-pending">Pendiente</span>
+
+// Forms
+<input className="input" />
+<select className="select" />
+<button className="btn btn-primary btn-full">Guardar</button>
+```
+
+## Code Style
+
+### TypeScript
+- Use strict mode
+- Define interfaces for all props
+- Use `type` for unions, `interface` for objects
+- Avoid `any` - use `unknown` if needed
+
+### React Components
+```tsx
+// Component structure
+import { type FC } from 'react';
+import styles from './ComponentName.module.css';
+
+interface ComponentNameProps {
+  // Props here
+}
+
+export const ComponentName: FC<ComponentNameProps> = ({ prop }) => {
+  return (
+    // JSX
+  );
+};
+```
+
+### File Naming
+- Components: `PascalCase.tsx`
+- Hooks: `useCamelCase.ts`
+- Utils: `camelCase.ts`
+- Types: `camelCase.types.ts`
+- Styles: `ComponentName.module.css`
+
+### Folder Structure
+```
+src/
+├── components/
+│   └── ComponentName/
+│       ├── ComponentName.tsx
+│       ├── ComponentName.module.css
+│       ├── ComponentName.test.tsx
+│       └── index.ts
+├── hooks/
+├── services/
+├── stores/
+├── types/
+└── utils/
+```
+
+## Data Formatting (Colombian)
+
+### Currency
+```typescript
+// Always use COP with period as thousands separator
+const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+  }).format(amount);
+};
+// Output: $125.000
+```
+
+### Dates
+```typescript
+const formatDate = (date: Date): string => {
+  return new Intl.DateTimeFormat('es-CO', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+};
+// Output: 15 de diciembre de 2024
+```
+
+### Percentages
+```typescript
+const formatPercent = (value: number): string => {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'percent',
+    minimumFractionDigits: 1,
+  }).format(value / 100);
+};
+// Output: 12,5%
+```
+
+## Common Spanish Messages
+
+```typescript
+const MESSAGES = {
+  // Success
+  saved: 'Cambios guardados correctamente',
+  created: 'Registro creado correctamente',
+  deleted: 'Registro eliminado correctamente',
+  assigned: 'Conductor asignado correctamente',
+
+  // Errors
+  genericError: 'Ha ocurrido un error. Intenta de nuevo.',
+  connectionError: 'Error de conexión. Verifica tu internet.',
+  validationError: 'Por favor, revisa los campos marcados.',
+  notFound: 'El recurso solicitado no existe.',
+  unauthorized: 'No tienes permiso para realizar esta acción.',
+
+  // Confirmations
+  confirmDelete: '¿Estás seguro de eliminar este registro?',
+  confirmCancel: '¿Estás seguro de cancelar este viaje?',
+
+  // Empty states
+  noRides: 'No hay viajes pendientes',
+  noDrivers: 'No hay conductores disponibles',
+  noResults: 'No se encontraron resultados',
+
+  // Loading
+  loading: 'Cargando...',
+  saving: 'Guardando...',
+  processing: 'Procesando...',
+};
+```
+
+## Ride Status Labels
+
+```typescript
+const RIDE_STATUS = {
+  pending: { label: 'Pendiente', color: 'warning' },
+  accepted: { label: 'Aceptado', color: 'info' },
+  in_progress: { label: 'En curso', color: 'info' },
+  completed: { label: 'Completado', color: 'success' },
+  cancelled: { label: 'Cancelado', color: 'error' },
+};
+```
+
+## Service Type Labels
+
+```typescript
+const SERVICE_TYPES = {
+  standard: { label: 'Estándar', icon: 'car' },
+  pets: { label: 'Con mascota', icon: 'paw' },
+  senior: { label: 'Asistido', icon: 'accessibility' },
+  premium: { label: 'Premium', icon: 'star' },
+};
+```
+
+## API Patterns
+
+### Fetch with Zod validation
+```typescript
+import { z } from 'zod';
+
+const rideSchema = z.object({
+  id: z.string(),
+  status: z.enum(['pending', 'accepted', 'in_progress', 'completed', 'cancelled']),
+});
+
+export async function getRides(): Promise<Ride[]> {
+  const response = await fetch('/api/rides');
+  if (!response.ok) {
+    throw new Error('Error al cargar viajes');
+  }
+  const data = await response.json();
+  return z.array(rideSchema).parse(data);
+}
+```
+
+### Error handling
+```typescript
+try {
+  await saveRide(data);
+  toast.success('Viaje guardado correctamente');
+} catch (error) {
+  toast.error('Error al guardar el viaje. Intenta de nuevo.');
+  console.error('Save ride error:', error);
+}
+```
+
+## State Management (Zustand)
+
+```typescript
+import { create } from 'zustand';
+
+interface RidesState {
+  rides: Ride[];
+  isLoading: boolean;
+  error: string | null;
+  fetchRides: () => Promise<void>;
+}
+
+export const useRidesStore = create<RidesState>((set) => ({
+  rides: [],
+  isLoading: false,
+  error: null,
+
+  fetchRides: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const rides = await getRides();
+      set({ rides, isLoading: false });
+    } catch {
+      set({ error: 'Error al cargar viajes', isLoading: false });
+    }
+  },
+}));
+```
+
+## Testing
+
+### Component tests
+```typescript
+import { render, screen } from '@testing-library/react';
+import { RideCard } from './RideCard';
+
+describe('RideCard', () => {
+  it('displays ride status correctly', () => {
+    render(<RideCard ride={mockRide} />);
+    expect(screen.getByText('Pendiente')).toBeInTheDocument();
+  });
+});
+```
+
+## Accessibility Requirements
+
+- All interactive elements must be keyboard accessible
+- Use semantic HTML elements
+- Provide alt text for images
+- Ensure color contrast meets WCAG 2.1 AA
+- Use aria-labels where needed
+
+## DO NOT
+
+- Use inline styles (use design system classes)
+- Create new color values (use tokens)
+- Write user copy in English
+- Use `any` type
+- Skip error handling
+- Create components without TypeScript interfaces
+- Ignore accessibility requirements
+
+## ALWAYS
+
+- Import from design system
+- Write Spanish copy for users
+- Write English code/comments
+- Use TypeScript strictly
+- Handle loading and error states
+- Follow existing patterns in codebase
+- Use semantic HTML
+- Test components
