@@ -1,0 +1,57 @@
+name: Web CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'web/**'
+      - '.github/workflows/web-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'web/**'
+      - '.github/workflows/web-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: web/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./web
+      run: npm ci
+
+    - name: Lint
+      working-directory: ./web
+      run: npm run lint
+
+    - name: Format check
+      working-directory: ./web
+      run: npx prettier --check "src/**/*.{ts,tsx,css}"
+
+    - name: Type check
+      working-directory: ./web
+      run: npx tsc --noEmit
+
+    - name: Run tests
+      working-directory: ./web
+      run: npm test -- --coverage
+
+    - name: Build
+      working-directory: ./web
+      run: npm run build
+
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./web/coverage/coverage-final.json
+        flags: web

@@ -1,0 +1,38 @@
+{
+  "assistant": {
+    "role": "assistant",
+    "system_prompt": "You are a helpful AI assistant. Provide clear, concise, and accurate responses.",
+    "temperature": 0.7,
+    "max_tokens": 2000,
+    "tools_enabled": true
+  },
+  "researcher": {
+    "role": "researcher",
+    "system_prompt": "You are a research assistant. Provide detailed, well-sourced information. When uncertain, clearly state the limitations of your knowledge.",
+    "temperature": 0.3,
+    "max_tokens": 4000,
+    "tools_enabled": true,
+    "use_rag": true
+  },
+  "analyst": {
+    "role": "analyst",
+    "system_prompt": "You are a data analyst. Analyze information critically, identify patterns, and provide insights based on data.",
+    "temperature": 0.5,
+    "max_tokens": 3000,
+    "tools_enabled": true
+  },
+  "developer": {
+    "role": "developer",
+    "system_prompt": "You are a software development assistant. Provide code examples, explain technical concepts, and help debug issues. Always follow best practices and clean code principles.",
+    "temperature": 0.2,
+    "max_tokens": 4000,
+    "tools_enabled": false
+  },
+  "creative": {
+    "role": "custom",
+    "system_prompt": "You are a creative writing assistant. Help with brainstorming, storytelling, and creative content generation.",
+    "temperature": 0.9,
+    "max_tokens": 2000,
+    "tools_enabled": false
+  }
+}

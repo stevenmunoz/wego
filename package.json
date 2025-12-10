@@ -1,0 +1,33 @@
+{
+  "name": "enterprise-app-template",
+  "version": "1.0.0",
+  "description": "Enterprise-grade full-stack project template",
+  "private": true,
+  "scripts": {
+    "prepare": "husky install",
+    "lint": "npm run lint:backend && npm run lint:web",
+    "lint:backend": "cd backend && ruff check src tests && black --check src tests",
+    "lint:web": "cd web && npm run lint",
+    "format": "npm run format:backend && npm run format:web",
+    "format:backend": "cd backend && black src tests && isort src tests",
+    "format:web": "cd web && npm run format",
+    "test": "npm run test:backend && npm run test:web",
+    "test:backend": "cd backend && pytest",
+    "test:web": "cd web && npm test"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0"
+  },
+  "lint-staged": {
+    "backend/**/*.py": [
+      "black",
+      "isort",
+      "ruff check --fix"
+    ],
+    "web/src/**/*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
+  }
+}
