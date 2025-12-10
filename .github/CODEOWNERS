@@ -1,0 +1,26 @@
+# CODEOWNERS file
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+* @stevenmunoz
+
+# Backend
+/backend/ @stevenmunoz
+
+# Frontend
+/web/ @stevenmunoz
+/mobile/ @stevenmunoz
+
+# Infrastructure
+/docker/ @stevenmunoz
+docker-compose*.yml @stevenmunoz
+.github/ @stevenmunoz
+
+# Documentation
+/docs/ @stevenmunoz
+*.md @stevenmunoz
+
+# Configuration
+*.json @stevenmunoz
+*.yml @stevenmunoz
+*.yaml @stevenmunoz
