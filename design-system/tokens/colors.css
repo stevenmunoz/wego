@@ -1,0 +1,172 @@
+/**
+ * WeGo Design System - Tokens de Color
+ * "Seguro para ti, cómodo para tu mascota"
+ *
+ * Paleta de colores basada en el logo de WeGo:
+ * - Navy oscuro (#1E2A3A) como color primario de marca
+ * - Rosa coral (#F05365) como acento distintivo (del corazón)
+ * - Complementarios que transmiten confianza y calidez
+ */
+
+:root {
+  /* ========================================
+     COLORES PRIMARIOS DE MARCA
+     ======================================== */
+
+  /* Navy - Color principal del logo */
+  --color-primary-900: #0F151D;
+  --color-primary-800: #1E2A3A;  /* Color del logo */
+  --color-primary-700: #2C3E50;
+  --color-primary-600: #34495E;
+  --color-primary-500: #415B76;
+  --color-primary-400: #5D7A99;
+  --color-primary-300: #8BA3BB;
+  --color-primary-200: #B8C9D9;
+  --color-primary-100: #E4EBF1;
+  --color-primary-50: #F5F7FA;
+
+  /* Coral/Rosa - Color del corazón (acento) */
+  --color-accent-900: #7A1A26;
+  --color-accent-800: #A82335;
+  --color-accent-700: #D62C43;
+  --color-accent-600: #F05365;  /* Color del logo */
+  --color-accent-500: #F47585;
+  --color-accent-400: #F797A4;
+  --color-accent-300: #FABAC3;
+  --color-accent-200: #FCDCE1;
+  --color-accent-100: #FEF0F2;
+  --color-accent-50: #FFF5F6;
+
+  /* ========================================
+     COLORES SEMÁNTICOS
+     ======================================== */
+
+  /* Éxito - Para viajes completados, pagos exitosos */
+  --color-success-700: #15803D;
+  --color-success-600: #16A34A;
+  --color-success-500: #22C55E;
+  --color-success-400: #4ADE80;
+  --color-success-100: #DCFCE7;
+  --color-success-50: #F0FDF4;
+
+  /* Advertencia - Para alertas, comisiones pendientes */
+  --color-warning-700: #A16207;
+  --color-warning-600: #CA8A04;
+  --color-warning-500: #EAB308;
+  --color-warning-400: #FACC15;
+  --color-warning-100: #FEF9C3;
+  --color-warning-50: #FEFCE8;
+
+  /* Error - Para viajes cancelados, errores de sistema */
+  --color-error-700: #B91C1C;
+  --color-error-600: #DC2626;
+  --color-error-500: #EF4444;
+  --color-error-400: #F87171;
+  --color-error-100: #FEE2E2;
+  --color-error-50: #FEF2F2;
+
+  /* Info - Para información general, notificaciones */
+  --color-info-700: #0369A1;
+  --color-info-600: #0284C7;
+  --color-info-500: #0EA5E9;
+  --color-info-400: #38BDF8;
+  --color-info-100: #E0F2FE;
+  --color-info-50: #F0F9FF;
+
+  /* ========================================
+     COLORES NEUTROS
+     ======================================== */
+
+  --color-neutral-950: #0A0A0A;
+  --color-neutral-900: #171717;
+  --color-neutral-800: #262626;
+  --color-neutral-700: #404040;
+  --color-neutral-600: #525252;
+  --color-neutral-500: #737373;
+  --color-neutral-400: #A3A3A3;
+  --color-neutral-300: #D4D4D4;
+  --color-neutral-200: #E5E5E5;
+  --color-neutral-100: #F5F5F5;
+  --color-neutral-50: #FAFAFA;
+  --color-white: #FFFFFF;
+
+  /* ========================================
+     COLORES DE SUPERFICIE (FONDOS)
+     ======================================== */
+
+  --surface-background: var(--color-neutral-50);
+  --surface-card: var(--color-white);
+  --surface-elevated: var(--color-white);
+  --surface-overlay: rgba(30, 42, 58, 0.5);
+  --surface-sidebar: var(--color-primary-800);
+  --surface-header: var(--color-white);
+
+  /* ========================================
+     COLORES DE TEXTO
+     ======================================== */
+
+  --text-primary: var(--color-primary-800);
+  --text-secondary: var(--color-neutral-600);
+  --text-tertiary: var(--color-neutral-500);
+  --text-disabled: var(--color-neutral-400);
+  --text-inverse: var(--color-white);
+  --text-accent: var(--color-accent-600);
+  --text-link: var(--color-info-600);
+  --text-link-hover: var(--color-info-700);
+
+  /* ========================================
+     COLORES DE BORDE
+     ======================================== */
+
+  --border-default: var(--color-neutral-200);
+  --border-strong: var(--color-neutral-300);
+  --border-subtle: var(--color-neutral-100);
+  --border-focus: var(--color-accent-600);
+  --border-error: var(--color-error-500);
+  --border-success: var(--color-success-500);
+
+  /* ========================================
+     COLORES ESPECÍFICOS DEL NEGOCIO
+     ======================================== */
+
+  /* Estados de viaje */
+  --ride-pending: var(--color-warning-500);
+  --ride-in-progress: var(--color-info-500);
+  --ride-completed: var(--color-success-500);
+  --ride-cancelled: var(--color-error-500);
+
+  /* Tipos de servicio */
+  --service-standard: var(--color-primary-600);
+  --service-pets: var(--color-accent-600);
+  --service-senior: var(--color-info-600);
+  --service-special: var(--color-warning-600);
+
+  /* Indicadores financieros */
+  --money-positive: var(--color-success-600);
+  --money-negative: var(--color-error-600);
+  --money-neutral: var(--color-neutral-600);
+  --commission-highlight: var(--color-accent-500);
+}
+
+/* ========================================
+   MODO OSCURO
+   ======================================== */
+
+[data-theme="dark"] {
+  --surface-background: var(--color-primary-900);
+  --surface-card: var(--color-primary-800);
+  --surface-elevated: var(--color-primary-700);
+  --surface-overlay: rgba(0, 0, 0, 0.7);
+  --surface-sidebar: var(--color-neutral-950);
+  --surface-header: var(--color-primary-800);
+
+  --text-primary: var(--color-neutral-100);
+  --text-secondary: var(--color-neutral-300);
+  --text-tertiary: var(--color-neutral-400);
+  --text-disabled: var(--color-neutral-500);
+  --text-inverse: var(--color-primary-800);
+
+  --border-default: var(--color-primary-700);
+  --border-strong: var(--color-primary-600);
+  --border-subtle: var(--color-primary-800);
+}
