@@ -1,0 +1,267 @@
+/**
+ * WeGo Design System - Componentes: Botones
+ * "Seguro para ti, cómodo para tu mascota"
+ *
+ * Botones consistentes para la plataforma de gestión
+ */
+
+/* ========================================
+   ESTILOS BASE
+   ======================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2-5) var(--space-4);
+  height: var(--height-button);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-none);
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-focus);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* ========================================
+   VARIANTES PRIMARIAS
+   ======================================== */
+
+/* Primario - Acción principal (coral/rosa del corazón) */
+.btn-primary {
+  background-color: var(--color-accent-600);
+  color: var(--color-white);
+  border-color: var(--color-accent-600);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-accent-700);
+  border-color: var(--color-accent-700);
+  box-shadow: var(--shadow-accent);
+}
+
+/* Secundario - Acciones secundarias (navy del logo) */
+.btn-secondary {
+  background-color: var(--color-primary-800);
+  color: var(--color-white);
+  border-color: var(--color-primary-800);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-primary-700);
+  border-color: var(--color-primary-700);
+}
+
+/* Outline - Acciones terciarias */
+.btn-outline {
+  background-color: transparent;
+  color: var(--color-primary-800);
+  border-color: var(--color-primary-800);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background-color: var(--color-primary-800);
+  color: var(--color-white);
+}
+
+/* Outline Accent */
+.btn-outline-accent {
+  background-color: transparent;
+  color: var(--color-accent-600);
+  border-color: var(--color-accent-600);
+}
+
+.btn-outline-accent:hover:not(:disabled) {
+  background-color: var(--color-accent-600);
+  color: var(--color-white);
+}
+
+/* Ghost - Acciones sutiles */
+.btn-ghost {
+  background-color: transparent;
+  color: var(--color-primary-700);
+  border-color: transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background-color: var(--color-primary-100);
+}
+
+/* Link - Estilo de enlace */
+.btn-link {
+  background-color: transparent;
+  color: var(--color-accent-600);
+  border-color: transparent;
+  padding-left: 0;
+  padding-right: 0;
+  height: auto;
+}
+
+.btn-link:hover:not(:disabled) {
+  color: var(--color-accent-700);
+  text-decoration: underline;
+}
+
+/* ========================================
+   VARIANTES SEMÁNTICAS
+   ======================================== */
+
+/* Éxito */
+.btn-success {
+  background-color: var(--color-success-600);
+  color: var(--color-white);
+  border-color: var(--color-success-600);
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: var(--color-success-700);
+  border-color: var(--color-success-700);
+}
+
+/* Peligro/Eliminar */
+.btn-danger {
+  background-color: var(--color-error-600);
+  color: var(--color-white);
+  border-color: var(--color-error-600);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--color-error-700);
+  border-color: var(--color-error-700);
+}
+
+/* Advertencia */
+.btn-warning {
+  background-color: var(--color-warning-500);
+  color: var(--color-neutral-900);
+  border-color: var(--color-warning-500);
+}
+
+.btn-warning:hover:not(:disabled) {
+  background-color: var(--color-warning-600);
+  border-color: var(--color-warning-600);
+}
+
+/* ========================================
+   TAMAÑOS
+   ======================================== */
+
+.btn-sm {
+  height: var(--height-button-sm);
+  padding: var(--space-1-5) var(--space-3);
+  font-size: var(--text-xs);
+}
+
+.btn-lg {
+  height: var(--height-button-lg);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-base);
+}
+
+/* ========================================
+   ESTADOS ESPECIALES
+   ======================================== */
+
+/* Solo ícono */
+.btn-icon {
+  width: var(--height-button);
+  padding: 0;
+}
+
+.btn-icon.btn-sm {
+  width: var(--height-button-sm);
+}
+
+.btn-icon.btn-lg {
+  width: var(--height-button-lg);
+}
+
+/* Ancho completo */
+.btn-full {
+  width: 100%;
+}
+
+/* Cargando */
+.btn-loading {
+  position: relative;
+  color: transparent;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.6s linear infinite;
+}
+
+.btn-primary.btn-loading::after,
+.btn-secondary.btn-loading::after,
+.btn-success.btn-loading::after,
+.btn-danger.btn-loading::after {
+  border-color: var(--color-white);
+  border-right-color: transparent;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========================================
+   GRUPOS DE BOTONES
+   ======================================== */
+
+.btn-group {
+  display: inline-flex;
+}
+
+.btn-group .btn {
+  border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.btn-group .btn:last-child {
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.btn-group .btn:not(:last-child) {
+  border-right-width: 0;
+}
+
+.btn-group .btn:hover,
+.btn-group .btn:focus {
+  z-index: 1;
+}
