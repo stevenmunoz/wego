@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "wego-bac88"
+    "default": "wego-dev-a5a13",
+    "dev": "wego-dev-a5a13",
+    "prod": "wego-bac88"
   }
 }
