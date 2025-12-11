@@ -87,24 +87,6 @@ jobs:
         env:
           NODE_ENV: ${{ steps.env.outputs.environment }}
 
-      - name: Setup Firebase Service Account
-        id: firebase-creds
-        working-directory: ./web
-        run: |
-          CREDS_PATH="${RUNNER_TEMP}/gcloud-service-account.json"
-          if [ "${{ steps.env.outputs.environment }}" = "production" ]; then
-            echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}' > "$CREDS_PATH"
-          else
-            echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}' > "$CREDS_PATH"
-          fi
-          echo "creds_path=$CREDS_PATH" >> $GITHUB_OUTPUT
-
-      - name: Deploy Firestore Rules
-        working-directory: ./web
-        run: npx firebase-tools deploy --only firestore:rules --project ${{ steps.env.outputs.firebase_project_id }}
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.firebase-creds.outputs.creds_path }}
-
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -114,6 +96,3 @@ jobs:
           channelId: live
           entryPoint: ./web
 
-      - name: Cleanup credentials
-        if: always()
-        run: rm -f "${{ steps.firebase-creds.outputs.creds_path }}"
