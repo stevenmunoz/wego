@@ -159,10 +159,14 @@ dist/
 # ========== Environment Variables ==========
 .env
 .env.local
+.env.development
+.env.production
 .env.development.local
 .env.test.local
 .env.production.local
 .env.*.local
+# Keep .env.example for documentation
+!.env.example
 
 # Secrets
 *.key
