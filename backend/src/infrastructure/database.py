@@ -28,20 +28,29 @@ def initialize_firebase() -> None:
     if settings.FIREBASE_CREDENTIALS_PATH and os.path.exists(settings.FIREBASE_CREDENTIALS_PATH):
         # Production: Use service account credentials
         cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
-        _firebase_app = firebase_admin.initialize_app(cred, {
-            'projectId': settings.FIREBASE_PROJECT_ID,
-        })
+        _firebase_app = firebase_admin.initialize_app(
+            cred,
+            {
+                "projectId": settings.FIREBASE_PROJECT_ID,
+            },
+        )
     elif settings.USE_FIREBASE_EMULATOR:
         # Development: Use Firebase emulator
-        os.environ['FIRESTORE_EMULATOR_HOST'] = f"{settings.FIREBASE_EMULATOR_HOST}:{settings.FIREBASE_EMULATOR_PORT}"
-        _firebase_app = firebase_admin.initialize_app(options={
-            'projectId': settings.FIREBASE_PROJECT_ID,
-        })
+        os.environ["FIRESTORE_EMULATOR_HOST"] = (
+            f"{settings.FIREBASE_EMULATOR_HOST}:{settings.FIREBASE_EMULATOR_PORT}"
+        )
+        _firebase_app = firebase_admin.initialize_app(
+            options={
+                "projectId": settings.FIREBASE_PROJECT_ID,
+            }
+        )
     else:
         # Use application default credentials (GCP environment)
-        _firebase_app = firebase_admin.initialize_app(options={
-            'projectId': settings.FIREBASE_PROJECT_ID,
-        })
+        _firebase_app = firebase_admin.initialize_app(
+            options={
+                "projectId": settings.FIREBASE_PROJECT_ID,
+            }
+        )
 
     # Initialize Firestore client
     _firestore_client = firestore.AsyncClient()

@@ -26,7 +26,9 @@ from src.presentation.dependencies import get_current_user_id
 router = APIRouter(prefix="/chat", tags=["Agent Chat"])
 
 
-@router.post("/conversations", response_model=ConversationResponseDTO, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/conversations", response_model=ConversationResponseDTO, status_code=status.HTTP_201_CREATED
+)
 @inject
 async def create_conversation(
     dto: ConversationCreateDTO,
