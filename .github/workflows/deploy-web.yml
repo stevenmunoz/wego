@@ -31,43 +31,63 @@ jobs:
         run: |
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             echo "environment=production" >> $GITHUB_OUTPUT
-            echo "firebase_project=prod" >> $GITHUB_OUTPUT
             echo "firebase_project_id=wego-bac88" >> $GITHUB_OUTPUT
             echo "app_name=WeGo" >> $GITHUB_OUTPUT
           else
             echo "environment=development" >> $GITHUB_OUTPUT
-            echo "firebase_project=dev" >> $GITHUB_OUTPUT
             echo "firebase_project_id=wego-dev-a5a13" >> $GITHUB_OUTPUT
             echo "app_name=WeGo (Dev)" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create environment file
+      - name: Create environment file (DEV)
+        if: steps.env.outputs.environment == 'development'
         working-directory: ./web
+        env:
+          VITE_API_URL: ${{ secrets.DEV_API_URL }}
+          VITE_APP_NAME: ${{ steps.env.outputs.app_name }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.DEV_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.DEV_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.DEV_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.DEV_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.DEV_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.DEV_FIREBASE_APP_ID }}
         run: |
-          if [ "${{ steps.env.outputs.environment }}" = "production" ]; then
-            cat > .env.production.local << EOF
-          VITE_API_URL=${{ secrets.PROD_API_URL }}
-          VITE_APP_NAME=${{ steps.env.outputs.app_name }}
-          VITE_FIREBASE_API_KEY=${{ secrets.PROD_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.PROD_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID=${{ secrets.PROD_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET=${{ secrets.PROD_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.PROD_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID=${{ secrets.PROD_FIREBASE_APP_ID }}
-          VITE_FIREBASE_MEASUREMENT_ID=${{ secrets.PROD_FIREBASE_MEASUREMENT_ID }}
-          EOF
-          else
-            cat > .env.development.local << EOF
-          VITE_API_URL=${{ secrets.DEV_API_URL }}
-          VITE_APP_NAME=${{ steps.env.outputs.app_name }}
-          VITE_FIREBASE_API_KEY=${{ secrets.DEV_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.DEV_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID=${{ secrets.DEV_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET=${{ secrets.DEV_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.DEV_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID=${{ secrets.DEV_FIREBASE_APP_ID }}
-          EOF
-          fi
+          echo "VITE_API_URL=${VITE_API_URL}" >> .env.local
+          echo "VITE_APP_NAME=${VITE_APP_NAME}" >> .env.local
+          echo "VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY}" >> .env.local
+          echo "VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN}" >> .env.local
+          echo "VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID}" >> .env.local
+          echo "VITE_FIREBASE_STORAGE_BUCKET=${VITE_FIREBASE_STORAGE_BUCKET}" >> .env.local
+          echo "VITE_FIREBASE_MESSAGING_SENDER_ID=${VITE_FIREBASE_MESSAGING_SENDER_ID}" >> .env.local
+          echo "VITE_FIREBASE_APP_ID=${VITE_FIREBASE_APP_ID}" >> .env.local
+          echo "Created .env.local:"
+          cat .env.local
+
+      - name: Create environment file (PROD)
+        if: steps.env.outputs.environment == 'production'
+        working-directory: ./web
+        env:
+          VITE_API_URL: ${{ secrets.PROD_API_URL }}
+          VITE_APP_NAME: ${{ steps.env.outputs.app_name }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.PROD_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.PROD_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.PROD_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.PROD_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.PROD_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.PROD_FIREBASE_APP_ID }}
+          VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.PROD_FIREBASE_MEASUREMENT_ID }}
+        run: |
+          echo "VITE_API_URL=${VITE_API_URL}" >> .env.local
+          echo "VITE_APP_NAME=${VITE_APP_NAME}" >> .env.local
+          echo "VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY}" >> .env.local
+          echo "VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN}" >> .env.local
+          echo "VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID}" >> .env.local
+          echo "VITE_FIREBASE_STORAGE_BUCKET=${VITE_FIREBASE_STORAGE_BUCKET}" >> .env.local
+          echo "VITE_FIREBASE_MESSAGING_SENDER_ID=${VITE_FIREBASE_MESSAGING_SENDER_ID}" >> .env.local
+          echo "VITE_FIREBASE_APP_ID=${VITE_FIREBASE_APP_ID}" >> .env.local
+          echo "VITE_FIREBASE_MEASUREMENT_ID=${VITE_FIREBASE_MEASUREMENT_ID}" >> .env.local
+          echo "Created .env.local:"
+          cat .env.local
 
       - name: Lint
         working-directory: ./web
@@ -84,8 +104,6 @@ jobs:
       - name: Build
         working-directory: ./web
         run: npm run build
-        env:
-          NODE_ENV: ${{ steps.env.outputs.environment }}
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -95,4 +113,3 @@ jobs:
           projectId: ${{ steps.env.outputs.firebase_project_id }}
           channelId: live
           entryPoint: ./web
-
