@@ -11,7 +11,7 @@
 /* Sidebar */
 .sidebar {
   width: 260px;
-  background-color: var(--color-primary-800, #1E2A3A);
+  background-color: var(--color-primary-800, #1e2a3a);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -86,7 +86,7 @@
 .nav-item-active {
   background-color: rgba(255, 255, 255, 0.1);
   color: #fff;
-  border-left-color: var(--color-accent-600, #F05365);
+  border-left-color: var(--color-accent-600, #f05365);
 }
 
 .nav-icon {
@@ -116,7 +116,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: var(--color-accent-600, #F05365);
+  background-color: var(--color-accent-600, #f05365);
   display: flex;
   align-items: center;
   justify-content: center;

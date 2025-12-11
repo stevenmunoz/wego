@@ -44,11 +44,7 @@ export const signUp = async (
   password: string,
   displayName: string
 ): Promise<UserCredential> => {
-  const userCredential = await createUserWithEmailAndPassword(
-    firebaseAuth,
-    email,
-    password
-  );
+  const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
 
   // Update the user profile with display name
   if (userCredential.user) {
@@ -63,10 +59,7 @@ export const signUp = async (
 /**
  * Sign in an existing user with email and password
  */
-export const signIn = async (
-  email: string,
-  password: string
-): Promise<UserCredential> => {
+export const signIn = async (email: string, password: string): Promise<UserCredential> => {
   return signInWithEmailAndPassword(firebaseAuth, email, password);
 };
 
@@ -105,9 +98,7 @@ export const getCurrentUser = (): FirebaseUser | null => {
 /**
  * Subscribe to auth state changes
  */
-export const onAuthChange = (
-  callback: (user: FirebaseUser | null) => void
-): (() => void) => {
+export const onAuthChange = (callback: (user: FirebaseUser | null) => void): (() => void) => {
   return onAuthStateChanged(firebaseAuth, callback);
 };
 

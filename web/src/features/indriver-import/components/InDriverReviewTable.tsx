@@ -52,9 +52,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
   const renderConfidenceBadge = (confidence: number) => {
     const level = getConfidenceLevel(confidence);
     return (
-      <span className={`confidence-badge confidence-${level}`}>
-        {formatConfidence(confidence)}
-      </span>
+      <span className={`confidence-badge confidence-${level}`}>{formatConfidence(confidence)}</span>
     );
   };
 
@@ -86,8 +84,8 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
               <p className="review-subtitle">
                 {summary.successful_extractions} viaje
                 {summary.successful_extractions !== 1 ? 's' : ''} extraído
-                {summary.successful_extractions !== 1 ? 's' : ''} | Confianza
-                promedio: {formatConfidence(summary.average_confidence)}
+                {summary.successful_extractions !== 1 ? 's' : ''} | Confianza promedio:{' '}
+                {formatConfidence(summary.average_confidence)}
               </p>
             )}
           </div>
@@ -98,9 +96,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
       <div className="summary-cards">
         <div className="summary-card">
           <span className="summary-label">Total Recibí</span>
-          <span className="summary-value">
-            {formatCurrency(totals.totalTarifa)}
-          </span>
+          <span className="summary-value">{formatCurrency(totals.totalTarifa)}</span>
         </div>
         <div className="summary-card">
           <span className="summary-label">Total Pagué</span>
@@ -110,9 +106,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
         </div>
         <div className="summary-card">
           <span className="summary-label">Total Neto</span>
-          <span className="summary-value success">
-            {formatCurrency(totals.totalIngresos)}
-          </span>
+          <span className="summary-value success">{formatCurrency(totals.totalIngresos)}</span>
         </div>
         <div className="summary-card">
           <span className="summary-label">Viajes Completados</span>
@@ -144,10 +138,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
           </thead>
           <tbody>
             {rides.map((ride, index) => (
-              <tr
-                key={ride.id}
-                className={ride.status !== 'completed' ? 'row-cancelled' : ''}
-              >
+              <tr key={ride.id} className={ride.status !== 'completed' ? 'row-cancelled' : ''}>
                 <td className="cell-index">{index + 1}</td>
                 <td className="cell-date">{formatDate(ride.date)}</td>
                 <td className="cell-time">{formatTime(ride.time)}</td>
@@ -156,24 +147,18 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
                 <td className="cell-status">{renderStatusBadge(ride.status)}</td>
                 <td className="cell-income">
                   <div className="income-breakdown">
-                    <span className="income-value">
-                      {formatCurrency(ride.tarifa)}
-                    </span>
+                    <span className="income-value">{formatCurrency(ride.tarifa)}</span>
                     {ride.total_recibido !== ride.tarifa && (
                       <span className="income-detail">
                         Recibido: {formatCurrency(ride.total_recibido)}
                       </span>
                     )}
-                    <span className="income-detail">
-                      {ride.payment_method_label || 'Efectivo'}
-                    </span>
+                    <span className="income-detail">{ride.payment_method_label || 'Efectivo'}</span>
                   </div>
                 </td>
                 <td className="cell-deductions">
                   <div className="deductions-breakdown">
-                    <span className="deduction-value">
-                      {formatCurrency(ride.total_pagado)}
-                    </span>
+                    <span className="deduction-value">{formatCurrency(ride.total_pagado)}</span>
                     {ride.comision_servicio > 0 && (
                       <span className="deduction-detail">
                         Comisión: {formatCurrency(ride.comision_servicio)}
@@ -187,9 +172,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
                   </div>
                 </td>
                 <td className="cell-net">
-                  <span className="net-value">
-                    {formatCurrency(ride.mis_ingresos)}
-                  </span>
+                  <span className="net-value">{formatCurrency(ride.mis_ingresos)}</span>
                 </td>
                 <td className="cell-confidence">
                   {renderConfidenceBadge(ride.extraction_confidence)}
@@ -233,12 +216,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
 
       {/* Import Action */}
       <div className="review-footer">
-        <button
-          type="button"
-          className="btn btn-secondary"
-          onClick={onBack}
-          disabled={isImporting}
-        >
+        <button type="button" className="btn btn-secondary" onClick={onBack} disabled={isImporting}>
           Cancelar
         </button>
         <button
