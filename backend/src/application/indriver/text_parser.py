@@ -276,7 +276,9 @@ class InDriverTextParser:
             unit = DistanceUnit.METERS if unit_str == "metro" else DistanceUnit.KILOMETERS
 
             # Debug logging
-            logger.info(f"Distance parsing: original='{original_value_str}', value={value}, unit={unit_str}")
+            logger.info(
+                f"Distance parsing: original='{original_value_str}', value={value}, unit={unit_str}"
+            )
 
             # Heuristic for OCR decimal separator issues:
             # Spanish uses comma as decimal: "5,9 km" = 5.9 km
@@ -309,9 +311,7 @@ class InDriverTextParser:
             return RideStatus.CANCELLED_BY_PASSENGER, 0.95
         return RideStatus.COMPLETED, 0.9
 
-    def _parse_payment_method(
-        self, text: str
-    ) -> tuple[PaymentMethod, str, float]:
+    def _parse_payment_method(self, text: str) -> tuple[PaymentMethod, str, float]:
         """Extract payment method."""
         if self.PATTERNS["payment_nequi"].search(text):
             return PaymentMethod.NEQUI, "Nequi", 0.95
@@ -386,7 +386,11 @@ class InDriverTextParser:
                 result["iva_pago_servicio"] = value
             elif comision_pos > 0 and pos > comision_pos and "comision_servicio" not in result:
                 result["comision_servicio"] = value
-            elif total_recibido_pos > 0 and pos > total_recibido_pos and "total_recibido" not in result:
+            elif (
+                total_recibido_pos > 0
+                and pos > total_recibido_pos
+                and "total_recibido" not in result
+            ):
                 result["total_recibido"] = value
             elif tarifa_pos > 0 and pos > tarifa_pos and "tarifa" not in result:
                 result["tarifa"] = value
@@ -410,7 +414,9 @@ class InDriverTextParser:
             # Destination is usually near the top, looks like an address
             if not result.get("destination_address"):
                 # Check if line looks like an address (has numbers and letters, or known place names)
-                if re.match(r"^(Cl|Cra|Carrera|Calle|Av|Universidad|Edificio|Centro)", line, re.IGNORECASE):
+                if re.match(
+                    r"^(Cl|Cra|Carrera|Calle|Av|Universidad|Edificio|Centro)", line, re.IGNORECASE
+                ):
                     result["destination_address"] = line
                 elif re.search(r"#\s*\d+", line):  # Contains # followed by number
                     result["destination_address"] = line
@@ -419,9 +425,21 @@ class InDriverTextParser:
             if not result.get("passenger_name"):
                 # Skip known labels and patterns
                 skip_patterns = [
-                    "duración", "distancia", "recib", "pagu", "tarifa",
-                    "total", "calific", "soporte", "ingresos", "COP",
-                    "pago", "nequi", "efectivo", "iva", "servicio"
+                    "duración",
+                    "distancia",
+                    "recib",
+                    "pagu",
+                    "tarifa",
+                    "total",
+                    "calific",
+                    "soporte",
+                    "ingresos",
+                    "COP",
+                    "pago",
+                    "nequi",
+                    "efectivo",
+                    "iva",
+                    "servicio",
                 ]
                 if any(p in line.lower() for p in skip_patterns):
                     continue
@@ -430,7 +448,9 @@ class InDriverTextParser:
                 cleaned_line = re.sub(r"^[A-Z0-9]\)\s*", "", line).strip()
 
                 # Check if it looks like a name (single or two words, capitalized)
-                if re.match(r"^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)?$", cleaned_line):
+                if re.match(
+                    r"^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)?$", cleaned_line
+                ):
                     # Exclude short common words
                     if len(cleaned_line) > 3 and cleaned_line.lower() not in ["recibo", "pagué"]:
                         result["passenger_name"] = cleaned_line

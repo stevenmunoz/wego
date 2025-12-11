@@ -44,10 +44,27 @@ class StructuredFormatter(logging.Formatter):
         # Add extra fields
         for key, value in record.__dict__.items():
             if key not in [
-                "name", "msg", "args", "created", "filename", "funcName",
-                "levelname", "levelno", "lineno", "module", "msecs", "message",
-                "pathname", "process", "processName", "relativeCreated",
-                "thread", "threadName", "exc_info", "exc_text", "stack_info"
+                "name",
+                "msg",
+                "args",
+                "created",
+                "filename",
+                "funcName",
+                "levelname",
+                "levelno",
+                "lineno",
+                "module",
+                "msecs",
+                "message",
+                "pathname",
+                "process",
+                "processName",
+                "relativeCreated",
+                "thread",
+                "threadName",
+                "exc_info",
+                "exc_text",
+                "stack_info",
             ]:
                 log_data[key] = value
 
@@ -65,16 +82,11 @@ def setup_logging() -> None:
         handler.setFormatter(StructuredFormatter())
     else:
         handler.setFormatter(
-            logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            )
+            logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         )
 
     # Configure root logger
-    logging.basicConfig(
-        level=log_level,
-        handlers=[handler]
-    )
+    logging.basicConfig(level=log_level, handlers=[handler])
 
     # Set third-party loggers to WARNING
     logging.getLogger("uvicorn").setLevel(logging.WARNING)

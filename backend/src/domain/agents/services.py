@@ -99,17 +99,16 @@ class AgentOrchestrator:
                 k=5,
             )
             context = "\n\n".join([doc["content"] for doc in search_results])
-            llm_messages.append({
-                "role": "system",
-                "content": f"Relevant context:\n{context}"
-            })
+            llm_messages.append({"role": "system", "content": f"Relevant context:\n{context}"})
 
         # Add conversation messages
         for msg in messages:
-            llm_messages.append({
-                "role": msg.role.value,
-                "content": msg.content,
-            })
+            llm_messages.append(
+                {
+                    "role": msg.role.value,
+                    "content": msg.content,
+                }
+            )
 
         # Generate response
         response = await self._llm_provider.generate_response(
@@ -128,15 +127,19 @@ class AgentOrchestrator:
                 tool_results.append(result)
 
             # Add tool results to messages and get final response
-            llm_messages.append({
-                "role": "assistant",
-                "content": response.get("content", ""),
-                "tool_calls": response["tool_calls"],
-            })
-            llm_messages.append({
-                "role": "tool",
-                "content": str(tool_results),
-            })
+            llm_messages.append(
+                {
+                    "role": "assistant",
+                    "content": response.get("content", ""),
+                    "tool_calls": response["tool_calls"],
+                }
+            )
+            llm_messages.append(
+                {
+                    "role": "tool",
+                    "content": str(tool_results),
+                }
+            )
 
             response = await self._llm_provider.generate_response(
                 messages=llm_messages,
@@ -155,11 +158,15 @@ class AgentOrchestrator:
             return
 
         documents = [msg.content for msg in messages if msg.role == MessageRole.USER]
-        metadatas = [{
-            "conversation_id": conversation_id,
-            "role": msg.role.value,
-            "created_at": msg.created_at.isoformat(),
-        } for msg in messages if msg.role == MessageRole.USER]
+        metadatas = [
+            {
+                "conversation_id": conversation_id,
+                "role": msg.role.value,
+                "created_at": msg.created_at.isoformat(),
+            }
+            for msg in messages
+            if msg.role == MessageRole.USER
+        ]
 
         if documents:
             await self._vector_store.add_documents(

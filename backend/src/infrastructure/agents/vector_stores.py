@@ -12,7 +12,9 @@ logger = get_logger(__name__)
 class ChromaDBVectorStore:
     """ChromaDB vector store implementation."""
 
-    def __init__(self, host: str = "localhost", port: int = 8000, collection_name: str = "documents") -> None:
+    def __init__(
+        self, host: str = "localhost", port: int = 8000, collection_name: str = "documents"
+    ) -> None:
         self.host = host
         self.port = port
         self.collection_name = collection_name
@@ -73,11 +75,13 @@ class ChromaDBVectorStore:
 
         if data.get("documents") and data["documents"][0]:
             for i, doc in enumerate(data["documents"][0]):
-                results.append({
-                    "content": doc,
-                    "metadata": data["metadatas"][0][i] if data.get("metadatas") else {},
-                    "score": data["distances"][0][i] if data.get("distances") else 0.0,
-                })
+                results.append(
+                    {
+                        "content": doc,
+                        "metadata": data["metadatas"][0][i] if data.get("metadatas") else {},
+                        "score": data["distances"][0][i] if data.get("distances") else 0.0,
+                    }
+                )
 
         logger.info(f"Found {len(results)} similar documents")
         return results
@@ -138,11 +142,13 @@ class InMemoryVectorStore:
             ids = [str(len(self.documents) + i) for i in range(len(documents))]
 
         for i, doc in enumerate(documents):
-            self.documents.append({
-                "id": ids[i],
-                "content": doc,
-                "metadata": metadatas[i],
-            })
+            self.documents.append(
+                {
+                    "id": ids[i],
+                    "content": doc,
+                    "metadata": metadatas[i],
+                }
+            )
 
         logger.info(f"Added {len(documents)} documents to in-memory store")
 
@@ -159,11 +165,13 @@ class InMemoryVectorStore:
         for doc in self.documents:
             # Simple keyword matching
             if query_lower in doc["content"].lower():
-                results.append({
-                    "content": doc["content"],
-                    "metadata": doc["metadata"],
-                    "score": 1.0,  # Simplified scoring
-                })
+                results.append(
+                    {
+                        "content": doc["content"],
+                        "metadata": doc["metadata"],
+                        "score": 1.0,  # Simplified scoring
+                    }
+                )
 
         # Return top k results
         return results[:k]

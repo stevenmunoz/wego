@@ -9,18 +9,21 @@ from pydantic import BaseModel, Field
 
 class DurationUnit(str, Enum):
     """Duration unit types."""
+
     MINUTES = "min"
     HOURS = "hr"
 
 
 class DistanceUnit(str, Enum):
     """Distance unit types."""
+
     KILOMETERS = "km"
     METERS = "metro"
 
 
 class RideStatus(str, Enum):
     """Ride completion status."""
+
     COMPLETED = "completed"
     CANCELLED_BY_PASSENGER = "cancelled_by_passenger"
     CANCELLED_BY_DRIVER = "cancelled_by_driver"
@@ -28,6 +31,7 @@ class RideStatus(str, Enum):
 
 class PaymentMethod(str, Enum):
     """Payment method types."""
+
     CASH = "cash"
     NEQUI = "nequi"
     OTHER = "other"
@@ -35,18 +39,21 @@ class PaymentMethod(str, Enum):
 
 class Duration(BaseModel):
     """Duration extracted from ride details."""
+
     value: int
     unit: DurationUnit
 
 
 class Distance(BaseModel):
     """Distance extracted from ride details."""
+
     value: float
     unit: DistanceUnit
 
 
 class FieldConfidences(BaseModel):
     """Per-field confidence scores."""
+
     date: float = 0.0
     time: float = 0.0
     destination_address: float = 0.0
@@ -108,19 +115,19 @@ class ExtractedInDriverRide(BaseModel):
     field_confidences: FieldConfidences = Field(default_factory=FieldConfidences)
 
     class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 class ExtractionError(BaseModel):
     """Error during extraction."""
+
     file_name: str
     error: str
 
 
 class ExtractionSummary(BaseModel):
     """Summary of extraction batch."""
+
     total_files: int
     successful_extractions: int
     failed_extractions: int
@@ -129,6 +136,7 @@ class ExtractionSummary(BaseModel):
 
 class ExtractResponse(BaseModel):
     """Response from OCR extraction endpoint."""
+
     success: bool
     results: list[ExtractedInDriverRide]
     errors: list[ExtractionError]
@@ -137,24 +145,28 @@ class ExtractResponse(BaseModel):
 
 class ImportedRide(BaseModel):
     """Successfully imported ride reference."""
+
     ride_id: str
     external_id: str
 
 
 class SkippedRide(BaseModel):
     """Skipped ride during import."""
+
     index: int
     reason: str
 
 
 class ImportRequest(BaseModel):
     """Request to import extracted rides."""
+
     rides: list[ExtractedInDriverRide]
     driver_id: str
 
 
 class ImportResponse(BaseModel):
     """Response from import endpoint."""
+
     success: bool
     imported: list[ImportedRide]
     skipped: list[SkippedRide]
@@ -162,6 +174,7 @@ class ImportResponse(BaseModel):
 
 class ExportFormat(str, Enum):
     """Export format options."""
+
     CSV = "csv"
     JSON = "json"
     XLSX = "xlsx"
@@ -169,5 +182,6 @@ class ExportFormat(str, Enum):
 
 class ExportRequest(BaseModel):
     """Request to export extracted rides."""
+
     rides: list[ExtractedInDriverRide]
     format: ExportFormat = ExportFormat.CSV

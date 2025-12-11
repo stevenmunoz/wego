@@ -16,7 +16,7 @@ async def app_exception_handler(request: Request, exc: AppException) -> JSONResp
         extra={
             "status_code": exc.status_code,
             "path": request.url.path,
-        }
+        },
     )
 
     return JSONResponse(
