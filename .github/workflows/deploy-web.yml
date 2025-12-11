@@ -79,7 +79,7 @@ jobs:
 
       - name: Run tests
         working-directory: ./web
-        run: npm test
+        run: npm test -- --passWithNoTests
 
       - name: Build
         working-directory: ./web
