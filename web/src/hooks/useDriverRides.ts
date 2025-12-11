@@ -46,6 +46,7 @@ export const useDriverRides = (
     } finally {
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driverId, options?.startDate, options?.endDate, options?.status]);
 
   useEffect(() => {
