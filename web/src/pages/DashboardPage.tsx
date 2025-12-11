@@ -41,9 +41,7 @@ export const DashboardPage = () => {
         <header className="page-header">
           <div className="page-header-content">
             <h1 className="page-title">Mis Viajes</h1>
-            <p className="page-subtitle">
-              Historial completo de todos tus viajes registrados
-            </p>
+            <p className="page-subtitle">Historial completo de todos tus viajes registrados</p>
           </div>
           <div className="page-header-actions">
             <DateFilter value={dateFilter} onChange={handleDateFilterChange} />

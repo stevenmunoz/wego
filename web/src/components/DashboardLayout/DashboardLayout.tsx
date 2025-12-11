@@ -42,9 +42,7 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
       <aside className="sidebar">
         <div className="sidebar-header">
           <h1 className="sidebar-logo">WeGo</h1>
-          <span className={`env-badge env-badge-${isDev ? 'dev' : 'prod'}`}>
-            {envLabel}
-          </span>
+          <span className={`env-badge env-badge-${isDev ? 'dev' : 'prod'}`}>{envLabel}</span>
         </div>
 
         <nav className="sidebar-nav">
@@ -52,9 +50,7 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
             <NavLink
               key={item.path}
               to={item.path}
-              className={({ isActive }) =>
-                `nav-item ${isActive ? 'nav-item-active' : ''}`
-              }
+              className={({ isActive }) => `nav-item ${isActive ? 'nav-item-active' : ''}`}
             >
               <span className="nav-icon">{item.icon}</span>
               <span className="nav-label">{item.label}</span>
@@ -81,9 +77,7 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
       </aside>
 
       {/* Main Content */}
-      <main className="main-content">
-        {children}
-      </main>
+      <main className="main-content">{children}</main>
     </div>
   );
 };

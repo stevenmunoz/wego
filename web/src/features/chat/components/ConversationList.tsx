@@ -19,11 +19,7 @@ export const ConversationList = () => {
       <h2>Your Conversations</h2>
       <div className="conversations">
         {conversations.map((conversation) => (
-          <Link
-            key={conversation.id}
-            to={`/chat/${conversation.id}`}
-            className="conversation-item"
-          >
+          <Link key={conversation.id} to={`/chat/${conversation.id}`} className="conversation-item">
             <div className="conversation-title">{conversation.title}</div>
             <div className="conversation-meta">
               <span>{conversation.message_count} messages</span>

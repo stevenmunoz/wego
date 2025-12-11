@@ -8,7 +8,16 @@ import { useLogin } from '../hooks/use-login';
 
 // Alert icon for error messages
 const AlertIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <circle cx="12" cy="12" r="10" />
     <line x1="12" x2="12" y1="8" y2="12" />
     <line x1="12" x2="12.01" y1="16" y2="16" />
@@ -29,18 +38,13 @@ export const LoginForm = () => {
     <div className="auth-card">
       {/* Mobile Logo */}
       <div className="auth-card-logo">
-        <img
-          src="/assets/logo-vertical.png"
-          alt="WeGo"
-        />
+        <img src="/assets/logo-vertical.png" alt="WeGo" />
       </div>
 
       {/* Header */}
       <div className="auth-card-header">
         <h1 className="auth-card-title">Bienvenido de nuevo</h1>
-        <p className="auth-card-subtitle">
-          Ingresa tus credenciales para acceder al panel
-        </p>
+        <p className="auth-card-subtitle">Ingresa tus credenciales para acceder al panel</p>
       </div>
 
       {/* Form */}
@@ -53,7 +57,9 @@ export const LoginForm = () => {
                 <AlertIcon />
               </span>
               <span className="alert-content">
-                {error instanceof Error ? error.message : 'Error al iniciar sesión. Verifica tus credenciales.'}
+                {error instanceof Error
+                  ? error.message
+                  : 'Error al iniciar sesión. Verifica tus credenciales.'}
               </span>
             </div>
           )}

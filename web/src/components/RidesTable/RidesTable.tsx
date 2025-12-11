@@ -231,9 +231,7 @@ export const RidesTable: FC<RidesTableProps> = ({
       <div className="summary-cards">
         <div className="summary-card">
           <span className="summary-label">Total Recibido</span>
-          <span className="summary-value">
-            {formatCurrency(totals.totalFare)}
-          </span>
+          <span className="summary-value">{formatCurrency(totals.totalFare)}</span>
         </div>
         <div className="summary-card">
           <span className="summary-label">Total Pagado</span>
@@ -243,9 +241,7 @@ export const RidesTable: FC<RidesTableProps> = ({
         </div>
         <div className="summary-card">
           <span className="summary-label">Ganancias Netas</span>
-          <span className="summary-value success">
-            {formatCurrency(totals.totalEarnings)}
-          </span>
+          <span className="summary-value success">{formatCurrency(totals.totalEarnings)}</span>
         </div>
         <div className="summary-card">
           <span className="summary-label">Viajes Completados</span>
@@ -275,10 +271,7 @@ export const RidesTable: FC<RidesTableProps> = ({
           </thead>
           <tbody>
             {paginatedRides.map((ride, index) => (
-              <tr
-                key={ride.id}
-                className={ride.status !== 'completed' ? 'row-cancelled' : ''}
-              >
+              <tr key={ride.id} className={ride.status !== 'completed' ? 'row-cancelled' : ''}>
                 <td className="cell-index">{startIndex + index + 1}</td>
                 <td className="cell-date">{formatDate(ride.date)}</td>
                 <td className="cell-time">{formatTime(ride.time)}</td>
@@ -295,19 +288,13 @@ export const RidesTable: FC<RidesTableProps> = ({
                 </td>
                 <td className="cell-income">
                   <div className="income-breakdown">
-                    <span className="income-value">
-                      {formatCurrency(ride.base_fare)}
-                    </span>
-                    <span className="income-detail">
-                      {ride.payment_method_label || 'Efectivo'}
-                    </span>
+                    <span className="income-value">{formatCurrency(ride.base_fare)}</span>
+                    <span className="income-detail">{ride.payment_method_label || 'Efectivo'}</span>
                   </div>
                 </td>
                 <td className="cell-deductions">
                   <div className="deductions-breakdown">
-                    <span className="deduction-value">
-                      {formatCurrency(ride.total_paid)}
-                    </span>
+                    <span className="deduction-value">{formatCurrency(ride.total_paid)}</span>
                     {ride.service_commission > 0 && (
                       <span className="deduction-detail">
                         Comision: {formatCurrency(ride.service_commission)}
@@ -316,9 +303,7 @@ export const RidesTable: FC<RidesTableProps> = ({
                   </div>
                 </td>
                 <td className="cell-net">
-                  <span className="net-value">
-                    {formatCurrency(ride.net_earnings)}
-                  </span>
+                  <span className="net-value">{formatCurrency(ride.net_earnings)}</span>
                 </td>
               </tr>
             ))}
@@ -349,7 +334,8 @@ export const RidesTable: FC<RidesTableProps> = ({
       {sortedRides.length > 0 && (
         <div className="pagination">
           <div className="pagination-info">
-            Mostrando {startIndex + 1}-{Math.min(endIndex, sortedRides.length)} de {sortedRides.length} viajes
+            Mostrando {startIndex + 1}-{Math.min(endIndex, sortedRides.length)} de{' '}
+            {sortedRides.length} viajes
           </div>
           <div className="page-size-selector">
             <label htmlFor="page-size">Mostrar:</label>

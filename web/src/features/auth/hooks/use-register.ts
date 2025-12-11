@@ -35,11 +35,7 @@ export const useRegister = () => {
 
   return useMutation({
     mutationFn: async (userData: UserCreateRequest) => {
-      const userCredential = await signUp(
-        userData.email,
-        userData.password,
-        userData.full_name
-      );
+      const userCredential = await signUp(userData.email, userData.password, userData.full_name);
       return userCredential.user;
     },
     onSuccess: (user) => {

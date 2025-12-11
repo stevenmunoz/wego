@@ -17,7 +17,7 @@
   border-radius: 8px;
   font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--color-primary-800, #1E2A3A);
+  color: var(--color-primary-800, #1e2a3a);
   cursor: pointer;
   transition: all 0.15s ease;
   min-width: 200px;
@@ -31,7 +31,7 @@
 
 .date-filter-trigger:focus {
   outline: none;
-  border-color: var(--color-accent-600, #F05365);
+  border-color: var(--color-accent-600, #f05365);
   box-shadow: 0 0 0 3px rgba(240, 83, 101, 0.1);
 }
 
@@ -96,7 +96,7 @@
   border: none;
   border-radius: 6px;
   font-size: 0.875rem;
-  color: var(--color-primary-800, #1E2A3A);
+  color: var(--color-primary-800, #1e2a3a);
   text-align: left;
   cursor: pointer;
   transition: background 0.1s ease;
@@ -108,12 +108,12 @@
 
 .dropdown-option.selected {
   background: rgba(240, 83, 101, 0.08);
-  color: var(--color-accent-600, #F05365);
+  color: var(--color-accent-600, #f05365);
   font-weight: 500;
 }
 
 .check-icon {
-  color: var(--color-accent-600, #F05365);
+  color: var(--color-accent-600, #f05365);
   font-size: 0.875rem;
 }
 
