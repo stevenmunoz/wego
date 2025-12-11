@@ -95,9 +95,7 @@ class GetConversationUseCase:
 
         messages = await self._message_repository.get_by_conversation_id(conversation_id)
 
-        message_dtos = [
-            MessageResponseDTO.model_validate(msg) for msg in messages
-        ]
+        message_dtos = [MessageResponseDTO.model_validate(msg) for msg in messages]
 
         return ConversationDetailResponseDTO(
             id=conversation.id,
@@ -174,9 +172,7 @@ class ChatUseCase:
 
         # Get or create conversation
         if dto.conversation_id:
-            conversation = await self._conversation_repository.get_by_id(
-                dto.conversation_id
-            )
+            conversation = await self._conversation_repository.get_by_id(dto.conversation_id)
             if not conversation or conversation.user_id != user_id:
                 raise NotFoundException("Conversation not found")
         else:
@@ -206,9 +202,7 @@ class ChatUseCase:
 
         try:
             # Get conversation history
-            messages = await self._message_repository.get_by_conversation_id(
-                conversation.id
-            )
+            messages = await self._message_repository.get_by_conversation_id(conversation.id)
 
             # Execute agent
             response = await self._agent_orchestrator.execute_agent(

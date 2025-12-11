@@ -150,10 +150,7 @@ class AnthropicProvider:
         }
 
         # Handle tool use
-        tool_calls = [
-            content for content in data["content"]
-            if content.get("type") == "tool_use"
-        ]
+        tool_calls = [content for content in data["content"] if content.get("type") == "tool_use"]
 
         if tool_calls:
             result["tool_calls"] = [

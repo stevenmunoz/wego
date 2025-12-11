@@ -29,6 +29,7 @@ class InDriverExtractionService:
         """Check if Tesseract is available."""
         try:
             import pytesseract
+
             pytesseract.get_tesseract_version()
             return True
         except Exception as e:
@@ -222,7 +223,9 @@ class InDriverExtractionService:
                     text, confidence = self.extract_text_from_image(processed)
 
                     # Debug: log first 500 chars of OCR text
-                    logger.info(f"Page {page_num} OCR text (first 500 chars): {text[:500] if text else 'EMPTY'}")
+                    logger.info(
+                        f"Page {page_num} OCR text (first 500 chars): {text[:500] if text else 'EMPTY'}"
+                    )
 
                     if not text.strip():
                         results.append((None, f"No text detected in PDF page {page_num}"))
@@ -233,7 +236,9 @@ class InDriverExtractionService:
                     ride.id = str(uuid.uuid4())
 
                     # Debug: log parsed values
-                    logger.info(f"Page {page_num} parsed: tarifa={ride.tarifa}, total_recibido={ride.total_recibido}, mis_ingresos={ride.mis_ingresos}, passenger={ride.passenger_name}, status={ride.status}")
+                    logger.info(
+                        f"Page {page_num} parsed: tarifa={ride.tarifa}, total_recibido={ride.total_recibido}, mis_ingresos={ride.mis_ingresos}, passenger={ride.passenger_name}, status={ride.status}"
+                    )
 
                     # Validate: need at least one meaningful field
                     # Cancelled rides may have 0 values, so also accept if we have date, passenger, or cancelled status
@@ -242,7 +247,9 @@ class InDriverExtractionService:
                     is_cancelled = ride.status != "completed"
 
                     if not has_financial and not has_identity and not is_cancelled:
-                        results.append((None, f"Could not extract required fields from page {page_num}"))
+                        results.append(
+                            (None, f"Could not extract required fields from page {page_num}")
+                        )
                         continue
 
                     results.append((ride, None))
@@ -291,9 +298,7 @@ class InDriverExtractionService:
         successful = len(results)
         failed = len(errors)
         avg_confidence = (
-            sum(r.extraction_confidence for r in results) / successful
-            if successful > 0
-            else 0.0
+            sum(r.extraction_confidence for r in results) / successful if successful > 0 else 0.0
         )
 
         summary = ExtractionSummary(
@@ -319,48 +324,52 @@ class InDriverExtractionService:
         writer = csv.writer(output)
 
         # Header
-        writer.writerow([
-            "ID",
-            "Fecha",
-            "Hora",
-            "Pasajero",
-            "Destino",
-            "Duración (min)",
-            "Distancia (km)",
-            "Estado",
-            "Método de Pago",
-            "Tarifa (COP)",
-            "Total Recibido (COP)",
-            "Comisión (COP)",
-            "IVA (COP)",
-            "Total Pagado (COP)",
-            "Mis Ingresos (COP)",
-            "Calificación",
-        ])
+        writer.writerow(
+            [
+                "ID",
+                "Fecha",
+                "Hora",
+                "Pasajero",
+                "Destino",
+                "Duración (min)",
+                "Distancia (km)",
+                "Estado",
+                "Método de Pago",
+                "Tarifa (COP)",
+                "Total Recibido (COP)",
+                "Comisión (COP)",
+                "IVA (COP)",
+                "Total Pagado (COP)",
+                "Mis Ingresos (COP)",
+                "Calificación",
+            ]
+        )
 
         # Data rows
         for ride in rides:
             duration_value = ride.duration.value if ride.duration else 0
             distance_value = ride.distance.value if ride.distance else 0
 
-            writer.writerow([
-                ride.id,
-                ride.date.strftime("%Y-%m-%d") if ride.date else "",
-                ride.time,
-                ride.passenger_name,
-                ride.destination_address,
-                duration_value,
-                distance_value,
-                ride.status.value,
-                ride.payment_method_label,
-                ride.tarifa,
-                ride.total_recibido,
-                ride.comision_servicio,
-                ride.iva_pago_servicio,
-                ride.total_pagado,
-                ride.mis_ingresos,
-                ride.rating_given or "",
-            ])
+            writer.writerow(
+                [
+                    ride.id,
+                    ride.date.strftime("%Y-%m-%d") if ride.date else "",
+                    ride.time,
+                    ride.passenger_name,
+                    ride.destination_address,
+                    duration_value,
+                    distance_value,
+                    ride.status.value,
+                    ride.payment_method_label,
+                    ride.tarifa,
+                    ride.total_recibido,
+                    ride.comision_servicio,
+                    ride.iva_pago_servicio,
+                    ride.total_pagado,
+                    ride.mis_ingresos,
+                    ride.rating_given or "",
+                ]
+            )
 
         return output.getvalue()
 

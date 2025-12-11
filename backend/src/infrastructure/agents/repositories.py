@@ -184,8 +184,7 @@ class ConversationRepository(IConversationRepository):
     ) -> list[Conversation]:
         """Get conversations for a user."""
         query = (
-            self._collection
-            .where("user_id", "==", str(user_id))
+            self._collection.where("user_id", "==", str(user_id))
             .order_by("updated_at", direction="DESCENDING")
             .offset(skip)
             .limit(limit)
@@ -244,8 +243,7 @@ class MessageRepository(IMessageRepository):
     ) -> list[Message]:
         """Get messages for a conversation."""
         query = (
-            self._collection
-            .where("conversation_id", "==", str(conversation_id))
+            self._collection.where("conversation_id", "==", str(conversation_id))
             .order_by("created_at")
             .offset(skip)
             .limit(limit)
@@ -337,8 +335,7 @@ class AgentExecutionRepository(IAgentExecutionRepository):
     ) -> list[AgentExecution]:
         """Get executions for a conversation."""
         query = (
-            self._collection
-            .where("conversation_id", "==", str(conversation_id))
+            self._collection.where("conversation_id", "==", str(conversation_id))
             .order_by("created_at", direction="DESCENDING")
             .offset(skip)
             .limit(limit)

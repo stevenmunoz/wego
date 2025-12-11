@@ -99,25 +99,31 @@ async def import_rides(request: ImportRequest) -> ImportResponse:
             is_valid, errors = extraction_service.validate_financial_consistency(ride)
 
             if not is_valid:
-                skipped.append(SkippedRide(
-                    index=i,
-                    reason=f"Validation errors: {'; '.join(errors)}",
-                ))
+                skipped.append(
+                    SkippedRide(
+                        index=i,
+                        reason=f"Validation errors: {'; '.join(errors)}",
+                    )
+                )
                 continue
 
             # In a real implementation, save to database here
             # For now, just acknowledge the import
-            imported.append(ImportedRide(
-                ride_id=ride.id,
-                external_id=f"INDRIVER-{ride.id[:8]}",
-            ))
+            imported.append(
+                ImportedRide(
+                    ride_id=ride.id,
+                    external_id=f"INDRIVER-{ride.id[:8]}",
+                )
+            )
 
         except Exception as e:
             logger.error(f"Failed to import ride {i}: {e}")
-            skipped.append(SkippedRide(
-                index=i,
-                reason=f"Import error: {str(e)}",
-            ))
+            skipped.append(
+                SkippedRide(
+                    index=i,
+                    reason=f"Import error: {str(e)}",
+                )
+            )
 
     return ImportResponse(
         success=len(imported) > 0,

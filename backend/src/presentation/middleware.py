@@ -38,7 +38,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "method": request.method,
                 "path": request.url.path,
                 "client": request.client.host if request.client else None,
-            }
+            },
         )
 
         response = await call_next(request)
@@ -52,7 +52,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "path": request.url.path,
                 "status_code": response.status_code,
                 "process_time": f"{process_time:.3f}s",
-            }
+            },
         )
 
         response.headers["X-Process-Time"] = str(process_time)
