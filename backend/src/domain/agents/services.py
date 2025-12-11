@@ -1,10 +1,8 @@
 """Domain services for agent operations."""
 
-from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Protocol
-from uuid import UUID
+from typing import Any, Protocol
 
-from src.domain.agents.entities import AgentExecution, Message, MessageRole
+from src.domain.agents.entities import Message, MessageRole
 
 
 class ILLMProvider(Protocol):
@@ -12,11 +10,11 @@ class ILLMProvider(Protocol):
 
     async def generate_response(
         self,
-        messages: List[Dict[str, str]],
-        tools: Optional[List[Dict[str, Any]]] = None,
+        messages: list[dict[str, str]],
+        tools: list[dict[str, Any]] | None = None,
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        max_tokens: int | None = None,
+    ) -> dict[str, Any]:
         """Generate a response from the LLM."""
         ...
 
@@ -26,9 +24,9 @@ class IVectorStore(Protocol):
 
     async def add_documents(
         self,
-        documents: List[str],
-        metadatas: Optional[List[Dict[str, Any]]] = None,
-        ids: Optional[List[str]] = None,
+        documents: list[str],
+        metadatas: list[dict[str, Any]] | None = None,
+        ids: list[str] | None = None,
     ) -> None:
         """Add documents to the vector store."""
         ...
@@ -37,8 +35,8 @@ class IVectorStore(Protocol):
         self,
         query: str,
         k: int = 5,
-        filter: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        filter: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """Search for similar documents."""
         ...
 
@@ -49,8 +47,8 @@ class IToolExecutor(Protocol):
     async def execute_tool(
         self,
         tool_name: str,
-        parameters: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        parameters: dict[str, Any],
+    ) -> dict[str, Any]:
         """Execute a tool with given parameters."""
         ...
 
@@ -61,8 +59,8 @@ class AgentOrchestrator:
     def __init__(
         self,
         llm_provider: ILLMProvider,
-        vector_store: Optional[IVectorStore] = None,
-        tool_executor: Optional[IToolExecutor] = None,
+        vector_store: IVectorStore | None = None,
+        tool_executor: IToolExecutor | None = None,
     ) -> None:
         self._llm_provider = llm_provider
         self._vector_store = vector_store
@@ -70,11 +68,11 @@ class AgentOrchestrator:
 
     async def execute_agent(
         self,
-        messages: List[Message],
-        system_prompt: Optional[str] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
+        messages: list[Message],
+        system_prompt: str | None = None,
+        tools: list[dict[str, Any]] | None = None,
         use_rag: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Execute agent with given messages.
 
@@ -150,7 +148,7 @@ class AgentOrchestrator:
     async def add_to_memory(
         self,
         conversation_id: str,
-        messages: List[Message],
+        messages: list[Message],
     ) -> None:
         """Add messages to long-term memory via vector store."""
         if not self._vector_store:

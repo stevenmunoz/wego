@@ -1,7 +1,6 @@
 """Use cases for agent operations."""
 
 import time
-from typing import List, Optional
 from uuid import UUID
 
 from src.application.agents.dtos import (
@@ -127,7 +126,7 @@ class ListConversationsUseCase:
         user_id: UUID,
         skip: int = 0,
         limit: int = 100,
-    ) -> List[ConversationResponseDTO]:
+    ) -> list[ConversationResponseDTO]:
         """Execute list conversations."""
         conversations = await self._conversation_repository.get_by_user_id(
             user_id,

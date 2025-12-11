@@ -1,7 +1,6 @@
 """Firebase configuration and client management."""
 
 import os
-from typing import Optional
 
 import firebase_admin
 from firebase_admin import credentials, firestore
@@ -10,8 +9,8 @@ from google.cloud.firestore_v1 import AsyncClient
 from src.core.config import settings
 
 # Global Firebase app instance
-_firebase_app: Optional[firebase_admin.App] = None
-_firestore_client: Optional[AsyncClient] = None
+_firebase_app: firebase_admin.App | None = None
+_firestore_client: AsyncClient | None = None
 
 
 def initialize_firebase() -> None:

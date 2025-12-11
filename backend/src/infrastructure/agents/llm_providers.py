@@ -1,10 +1,9 @@
 """LLM provider implementations."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
-from src.core.config import settings
 from src.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -20,18 +19,18 @@ class OpenAIProvider:
 
     async def generate_response(
         self,
-        messages: List[Dict[str, str]],
-        tools: Optional[List[Dict[str, Any]]] = None,
+        messages: list[dict[str, str]],
+        tools: list[dict[str, Any]] | None = None,
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        max_tokens: int | None = None,
+    ) -> dict[str, Any]:
         """Generate response using OpenAI API."""
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
 
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "model": self.model,
             "messages": messages,
             "temperature": temperature,
@@ -74,7 +73,7 @@ class OpenAIProvider:
             ]
 
         logger.info(
-            f"OpenAI response generated",
+            "OpenAI response generated",
             extra={
                 "model": self.model,
                 "tokens": data.get("usage", {}).get("total_tokens"),
@@ -94,11 +93,11 @@ class AnthropicProvider:
 
     async def generate_response(
         self,
-        messages: List[Dict[str, str]],
-        tools: Optional[List[Dict[str, Any]]] = None,
+        messages: list[dict[str, str]],
+        tools: list[dict[str, Any]] | None = None,
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        max_tokens: int | None = None,
+    ) -> dict[str, Any]:
         """Generate response using Anthropic API."""
         headers = {
             "x-api-key": self.api_key,
@@ -116,7 +115,7 @@ class AnthropicProvider:
             else:
                 formatted_messages.append(msg)
 
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "model": self.model,
             "messages": formatted_messages,
             "temperature": temperature,
@@ -167,7 +166,7 @@ class AnthropicProvider:
             ]
 
         logger.info(
-            f"Anthropic response generated",
+            "Anthropic response generated",
             extra={
                 "model": self.model,
                 "tokens": result["usage"]["total_tokens"],
@@ -182,11 +181,11 @@ class LocalLLMProvider:
 
     async def generate_response(
         self,
-        messages: List[Dict[str, str]],
-        tools: Optional[List[Dict[str, Any]]] = None,
+        messages: list[dict[str, str]],
+        tools: list[dict[str, Any]] | None = None,
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        max_tokens: int | None = None,
+    ) -> dict[str, Any]:
         """Generate mock response for testing."""
         last_message = messages[-1]["content"] if messages else ""
 

@@ -1,6 +1,5 @@
 """Use cases for user management."""
 
-from typing import List
 from uuid import UUID
 
 from src.application.dtos import UserCreateDTO, UserResponseDTO, UserUpdateDTO
@@ -126,7 +125,7 @@ class ListUsersUseCase:
     def __init__(self, user_repository: IUserRepository) -> None:
         self._user_repository = user_repository
 
-    async def execute(self, skip: int = 0, limit: int = 100) -> List[UserResponseDTO]:
+    async def execute(self, skip: int = 0, limit: int = 100) -> list[UserResponseDTO]:
         """
         Execute list users use case.
 

@@ -1,7 +1,7 @@
 """Firestore repository implementations for agent domain."""
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import UUID
 
 from google.cloud.firestore_v1 import AsyncClient
@@ -27,7 +27,7 @@ class FirestoreConversationMapper:
     """Mapper for Conversation entity and Firestore documents."""
 
     @staticmethod
-    def to_dict(conversation: Conversation) -> Dict[str, Any]:
+    def to_dict(conversation: Conversation) -> dict[str, Any]:
         """Convert Conversation entity to Firestore document."""
         return {
             "id": str(conversation.id),
@@ -40,7 +40,7 @@ class FirestoreConversationMapper:
         }
 
     @staticmethod
-    def from_dict(data: Dict[str, Any], messages: Optional[List[Message]] = None) -> Conversation:
+    def from_dict(data: dict[str, Any], messages: list[Message] | None = None) -> Conversation:
         """Convert Firestore document to Conversation entity."""
         return Conversation(
             id=UUID(data["id"]),
@@ -58,7 +58,7 @@ class FirestoreMessageMapper:
     """Mapper for Message entity and Firestore documents."""
 
     @staticmethod
-    def to_dict(message: Message) -> Dict[str, Any]:
+    def to_dict(message: Message) -> dict[str, Any]:
         """Convert Message entity to Firestore document."""
         return {
             "id": str(message.id),
@@ -70,7 +70,7 @@ class FirestoreMessageMapper:
         }
 
     @staticmethod
-    def from_dict(data: Dict[str, Any]) -> Message:
+    def from_dict(data: dict[str, Any]) -> Message:
         """Convert Firestore document to Message entity."""
         return Message(
             id=UUID(data["id"]),
@@ -86,7 +86,7 @@ class FirestoreToolMapper:
     """Mapper for Tool entity and Firestore documents."""
 
     @staticmethod
-    def to_dict(tool: Tool) -> Dict[str, Any]:
+    def to_dict(tool: Tool) -> dict[str, Any]:
         """Convert Tool entity to Firestore document."""
         return {
             "id": str(tool.id),
@@ -98,7 +98,7 @@ class FirestoreToolMapper:
         }
 
     @staticmethod
-    def from_dict(data: Dict[str, Any]) -> Tool:
+    def from_dict(data: dict[str, Any]) -> Tool:
         """Convert Firestore document to Tool entity."""
         return Tool(
             id=UUID(data["id"]),
@@ -114,7 +114,7 @@ class FirestoreAgentExecutionMapper:
     """Mapper for AgentExecution entity and Firestore documents."""
 
     @staticmethod
-    def to_dict(execution: AgentExecution) -> Dict[str, Any]:
+    def to_dict(execution: AgentExecution) -> dict[str, Any]:
         """Convert AgentExecution entity to Firestore document."""
         return {
             "id": str(execution.id),
@@ -133,7 +133,7 @@ class FirestoreAgentExecutionMapper:
         }
 
     @staticmethod
-    def from_dict(data: Dict[str, Any]) -> AgentExecution:
+    def from_dict(data: dict[str, Any]) -> AgentExecution:
         """Convert Firestore document to AgentExecution entity."""
         return AgentExecution(
             id=UUID(data["id"]),
@@ -167,7 +167,7 @@ class ConversationRepository(IConversationRepository):
         await self._collection.document(str(conversation.id)).set(conv_dict)
         return conversation
 
-    async def get_by_id(self, conversation_id: UUID) -> Optional[Conversation]:
+    async def get_by_id(self, conversation_id: UUID) -> Conversation | None:
         """Get conversation by ID."""
         doc = await self._collection.document(str(conversation_id)).get()
         if not doc.exists:
@@ -181,7 +181,7 @@ class ConversationRepository(IConversationRepository):
 
     async def get_by_user_id(
         self, user_id: UUID, skip: int = 0, limit: int = 100
-    ) -> List[Conversation]:
+    ) -> list[Conversation]:
         """Get conversations for a user."""
         query = (
             self._collection
@@ -241,7 +241,7 @@ class MessageRepository(IMessageRepository):
 
     async def get_by_conversation_id(
         self, conversation_id: UUID, skip: int = 0, limit: int = 100
-    ) -> List[Message]:
+    ) -> list[Message]:
         """Get messages for a conversation."""
         query = (
             self._collection
@@ -280,14 +280,14 @@ class ToolRepository(IToolRepository):
         await self._collection.document(str(tool.id)).set(tool_dict)
         return tool
 
-    async def get_by_id(self, tool_id: UUID) -> Optional[Tool]:
+    async def get_by_id(self, tool_id: UUID) -> Tool | None:
         """Get tool by ID."""
         doc = await self._collection.document(str(tool_id)).get()
         if not doc.exists:
             return None
         return FirestoreToolMapper.from_dict(doc.to_dict())
 
-    async def get_by_name(self, name: str) -> Optional[Tool]:
+    async def get_by_name(self, name: str) -> Tool | None:
         """Get tool by name."""
         query = self._collection.where("name", "==", name).limit(1)
         docs = [doc async for doc in query.stream()]
@@ -297,7 +297,7 @@ class ToolRepository(IToolRepository):
 
         return FirestoreToolMapper.from_dict(docs[0].to_dict())
 
-    async def list_enabled(self) -> List[Tool]:
+    async def list_enabled(self) -> list[Tool]:
         """List all enabled tools."""
         query = self._collection.where("enabled", "==", True)
         docs = [doc async for doc in query.stream()]
@@ -325,7 +325,7 @@ class AgentExecutionRepository(IAgentExecutionRepository):
         await self._collection.document(str(execution.id)).set(exec_dict)
         return execution
 
-    async def get_by_id(self, execution_id: UUID) -> Optional[AgentExecution]:
+    async def get_by_id(self, execution_id: UUID) -> AgentExecution | None:
         """Get execution by ID."""
         doc = await self._collection.document(str(execution_id)).get()
         if not doc.exists:
@@ -334,7 +334,7 @@ class AgentExecutionRepository(IAgentExecutionRepository):
 
     async def get_by_conversation_id(
         self, conversation_id: UUID, skip: int = 0, limit: int = 100
-    ) -> List[AgentExecution]:
+    ) -> list[AgentExecution]:
         """Get executions for a conversation."""
         query = (
             self._collection

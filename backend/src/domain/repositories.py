@@ -1,7 +1,6 @@
 """Repository interfaces defining data access contracts."""
 
 from abc import ABC, abstractmethod
-from typing import List, Optional
 from uuid import UUID
 
 from src.domain.entities import User
@@ -16,12 +15,12 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_id(self, user_id: UUID) -> Optional[User]:
+    async def get_by_id(self, user_id: UUID) -> User | None:
         """Get user by ID."""
         pass
 
     @abstractmethod
-    async def get_by_email(self, email: str) -> Optional[User]:
+    async def get_by_email(self, email: str) -> User | None:
         """Get user by email."""
         pass
 
@@ -36,7 +35,7 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
-    async def list(self, skip: int = 0, limit: int = 100) -> List[User]:
+    async def list(self, skip: int = 0, limit: int = 100) -> list[User]:
         """List users with pagination."""
         pass
 

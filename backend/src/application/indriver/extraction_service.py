@@ -2,20 +2,15 @@
 
 import io
 import logging
-import tempfile
 import uuid
-from pathlib import Path
-from typing import List, Tuple, Optional
-from datetime import datetime
 
-from PIL import Image, ImageEnhance, ImageFilter, ImageOps
+from PIL import Image, ImageEnhance, ImageOps
 
 from .schemas import (
     ExtractedInDriverRide,
-    ExtractResponse,
     ExtractionError,
     ExtractionSummary,
-    ExportFormat,
+    ExtractResponse,
 )
 from .text_parser import InDriverTextParser
 
@@ -79,7 +74,7 @@ class InDriverExtractionService:
 
         return image
 
-    def extract_text_from_image(self, image: Image.Image) -> Tuple[str, float]:
+    def extract_text_from_image(self, image: Image.Image) -> tuple[str, float]:
         """
         Extract text from preprocessed image using OCR.
 
@@ -117,7 +112,7 @@ class InDriverExtractionService:
                     if conf > 0:  # -1 means no confidence
                         confidences.append(conf)
 
-            text = " ".join(text_parts)
+            _ = " ".join(text_parts)  # Unused, keeping for potential debugging
             avg_confidence = sum(confidences) / len(confidences) / 100 if confidences else 0.5
 
             # Also get full text for better structure
@@ -129,7 +124,7 @@ class InDriverExtractionService:
             logger.error(f"OCR extraction failed: {e}")
             return "", 0.0
 
-    def _fallback_ocr(self, image: Image.Image) -> Tuple[str, float]:
+    def _fallback_ocr(self, image: Image.Image) -> tuple[str, float]:
         """Fallback when Tesseract is not available."""
         # Return empty - in production would use cloud OCR
         logger.warning("Using fallback OCR (returns empty)")
@@ -139,7 +134,7 @@ class InDriverExtractionService:
         self,
         file_bytes: bytes,
         file_name: str,
-    ) -> List[Tuple[Optional[ExtractedInDriverRide], Optional[str]]]:
+    ) -> list[tuple[ExtractedInDriverRide | None, str | None]]:
         """
         Extract ride data from image or PDF bytes.
 
@@ -168,7 +163,7 @@ class InDriverExtractionService:
         self,
         file_bytes: bytes,
         file_name: str,
-    ) -> Tuple[Optional[ExtractedInDriverRide], Optional[str]]:
+    ) -> tuple[ExtractedInDriverRide | None, str | None]:
         """Extract from image file."""
         try:
             # Load image
@@ -202,7 +197,7 @@ class InDriverExtractionService:
         self,
         file_bytes: bytes,
         file_name: str,
-    ) -> List[Tuple[Optional[ExtractedInDriverRide], Optional[str]]]:
+    ) -> list[tuple[ExtractedInDriverRide | None, str | None]]:
         """
         Extract from PDF file - handles multi-page PDFs.
 
@@ -266,7 +261,7 @@ class InDriverExtractionService:
 
     def extract_batch(
         self,
-        files: List[Tuple[bytes, str]],
+        files: list[tuple[bytes, str]],
     ) -> ExtractResponse:
         """
         Extract ride data from multiple files.
@@ -277,8 +272,8 @@ class InDriverExtractionService:
         Returns:
             ExtractResponse with results and errors
         """
-        results: List[ExtractedInDriverRide] = []
-        errors: List[ExtractionError] = []
+        results: list[ExtractedInDriverRide] = []
+        errors: list[ExtractionError] = []
         total_pages = 0
 
         for file_bytes, file_name in files:
@@ -315,7 +310,7 @@ class InDriverExtractionService:
             summary=summary,
         )
 
-    def export_to_csv(self, rides: List[ExtractedInDriverRide]) -> str:
+    def export_to_csv(self, rides: list[ExtractedInDriverRide]) -> str:
         """Export rides to CSV format."""
         import csv
         from io import StringIO
@@ -369,7 +364,7 @@ class InDriverExtractionService:
 
         return output.getvalue()
 
-    def export_to_json(self, rides: List[ExtractedInDriverRide]) -> str:
+    def export_to_json(self, rides: list[ExtractedInDriverRide]) -> str:
         """Export rides to JSON format."""
         import json
 
@@ -379,14 +374,14 @@ class InDriverExtractionService:
     def validate_financial_consistency(
         self,
         ride: ExtractedInDriverRide,
-    ) -> Tuple[bool, List[str]]:
+    ) -> tuple[bool, list[str]]:
         """
         Validate financial data consistency.
 
         Returns:
             Tuple of (is_valid, list of error messages)
         """
-        errors: List[str] = []
+        errors: list[str] = []
         tolerance = 1.0  # Allow 1 COP rounding difference
 
         # Check net income calculation
