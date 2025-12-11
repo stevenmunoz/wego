@@ -1,9 +1,5 @@
 """Unit tests for User entity."""
 
-from uuid import uuid4
-
-import pytest
-
 from src.domain.entities import User, UserRole, UserStatus
 
 
