@@ -1,0 +1,136 @@
+/**
+ * Status Filter Styles
+ */
+
+.status-filter {
+  position: relative;
+  display: inline-block;
+}
+
+.status-filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-primary-800, #1E2A3A);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-width: 180px;
+  height: auto;
+}
+
+.status-filter-trigger:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.status-filter-trigger:focus {
+  outline: none;
+  border-color: var(--color-accent-600, #F05365);
+  box-shadow: 0 0 0 3px rgba(240, 83, 101, 0.1);
+}
+
+.status-filter .filter-icon {
+  font-size: 1rem;
+}
+
+.status-filter .filter-label {
+  flex: 1;
+  text-align: left;
+}
+
+.status-filter .filter-chevron {
+  font-size: 0.625rem;
+  color: #94a3b8;
+  transition: transform 0.2s ease;
+}
+
+.status-filter .filter-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Dropdown */
+.status-filter-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem;
+  animation: statusDropdownFadeIn 0.15s ease;
+}
+
+@keyframes statusDropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.status-filter-dropdown li {
+  margin: 0;
+}
+
+.status-filter-dropdown .dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: var(--color-primary-800, #1E2A3A);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.status-filter-dropdown .dropdown-option:hover {
+  background: #f1f5f9;
+}
+
+.status-filter-dropdown .dropdown-option.selected {
+  background: rgba(240, 83, 101, 0.08);
+  color: var(--color-accent-600, #F05365);
+  font-weight: 500;
+}
+
+.status-filter-dropdown .option-icon {
+  font-size: 0.875rem;
+}
+
+.status-filter-dropdown .check-icon {
+  margin-left: auto;
+  color: var(--color-accent-600, #F05365);
+  font-size: 0.875rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .status-filter-trigger {
+    min-width: 150px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .status-filter-dropdown {
+    min-width: 180px;
+  }
+}
