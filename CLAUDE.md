@@ -424,6 +424,95 @@ export const useRidesStore = create<RidesState>((set) => ({
 
 ---
 
+## Deployment & Environments
+
+### Multi-Environment Architecture
+
+WeGo uses two separate Firebase projects for development and production:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    ENVIRONMENT ARCHITECTURE                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  DEV Environment                                                │
+│  ├─ Firebase Project: wego-dev-a5a13                           │
+│  ├─ URL: https://wego-dev-a5a13.web.app                        │
+│  ├─ Branch: develop                                             │
+│  └─ Badge: 🟠 DEV (orange)                                      │
+│                                                                 │
+│  PROD Environment                                               │
+│  ├─ Firebase Project: wego-bac88                               │
+│  ├─ URL: https://wego-bac88.web.app                            │
+│  ├─ Branch: main                                                │
+│  └─ Badge: 🟢 PROD (green)                                      │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Git Workflow
+
+```
+feature/xxx ──┬──► develop ──────► main
+              │         │            │
+              │         ▼            ▼
+              │    Deploy DEV    Deploy PROD
+              │         │            │
+              │         ▼            ▼
+              │   wego-dev-a5a13  wego-bac88
+              │
+              └──► Create PR to develop
+```
+
+1. Create feature branch from `develop`
+2. Push changes and create PR to `develop`
+3. Merge PR → Auto-deploys to DEV
+4. Test on DEV site
+5. Create PR from `develop` to `main`
+6. Merge PR → Auto-deploys to PROD
+
+### Environment Configuration
+
+**Local Development** (`.env.development` - gitignored):
+```bash
+VITE_FIREBASE_API_KEY=<dev-api-key>
+VITE_FIREBASE_AUTH_DOMAIN=wego-dev-a5a13.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=wego-dev-a5a13
+VITE_FIREBASE_STORAGE_BUCKET=wego-dev-a5a13.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=<dev-sender-id>
+VITE_FIREBASE_APP_ID=<dev-app-id>
+```
+
+**CI/CD**: Environment variables are injected via GitHub Secrets during deployment.
+
+### GitHub Secrets Required
+
+| Secret | Description |
+|--------|-------------|
+| `DEV_FIREBASE_API_KEY` | Firebase API key for dev project |
+| `DEV_FIREBASE_AUTH_DOMAIN` | Firebase auth domain for dev |
+| `DEV_FIREBASE_PROJECT_ID` | Firebase project ID for dev |
+| `DEV_FIREBASE_STORAGE_BUCKET` | Firebase storage bucket for dev |
+| `DEV_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID for dev |
+| `DEV_FIREBASE_APP_ID` | Firebase app ID for dev |
+| `PROD_FIREBASE_*` | Same variables for production |
+| `FIREBASE_SERVICE_ACCOUNT_DEV` | Service account JSON for dev deployment |
+| `FIREBASE_SERVICE_ACCOUNT_PROD` | Service account JSON for prod deployment |
+
+### Environment Badge
+
+The dashboard displays an environment badge in the sidebar:
+- **DEV**: Orange badge when `VITE_FIREBASE_PROJECT_ID` contains "dev"
+- **PROD**: Green badge otherwise
+
+```tsx
+// Detection logic in DashboardLayout.tsx
+const isDev = import.meta.env.VITE_FIREBASE_PROJECT_ID?.includes('dev');
+const envLabel = isDev ? 'DEV' : 'PROD';
+```
+
+---
+
 ## Useful Commands
 
 ```bash
@@ -433,6 +522,11 @@ npm run build        # Production build
 npm run test         # Run tests
 npm run lint         # Check linting
 npm run type-check   # Check types
+
+# Firebase (local)
+firebase use dev     # Switch to dev project
+firebase use prod    # Switch to prod project
+firebase deploy --only firestore:rules  # Deploy Firestore rules
 
 # Database
 npm run db:migrate   # Run migrations

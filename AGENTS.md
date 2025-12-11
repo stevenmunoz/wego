@@ -160,6 +160,50 @@
 
 ---
 
+### 8. DevOps Agent (`devops-agent`)
+
+**Responsibilities**:
+- Manage CI/CD pipelines (GitHub Actions)
+- Configure Firebase deployments
+- Manage environment variables and secrets
+- Set up branch protection rules
+- Monitor deployment status
+- Troubleshoot deployment failures
+
+**Key Knowledge**:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    DEPLOYMENT ARCHITECTURE                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  DEV Environment                 PROD Environment               │
+│  ├─ Branch: develop             ├─ Branch: main                 │
+│  ├─ Project: wego-dev-a5a13     ├─ Project: wego-bac88          │
+│  └─ URL: wego-dev-a5a13.web.app └─ URL: wego-bac88.web.app      │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Workflow Files**:
+- `.github/workflows/deploy-web.yml` - Web deployment
+- `.github/workflows/web-ci.yml` - Web tests/lint
+- `.github/workflows/backend-ci.yml` - Backend tests
+
+**GitHub Secrets** (16 total):
+- `DEV_FIREBASE_*` - Development Firebase config
+- `PROD_FIREBASE_*` - Production Firebase config
+- `FIREBASE_SERVICE_ACCOUNT_DEV` - Dev deployment key
+- `FIREBASE_SERVICE_ACCOUNT_PROD` - Prod deployment key
+
+**Invocation**:
+```
+@devops-agent Check why the deployment failed
+@devops-agent Add a new environment variable to the pipeline
+```
+
+---
+
 ## Common Workflows
 
 ### New Feature
