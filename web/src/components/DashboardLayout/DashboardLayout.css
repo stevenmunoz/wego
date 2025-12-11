@@ -25,6 +25,9 @@
 .sidebar-header {
   padding: 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .sidebar-logo {
@@ -32,6 +35,26 @@
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
+  color: #fff;
+}
+
+/* Environment Badge */
+.env-badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.env-badge-dev {
+  background-color: #f59e0b;
+  color: #000;
+}
+
+.env-badge-prod {
+  background-color: #10b981;
   color: #fff;
 }
 
