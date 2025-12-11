@@ -146,12 +146,12 @@ export const RidesTable: FC<RidesTableProps> = ({
   const endIndex = startIndex + pageSize;
   const paginatedRides = sortedRides.slice(startIndex, endIndex);
 
-  // Reset to page 1 when rides or page size change
+  // Reset to page 1 when rides change and current page exceeds total
   useMemo(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
     }
-  }, [sortedRides.length, totalPages, currentPage, pageSize]);
+  }, [totalPages, currentPage]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
