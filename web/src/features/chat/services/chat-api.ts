@@ -11,7 +11,10 @@ export const chatApi = {
     return response.data;
   },
 
-  createConversation: async (title: string, agentConfig?: Record<string, unknown>): Promise<Conversation> => {
+  createConversation: async (
+    title: string,
+    agentConfig?: Record<string, unknown>
+  ): Promise<Conversation> => {
     const response = await apiClient.post<Conversation>('/chat/conversations', {
       title,
       agent_config: agentConfig || {},
@@ -20,7 +23,9 @@ export const chatApi = {
   },
 
   getConversation: async (conversationId: string): Promise<ConversationDetail> => {
-    const response = await apiClient.get<ConversationDetail>(`/chat/conversations/${conversationId}`);
+    const response = await apiClient.get<ConversationDetail>(
+      `/chat/conversations/${conversationId}`
+    );
     return response.data;
   },
 

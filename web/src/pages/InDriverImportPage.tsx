@@ -74,7 +74,8 @@ export const InDriverImportPage: FC = () => {
             <div className="alert alert-warning" role="alert">
               <span className="alert-icon">⚠️</span>
               <span className="alert-message">
-                El servidor de procesamiento no está configurado. Esta función requiere un backend desplegado.
+                El servidor de procesamiento no está configurado. Esta función requiere un backend
+                desplegado.
               </span>
             </div>
           )}
@@ -91,9 +92,7 @@ export const InDriverImportPage: FC = () => {
           {importSuccess && (
             <div className="alert alert-success" role="alert">
               <span className="alert-icon">✓</span>
-              <span className="alert-message">
-                Viajes importados correctamente!
-              </span>
+              <span className="alert-message">Viajes importados correctamente!</span>
             </div>
           )}
 

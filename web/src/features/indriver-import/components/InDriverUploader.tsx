@@ -156,9 +156,7 @@ export const InDriverUploader: FC<InDriverUploaderProps> = ({
               ? 'Suelta los archivos aquí'
               : 'Arrastra tus capturas aquí o haz clic para seleccionar'}
           </p>
-          <p className="drop-zone-hint">
-            Formatos: PNG, JPG, PDF (máx. 10MB c/u)
-          </p>
+          <p className="drop-zone-hint">Formatos: PNG, JPG, PDF (máx. 10MB c/u)</p>
         </div>
       </div>
 
@@ -195,12 +193,8 @@ export const InDriverUploader: FC<InDriverUploaderProps> = ({
                   <span className="file-name" title={file.file.name}>
                     {file.file.name}
                   </span>
-                  <span className="file-size">
-                    {(file.file.size / 1024).toFixed(0)} KB
-                  </span>
-                  {file.error && (
-                    <span className="file-error">{file.error}</span>
-                  )}
+                  <span className="file-size">{(file.file.size / 1024).toFixed(0)} KB</span>
+                  {file.error && <span className="file-error">{file.error}</span>}
                 </div>
 
                 <div className={`file-status ${getStatusClass(file.status)}`}>

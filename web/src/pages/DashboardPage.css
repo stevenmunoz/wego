@@ -23,7 +23,7 @@
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--color-primary-800, #1E2A3A);
+  color: var(--color-primary-800, #1e2a3a);
   margin: 0 0 0.25rem;
 }
 
@@ -61,17 +61,17 @@
 }
 
 .btn-primary {
-  background: var(--color-accent-600, #F05365);
+  background: var(--color-accent-600, #f05365);
   color: #fff;
 }
 
 .btn-primary:hover {
-  background: var(--color-accent-500, #F47585);
+  background: var(--color-accent-500, #f47585);
 }
 
 .btn-outline {
   background: #fff;
-  color: var(--color-primary-800, #1E2A3A);
+  color: var(--color-primary-800, #1e2a3a);
   border: 1px solid #e2e8f0;
   height: auto;
   line-height: 1.5;

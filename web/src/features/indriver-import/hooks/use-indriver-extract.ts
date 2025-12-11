@@ -94,9 +94,7 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
     setError(null);
 
     // Mark all files as processing
-    setFiles((prev) =>
-      prev.map((f) => ({ ...f, status: 'processing' as const }))
-    );
+    setFiles((prev) => prev.map((f) => ({ ...f, status: 'processing' as const })));
 
     try {
       const rawFiles = files.map((f) => f.file);
@@ -105,12 +103,8 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
       // Update file statuses based on results
       setFiles((prev) =>
         prev.map((f) => {
-          const result = response.results.find(
-            (r) => r.source_image_path === f.file.name
-          );
-          const extractionError = response.errors.find(
-            (e) => e.file_name === f.file.name
-          );
+          const result = response.results.find((r) => r.source_image_path === f.file.name);
+          const extractionError = response.errors.find((e) => e.file_name === f.file.name);
 
           return {
             ...f,
@@ -125,17 +119,12 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
       setSummary(response.summary);
 
       if (!response.success && response.errors.length > 0) {
-        setError(
-          `${response.errors.length} archivo(s) no pudieron ser procesados`
-        );
+        setError(`${response.errors.length} archivo(s) no pudieron ser procesados`);
       }
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Error al procesar los archivos';
+      const message = err instanceof Error ? err.message : 'Error al procesar los archivos';
       setError(message);
-      setFiles((prev) =>
-        prev.map((f) => ({ ...f, status: 'error' as const, error: message }))
-      );
+      setFiles((prev) => prev.map((f) => ({ ...f, status: 'error' as const, error: message })));
     } finally {
       setIsExtracting(false);
     }
@@ -144,14 +133,11 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
   /**
    * Update a specific extracted ride
    */
-  const updateRide = useCallback(
-    (id: string, updates: Partial<ExtractedInDriverRide>) => {
-      setExtractedRides((prev) =>
-        prev.map((ride) => (ride.id === id ? { ...ride, ...updates } : ride))
-      );
-    },
-    []
-  );
+  const updateRide = useCallback((id: string, updates: Partial<ExtractedInDriverRide>) => {
+    setExtractedRides((prev) =>
+      prev.map((ride) => (ride.id === id ? { ...ride, ...updates } : ride))
+    );
+  }, []);
 
   /**
    * Remove a ride from the extracted list
@@ -187,23 +173,18 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
           setExtractedRides([]);
 
           if (result.errors.length > 0) {
-            setError(
-              `${result.errors.length} viaje(s) tuvieron errores: ${result.errors[0]}`
-            );
+            setError(`${result.errors.length} viaje(s) tuvieron errores: ${result.errors[0]}`);
           }
 
           return true;
         } else {
           setError(
-            result.errors.length > 0
-              ? result.errors[0]
-              : 'No se pudo importar ningún viaje'
+            result.errors.length > 0 ? result.errors[0] : 'No se pudo importar ningún viaje'
           );
           return false;
         }
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Error al importar los viajes';
+        const message = err instanceof Error ? err.message : 'Error al importar los viajes';
         setError(message);
         return false;
       } finally {
@@ -229,8 +210,7 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
       try {
         await downloadExport(extractedRides, format);
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Error al exportar los viajes';
+        const message = err instanceof Error ? err.message : 'Error al exportar los viajes';
         setError(message);
       } finally {
         setIsExporting(false);

@@ -52,7 +52,7 @@
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--color-primary-800, #1E2A3A);
+  color: var(--color-primary-800, #1e2a3a);
   margin: 0;
 }
 
@@ -132,15 +132,15 @@
   font-family: 'JetBrains Mono', monospace;
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--color-primary-800, #1E2A3A);
+  color: var(--color-primary-800, #1e2a3a);
 }
 
 .summary-value.success {
-  color: var(--color-success-600, #16A34A);
+  color: var(--color-success-600, #16a34a);
 }
 
 .summary-value.error {
-  color: var(--color-error-500, #EF4444);
+  color: var(--color-error-500, #ef4444);
 }
 
 /* Table */
@@ -209,7 +209,7 @@
 
 .passenger-name {
   font-weight: 500;
-  color: var(--color-primary-800, #1E2A3A);
+  color: var(--color-primary-800, #1e2a3a);
 }
 
 .passenger-rating {
@@ -246,7 +246,7 @@
 
 .income-value {
   font-weight: 600;
-  color: var(--color-primary-800, #1E2A3A);
+  color: var(--color-primary-800, #1e2a3a);
 }
 
 .income-detail {
@@ -267,7 +267,7 @@
 
 .deduction-value {
   font-weight: 600;
-  color: var(--color-error-500, #EF4444);
+  color: var(--color-error-500, #ef4444);
 }
 
 .deduction-detail {
@@ -282,7 +282,7 @@
 
 .net-value {
   font-weight: 700;
-  color: var(--color-success-600, #16A34A);
+  color: var(--color-success-600, #16a34a);
   font-size: 1rem;
 }
 
@@ -304,12 +304,12 @@
 }
 
 .status-success {
-  color: var(--color-success-600, #16A34A);
+  color: var(--color-success-600, #16a34a);
   background-color: #dcfce7;
 }
 
 .status-error {
-  color: var(--color-error-500, #EF4444);
+  color: var(--color-error-500, #ef4444);
   background-color: #fee2e2;
 }
 
@@ -329,17 +329,17 @@
 }
 
 .confidence-high {
-  color: var(--color-success-600, #16A34A);
+  color: var(--color-success-600, #16a34a);
   background-color: #dcfce7;
 }
 
 .confidence-medium {
-  color: var(--color-warning-500, #EAB308);
+  color: var(--color-warning-500, #eab308);
   background-color: #fef9c3;
 }
 
 .confidence-low {
-  color: var(--color-error-500, #EF4444);
+  color: var(--color-error-500, #ef4444);
   background-color: #fee2e2;
 }
 
@@ -401,11 +401,11 @@
 
 .btn-primary {
   color: #fff;
-  background-color: var(--color-accent-600, #F05365);
+  background-color: var(--color-accent-600, #f05365);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: var(--color-accent-500, #F47585);
+  background-color: var(--color-accent-500, #f47585);
 }
 
 .btn-primary:disabled {
@@ -414,7 +414,7 @@
 }
 
 .btn-secondary {
-  color: var(--color-primary-800, #1E2A3A);
+  color: var(--color-primary-800, #1e2a3a);
   background-color: #fff;
   border: 1px solid #e2e8f0;
 }

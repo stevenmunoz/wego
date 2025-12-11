@@ -163,7 +163,12 @@ export async function saveInDriverRides(
 
     // Commit batch write
     console.log('[Firestore] Committing batch with', savedCount, 'documents...');
-    console.log('[Firestore] Database app name:', db.app.name, 'Project:', db.app.options.projectId);
+    console.log(
+      '[Firestore] Database app name:',
+      db.app.name,
+      'Project:',
+      db.app.options.projectId
+    );
     await batch.commit();
     console.log('[Firestore] Batch commit successful!');
 

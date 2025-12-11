@@ -51,9 +51,7 @@ export const formatTime = (time: string): string => {
 /**
  * Format duration
  */
-export const formatDuration = (
-  duration: { value: number; unit: string } | null
-): string => {
+export const formatDuration = (duration: { value: number; unit: string } | null): string => {
   if (!duration) return '-';
   return `${duration.value} ${duration.unit === 'hr' ? 'hora(s)' : 'min'}`;
 };
@@ -61,9 +59,7 @@ export const formatDuration = (
 /**
  * Format distance
  */
-export const formatDistance = (
-  distance: { value: number; unit: string } | null
-): string => {
+export const formatDistance = (distance: { value: number; unit: string } | null): string => {
   if (!distance) return '-';
   if (distance.unit === 'metro') {
     return `${distance.value} m`;

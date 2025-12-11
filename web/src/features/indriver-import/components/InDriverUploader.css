@@ -16,7 +16,7 @@
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--color-primary-800, #1E2A3A);
+  color: var(--color-primary-800, #1e2a3a);
   margin: 0 0 0.5rem 0;
 }
 
@@ -41,12 +41,12 @@
 }
 
 .drop-zone:hover:not(.drop-zone-disabled) {
-  border-color: var(--color-accent-600, #F05365);
+  border-color: var(--color-accent-600, #f05365);
   background-color: #fff;
 }
 
 .drop-zone-active {
-  border-color: var(--color-accent-600, #F05365);
+  border-color: var(--color-accent-600, #f05365);
   background-color: #fef2f2;
   border-style: solid;
 }
@@ -76,7 +76,7 @@
 .drop-zone-text {
   font-family: 'Inter', sans-serif;
   font-size: 1rem;
-  color: var(--color-primary-800, #1E2A3A);
+  color: var(--color-primary-800, #1e2a3a);
   margin: 0;
 }
 
@@ -107,7 +107,7 @@
   font-family: 'Inter', sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-primary-800, #1E2A3A);
+  color: var(--color-primary-800, #1e2a3a);
 }
 
 .btn-clear {
@@ -123,7 +123,7 @@
 }
 
 .btn-clear:hover:not(:disabled) {
-  color: var(--color-error-500, #EF4444);
+  color: var(--color-error-500, #ef4444);
   background-color: #fef2f2;
 }
 
@@ -192,7 +192,7 @@
   font-family: 'Inter', sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-primary-800, #1E2A3A);
+  color: var(--color-primary-800, #1e2a3a);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -207,7 +207,7 @@
 .file-error {
   font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
-  color: var(--color-error-500, #EF4444);
+  color: var(--color-error-500, #ef4444);
 }
 
 .file-status {
@@ -225,23 +225,28 @@
 }
 
 .file-status-processing {
-  color: var(--color-info-500, #0EA5E9);
+  color: var(--color-info-500, #0ea5e9);
   animation: pulse 1s infinite;
 }
 
 .file-status-success {
   color: #fff;
-  background-color: var(--color-success-600, #16A34A);
+  background-color: var(--color-success-600, #16a34a);
 }
 
 .file-status-error {
   color: #fff;
-  background-color: var(--color-error-500, #EF4444);
+  background-color: var(--color-error-500, #ef4444);
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .btn-remove {
@@ -260,7 +265,7 @@
 }
 
 .btn-remove:hover:not(:disabled) {
-  color: var(--color-error-500, #EF4444);
+  color: var(--color-error-500, #ef4444);
   background-color: #fef2f2;
 }
 
@@ -291,11 +296,11 @@
 
 .btn-primary {
   color: #fff;
-  background-color: var(--color-accent-600, #F05365);
+  background-color: var(--color-accent-600, #f05365);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: var(--color-accent-500, #F47585);
+  background-color: var(--color-accent-500, #f47585);
 }
 
 .btn-primary:disabled {
@@ -313,5 +318,7 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }

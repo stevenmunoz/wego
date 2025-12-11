@@ -24,16 +24,12 @@ export const indriverApi = {
       formData.append('files', file);
     });
 
-    const response = await apiClient.post<ExtractResponse>(
-      '/indriver/extract',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 60000, // 60 seconds for OCR processing
-      }
-    );
+    const response = await apiClient.post<ExtractResponse>('/indriver/extract', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 60000, // 60 seconds for OCR processing
+    });
     return response.data;
   },
 
@@ -41,20 +37,14 @@ export const indriverApi = {
    * Import extracted rides to database
    */
   importRides: async (request: ImportRequest): Promise<ImportResponse> => {
-    const response = await apiClient.post<ImportResponse>(
-      '/indriver/import',
-      request
-    );
+    const response = await apiClient.post<ImportResponse>('/indriver/import', request);
     return response.data;
   },
 
   /**
    * Export rides to specified format
    */
-  exportRides: async (
-    rides: ExtractedInDriverRide[],
-    format: ExportFormat
-  ): Promise<Blob> => {
+  exportRides: async (rides: ExtractedInDriverRide[], format: ExportFormat): Promise<Blob> => {
     const request: ExportRequest = { rides, format };
     const response = await apiClient.post<Blob>('/indriver/export', request, {
       responseType: 'blob',
@@ -66,10 +56,7 @@ export const indriverApi = {
    * Validate a single ride's financial data
    */
   validateRide: async (ride: ExtractedInDriverRide): Promise<ValidationResult> => {
-    const response = await apiClient.post<ValidationResult>(
-      '/indriver/validate',
-      ride
-    );
+    const response = await apiClient.post<ValidationResult>('/indriver/validate', ride);
     return response.data;
   },
 
