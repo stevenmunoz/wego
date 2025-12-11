@@ -1,4 +1,4 @@
-# Scalable App Template
+# WeGo - Transportation Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -6,173 +6,169 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
 [![Firebase](https://img.shields.io/badge/Firebase-Firestore-orange.svg)](https://firebase.google.com/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-A production-ready, enterprise-grade project template for building modern full-stack applications with web and mobile clients.
+> **"Seguro para ti, comodo para tu mascota"**
 
-## Overview
+WeGo is a transportation platform offering people transportation, pet transportation, senior citizens with special needs services, and premium customized services.
 
-This repository serves as a **reusable foundation** for building scalable applications following SOLID principles, clean architecture, and industry best practices. It's designed to be cloned and customized for different project types.
+This is the **internal management platform** for ride tracking, driver management, commission administration, and business reports.
+
+## Live Environments
+
+| Environment | Frontend | Backend | API Docs |
+|-------------|----------|---------|----------|
+| **PROD** | [wego-bac88.web.app](https://wego-bac88.web.app) | [Cloud Run](https://wego-backend-prod-yewmcmksmq-uc.a.run.app) | [/docs](https://wego-backend-prod-yewmcmksmq-uc.a.run.app/docs) |
+| **DEV** | [wego-dev-a5a13.web.app](https://wego-dev-a5a13.web.app) | [Cloud Run](https://wego-backend-dev-l5srt4ycxa-uc.a.run.app) | [/docs](https://wego-backend-dev-l5srt4ycxa-uc.a.run.app/docs) |
 
 ## Tech Stack
 
-- **Frontend Web:** React + TypeScript
-- **Mobile:** Expo (React Native with TypeScript)
-- **Backend:** Python with FastAPI
-- **Database:** Firebase Firestore
-- **Architecture:** Clean Architecture with SOLID principles
+### Frontend
+- **Framework**: React 18+ with TypeScript
+- **Styling**: CSS Modules with design system tokens
+- **State**: Zustand / React Context
+- **Routing**: React Router v6
+- **Forms**: React Hook Form + Zod
+- **Tables**: TanStack Table
+- **Charts**: Recharts
 
-## Key Features
+### Backend
+- **Runtime**: Python 3.11+
+- **Framework**: FastAPI
+- **Database**: Firebase Firestore
+- **Auth**: Firebase Authentication + JWT
+- **Validation**: Pydantic
+- **OCR**: Tesseract (pytesseract)
+- **PDF Processing**: pdf2image, pdfplumber
+- **Deployment**: Google Cloud Run
 
-### Core Architecture
-- ✅ Production-ready architecture
-- ✅ SOLID principles implementation
-- ✅ Clean, layered architecture (Domain, Application, Infrastructure, Presentation)
-- ✅ Type-safe codebase (TypeScript + Python type hints)
-- ✅ Comprehensive testing setup
-- ✅ CI/CD pipeline ready
-- ✅ Docker containerization
-- ✅ API documentation auto-generation
-- ✅ Shared code between web and mobile
-- ✅ Security best practices
-- ✅ Scalability considerations built-in
+### Infrastructure
+- **Frontend Hosting**: Firebase Hosting
+- **Backend Hosting**: Google Cloud Run
+- **Database**: Firebase Firestore
+- **CI/CD**: GitHub Actions
+- **Secrets**: Google Secret Manager
 
-### Agentic Services Baseline 🤖
-- ✅ Multi-provider LLM integration (OpenAI, Anthropic, Local)
-- ✅ Conversational AI with context management
-- ✅ Tool/Function calling capabilities
-- ✅ RAG (Retrieval Augmented Generation) support
-- ✅ Vector store integration (ChromaDB, Pinecone, in-memory)
-- ✅ Agent execution tracking and metrics
-- ✅ Chat interface components (web/mobile ready)
-- ✅ Extensible tool system
-- ✅ Production-ready agent orchestration
+## Quick Start
 
-## 🚀 Quick Start (5 Minutes)
+### Prerequisites
+- Python 3.11+
+- Node.js 18+
+- Firebase CLI (`npm install -g firebase-tools`)
 
-**Prerequisites:**
-- Python 3.11+ ([Download](https://www.python.org/downloads/))
-- Node.js 18+ ([Download](https://nodejs.org/))
-- OpenAI or Anthropic API key
-
-**Setup & Run:**
+### Local Development
 
 ```bash
-# 1. One-command setup
-./setup.sh
+# Frontend
+cd web
+npm install
+npm run dev  # http://localhost:5173
 
-# 2. Start everything
-./dev.sh
+# Backend
+cd backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env  # Configure your environment
+uvicorn src.main:app --reload  # http://localhost:8000
 ```
 
-**Your Services:**
-- 🔧 Backend API: http://localhost:8000
-- 📚 API Docs: http://localhost:8000/docs
-- 🌐 Web App: http://localhost:3000
-- 🔥 Firebase Emulator UI: http://localhost:4000
+### Environment Variables
 
-**Stop Everything:**
+Frontend (`web/.env.development`):
 ```bash
-./stop.sh
+VITE_FIREBASE_API_KEY=your-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+VITE_FIREBASE_APP_ID=your-app-id
+VITE_API_URL=http://localhost:8000  # Local backend
 ```
 
-**📖 For more details:** See [QUICKSTART.md](QUICKSTART.md) or [RUN_INSTRUCTIONS.md](RUN_INSTRUCTIONS.md)
-
-### Customize for Your Project
-
-1. Update project name and branding
-2. Configure environment variables for your needs
-3. Add your specific business features
-4. Customize authentication/authorization rules
-5. Set up deployment targets
-6. Configure monitoring and logging
+Backend (`backend/.env`):
+```bash
+SECRET_KEY=your-secret-key
+JWT_SECRET=your-jwt-secret
+FIREBASE_PROJECT_ID=your-project-id
+USE_FIREBASE_EMULATOR=true
+ENVIRONMENT=development
+```
 
 ## Project Structure
 
 ```
-scalable-app-template/
+wego/
 ├── backend/                    # Python FastAPI backend
 │   ├── src/
 │   │   ├── domain/            # Business entities and interfaces
 │   │   ├── application/       # Use cases and DTOs
-│   │   ├── infrastructure/    # Firestore repositories and external services
+│   │   ├── infrastructure/    # Firestore repositories
 │   │   ├── presentation/      # API routes and controllers
 │   │   └── core/              # Configuration and utilities
-│   ├── tests/                 # Backend tests
-│   ├── firebase.json          # Firebase emulator configuration
-│   └── firestore.rules        # Firestore security rules
+│   ├── Dockerfile             # Cloud Run deployment
+│   └── requirements.txt
 │
 ├── web/                       # React TypeScript web app
 │   ├── src/
-│   │   ├── features/          # Feature modules
-│   │   ├── shared/            # Shared components
+│   │   ├── features/          # Feature modules (indriver-import, auth, etc.)
+│   │   ├── components/        # Shared components
 │   │   ├── core/              # API client, auth, config
 │   │   ├── routes/            # Routing configuration
 │   │   └── pages/             # Page components
-│   └── tests/                 # Web tests
+│   └── package.json
 │
-├── mobile/                    # Expo React Native app
-│   ├── src/
-│   │   ├── features/          # Feature modules
-│   │   ├── shared/            # Shared components
-│   │   ├── navigation/        # Navigation config
-│   │   └── core/              # API client, auth, config
-│   └── __tests__/             # Mobile tests
+├── design-system/             # WeGo Design System
+│   ├── tokens/                # CSS variables (colors, typography)
+│   ├── components/            # Base component styles
+│   └── BRAND_GUIDELINES.md
 │
 ├── .github/workflows/         # CI/CD pipelines
-├── docs/                      # Documentation
-│   ├── architecture/          # Architecture guides
-│   ├── setup/                 # Setup guides
-│   └── deployment/            # Deployment guides
-├── setup.sh                   # One-command setup script
-├── dev.sh                     # Start development environment
-├── stop.sh                    # Stop all services
-└── validate.py                # Template validation script
+│   ├── backend-ci.yml         # Backend lint/test
+│   ├── web-ci.yml             # Frontend lint/test/build
+│   ├── deploy-backend.yml     # Cloud Run deployment
+│   └── deploy-web.yml         # Firebase Hosting deployment
+│
+├── CLAUDE.md                  # AI agent instructions
+├── DEPLOYMENT.md              # Deployment guide
+└── README.md                  # This file
 ```
+
+## Deployment
+
+Deployments are automatic via GitHub Actions:
+
+| Branch | Environment | Trigger |
+|--------|-------------|---------|
+| `develop` | DEV | Push to develop |
+| `main` | PROD | PR merge to main |
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed setup instructions.
+
+## Features
+
+### InDriver PDF Import
+- Upload InDriver ride PDFs
+- OCR extraction of ride data
+- Data validation and preview
+- Export to CSV/JSON
+- Import to Firestore database
+
+### Dashboard
+- Real-time ride statistics
+- Driver performance metrics
+- Commission tracking
+- Financial reports
 
 ## Documentation
 
-### Architecture & Setup
-- **[Clean Architecture](docs/architecture/CLEAN_ARCHITECTURE.md)** - Architecture principles and patterns
-- **[Development Setup](docs/setup/DEVELOPMENT_SETUP.md)** - Detailed development setup guide
-- **[Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Production deployment instructions
-- **[API Documentation](http://localhost:8000/docs)** - Interactive API documentation (when running)
-
-### Agentic Services
-- **[Agentic Services Summary](docs/agentic/SUMMARY.md)** - Overview of AI/Agent capabilities
-- **[Agentic Architecture](docs/agentic/AGENTIC_ARCHITECTURE.md)** - AI/Agent services architecture
-- **[Quick Start: Agents](docs/agentic/QUICK_START_AGENTS.md)** - Get started with AI agents in minutes
-- **[Agent Examples](backend/examples/agent_config.json)** - Pre-configured agent templates
-
-## Philosophy
-
-This template embodies the **dream architecture** of a super senior software engineer:
-
-- **No compromises:** Production-ready from day one
-- **Principles over frameworks:** Business logic decoupled from implementation details
-- **Zero technical debt:** Clean foundation to build upon
-- **Scalability first:** Designed to grow with your application
-- **Developer experience:** Minimal setup, maximum productivity
-
-## Use Cases
-
-Perfect for:
-
-- SaaS applications
-- E-commerce platforms
-- Social networks
-- Enterprise applications
-- MVP development
-- Startup projects
-
-## Contributing
-
-This is a template repository. Fork it, customize it, and make it your own!
+- [Deployment Guide](DEPLOYMENT.md) - CI/CD and infrastructure setup
+- [Brand Guidelines](design-system/BRAND_GUIDELINES.md) - Design system documentation
+- [AI Instructions](CLAUDE.md) - Guidelines for AI-assisted development
 
 ## License
 
-MIT - Use it however you want!
+MIT
 
 ---
 
-**Built with care by senior engineers, for engineers who care about quality.**
+*Built with care for WeGo Transportation*

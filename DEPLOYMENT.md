@@ -2,6 +2,13 @@
 
 This document details the deployment architecture and setup for the WeGo platform.
 
+## Live Environments
+
+| Environment | Frontend | Backend | API Docs |
+|-------------|----------|---------|----------|
+| **PROD** | https://wego-bac88.web.app | https://wego-backend-prod-yewmcmksmq-uc.a.run.app | [/docs](https://wego-backend-prod-yewmcmksmq-uc.a.run.app/docs) |
+| **DEV** | https://wego-dev-a5a13.web.app | https://wego-backend-dev-l5srt4ycxa-uc.a.run.app | [/docs](https://wego-backend-dev-l5srt4ycxa-uc.a.run.app/docs) |
+
 ## Architecture Overview
 
 ```
@@ -15,12 +22,12 @@ This document details the deployment architecture and setup for the WeGo platfor
 │                                                                             │
 │   DEV Environment                                                           │
 │   ├── Frontend: Firebase Hosting (wego-dev-a5a13.web.app)                  │
-│   ├── Backend:  Cloud Run (wego-backend-dev.run.app)                       │
+│   ├── Backend:  Cloud Run (wego-backend-dev-l5srt4ycxa-uc.a.run.app)      │
 │   └── Database: Firestore (wego-dev-a5a13)                                 │
 │                                                                             │
 │   PROD Environment                                                          │
 │   ├── Frontend: Firebase Hosting (wego-bac88.web.app)                      │
-│   ├── Backend:  Cloud Run (wego-backend-prod.run.app)                      │
+│   ├── Backend:  Cloud Run (wego-backend-prod-yewmcmksmq-uc.a.run.app)     │
 │   └── Database: Firestore (wego-bac88)                                     │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
