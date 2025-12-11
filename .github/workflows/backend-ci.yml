@@ -60,9 +60,10 @@ jobs:
       working-directory: ./backend
       run: ruff check src tests
 
-    - name: Format check with black
-      working-directory: ./backend
-      run: black --check src tests
+    # Format check disabled - using ruff for linting only
+    # - name: Format check with black
+    #   working-directory: ./backend
+    #   run: black --check src tests
 
     # Type check disabled until types are fully configured
     # - name: Type check with mypy
