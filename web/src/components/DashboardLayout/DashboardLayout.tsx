@@ -22,6 +22,10 @@ const navItems: NavItem[] = [
   { path: '/indriver-import', label: 'Importar Viajes', icon: '📸' },
 ];
 
+// Environment indicator
+const isDev = import.meta.env.VITE_FIREBASE_PROJECT_ID?.includes('dev');
+const envLabel = isDev ? 'DEV' : 'PROD';
+
 export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
@@ -38,6 +42,9 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
       <aside className="sidebar">
         <div className="sidebar-header">
           <h1 className="sidebar-logo">WeGo</h1>
+          <span className={`env-badge env-badge-${isDev ? 'dev' : 'prod'}`}>
+            {envLabel}
+          </span>
         </div>
 
         <nav className="sidebar-nav">
