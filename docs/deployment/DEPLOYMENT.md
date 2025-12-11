@@ -1,18 +1,166 @@
 # Deployment Guide
 
-This guide covers deploying the Enterprise App Template to production.
+This guide covers deploying the WeGo platform to development and production environments.
 
 ## Pre-deployment Checklist
 
 - [ ] All tests passing
 - [ ] Environment variables configured
-- [ ] Database migrations ready
-- [ ] SSL certificates obtained
-- [ ] Domain names configured
-- [ ] Monitoring and logging set up
-- [ ] Backup strategy in place
+- [ ] Firestore rules deployed
+- [ ] GitHub Secrets configured
+- [ ] Branch protection rules set
 
-## Deployment Options
+---
+
+## Firebase Hosting (Primary Method)
+
+WeGo uses Firebase Hosting with automated CI/CD deployments via GitHub Actions.
+
+### Multi-Environment Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    FIREBASE ARCHITECTURE                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌──────────────────────┐     ┌──────────────────────┐         │
+│  │    DEV PROJECT       │     │   PROD PROJECT       │         │
+│  │   wego-dev-a5a13     │     │    wego-bac88        │         │
+│  ├──────────────────────┤     ├──────────────────────┤         │
+│  │ • Firebase Auth      │     │ • Firebase Auth      │         │
+│  │ • Firestore DB       │     │ • Firestore DB       │         │
+│  │ • Firebase Hosting   │     │ • Firebase Hosting   │         │
+│  │ • Storage            │     │ • Storage            │         │
+│  └──────────────────────┘     └──────────────────────┘         │
+│           ▲                             ▲                       │
+│           │                             │                       │
+│     develop branch               main branch                    │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Environment URLs
+
+| Environment | Firebase Project | Hosting URL |
+|-------------|-----------------|-------------|
+| Development | wego-dev-a5a13 | https://wego-dev-a5a13.web.app |
+| Production | wego-bac88 | https://wego-bac88.web.app |
+
+### CI/CD Pipeline
+
+The deployment is automated via `.github/workflows/deploy-web.yml`:
+
+```
+Push to develop/main
+        │
+        ▼
+┌─────────────────┐
+│  Checkout Code  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐     ┌─────────────────┐
+│ Determine Env   │────►│ develop → DEV   │
+│ (branch check)  │     │ main → PROD     │
+└────────┬────────┘     └─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Create .env.local│ (from GitHub Secrets)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Lint + Test     │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  npm run build  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Firebase Deploy │
+└─────────────────┘
+```
+
+### GitHub Secrets Required
+
+Navigate to **Repository Settings → Secrets and variables → Actions**:
+
+**Development Environment:**
+| Secret | Description |
+|--------|-------------|
+| `DEV_FIREBASE_API_KEY` | Firebase API key |
+| `DEV_FIREBASE_AUTH_DOMAIN` | `wego-dev-a5a13.firebaseapp.com` |
+| `DEV_FIREBASE_PROJECT_ID` | `wego-dev-a5a13` |
+| `DEV_FIREBASE_STORAGE_BUCKET` | `wego-dev-a5a13.firebasestorage.app` |
+| `DEV_FIREBASE_MESSAGING_SENDER_ID` | Messaging sender ID |
+| `DEV_FIREBASE_APP_ID` | Firebase app ID |
+| `FIREBASE_SERVICE_ACCOUNT_DEV` | Service account JSON |
+
+**Production Environment:**
+| Secret | Description |
+|--------|-------------|
+| `PROD_FIREBASE_*` | Same as DEV but for production |
+| `PROD_FIREBASE_MEASUREMENT_ID` | Analytics measurement ID |
+| `FIREBASE_SERVICE_ACCOUNT_PROD` | Service account JSON |
+
+### Getting Firebase Service Account
+
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Select project → **Project Settings → Service accounts**
+3. Click **Generate new private key**
+4. Copy entire JSON as GitHub Secret value
+
+### Deployment Workflow
+
+**Deploy to DEV:**
+```bash
+git checkout develop
+git checkout -b feature/my-feature
+# Make changes
+git add . && git commit -m "feat: add feature"
+git push origin feature/my-feature
+gh pr create --base develop
+# Merge PR → Auto-deploys to DEV
+```
+
+**Deploy to PROD:**
+```bash
+gh pr create --base main --head develop --title "Release to Production"
+# Merge PR → Auto-deploys to PROD
+```
+
+### Manual Deployment
+
+```bash
+cd web
+firebase use dev    # or prod
+npm run build
+firebase deploy --only hosting
+```
+
+### Firestore Rules Deployment
+
+Rules must be deployed manually:
+
+```bash
+cd web
+firebase use dev    # or prod
+firebase deploy --only firestore:rules
+```
+
+### Environment Badge
+
+The dashboard shows environment via badge:
+- **Orange "DEV"**: Development
+- **Green "PROD"**: Production
+
+---
+
+## Alternative Deployment Options
 
 ### Option 1: Docker Compose (Simple)
 
