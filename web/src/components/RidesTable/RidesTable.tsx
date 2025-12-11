@@ -147,7 +147,6 @@ export const RidesTable: FC<RidesTableProps> = ({
   const paginatedRides = sortedRides.slice(startIndex, endIndex);
 
   // Reset to page 1 when rides change and current page exceeds total
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useMemo(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
