@@ -164,6 +164,7 @@ export const DateFilter: FC<DateFilterProps> = ({ value, onChange }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const getDateRangeForOption = (option: DateFilterOption): DateRange => {
   const config = filterOptions.find((opt) => opt.id === option);
   return config ? config.getRange() : { startDate: undefined, endDate: undefined };
