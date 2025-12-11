@@ -5,7 +5,9 @@
 // Only use localhost fallback in development mode
 const getApiUrl = (): string => {
   if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
+    // Append /api/v1 to the base URL from environment
+    const baseUrl = import.meta.env.VITE_API_URL.replace(/\/$/, ''); // Remove trailing slash if any
+    return `${baseUrl}/api/v1`;
   }
   // In production without API URL, return empty to prevent localhost calls
   if (import.meta.env.PROD) {
