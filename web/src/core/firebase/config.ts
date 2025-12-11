@@ -6,15 +6,22 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, browserLocalPersistence, setPersistence } from 'firebase/auth';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 
+// Firebase config loaded from environment variables
+// NEVER hardcode API keys - they will be exposed and disabled by Google
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '***REDACTED_FIREBASE_API_KEY_1***',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'wego-bac88.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'wego-bac88',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'wego-bac88.firebasestorage.app',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '522655457786',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:522655457786:web:9cac5c387a8659609ac443',
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || 'G-JXGGSLPZVY',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
+
+// Validate that required Firebase config is present
+if (!firebaseConfig.apiKey) {
+  console.error('Firebase API key is missing. Please set VITE_FIREBASE_API_KEY in your .env file.');
+}
 
 // Initialize Firebase
 export const firebaseApp = initializeApp(firebaseConfig);
