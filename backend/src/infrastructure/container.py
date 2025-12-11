@@ -1,7 +1,6 @@
 """Dependency injection container."""
 
 from dependency_injector import containers, providers
-from google.cloud.firestore_v1 import AsyncClient
 
 from src.application.agents.use_cases import (
     ChatUseCase,

@@ -3,7 +3,7 @@
 import logging
 import sys
 from contextvars import ContextVar
-from typing import Any, Dict
+from typing import Any
 from uuid import uuid4
 
 from src.core.config import settings
@@ -30,7 +30,7 @@ class StructuredFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         """Format log record as JSON."""
-        log_data: Dict[str, Any] = {
+        log_data: dict[str, Any] = {
             "timestamp": self.formatTime(record, self.datefmt),
             "level": record.levelname,
             "logger": record.name,

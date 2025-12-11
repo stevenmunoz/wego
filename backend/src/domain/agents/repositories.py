@@ -1,7 +1,6 @@
 """Repository interfaces for agent domain."""
 
 from abc import ABC, abstractmethod
-from typing import List, Optional
 from uuid import UUID
 
 from src.domain.agents.entities import AgentExecution, Conversation, Message, Tool
@@ -16,14 +15,14 @@ class IConversationRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_id(self, conversation_id: UUID) -> Optional[Conversation]:
+    async def get_by_id(self, conversation_id: UUID) -> Conversation | None:
         """Get conversation by ID."""
         pass
 
     @abstractmethod
     async def get_by_user_id(
         self, user_id: UUID, skip: int = 0, limit: int = 100
-    ) -> List[Conversation]:
+    ) -> list[Conversation]:
         """Get conversations for a user."""
         pass
 
@@ -49,7 +48,7 @@ class IMessageRepository(ABC):
     @abstractmethod
     async def get_by_conversation_id(
         self, conversation_id: UUID, skip: int = 0, limit: int = 100
-    ) -> List[Message]:
+    ) -> list[Message]:
         """Get messages for a conversation."""
         pass
 
@@ -68,17 +67,17 @@ class IToolRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_id(self, tool_id: UUID) -> Optional[Tool]:
+    async def get_by_id(self, tool_id: UUID) -> Tool | None:
         """Get tool by ID."""
         pass
 
     @abstractmethod
-    async def get_by_name(self, name: str) -> Optional[Tool]:
+    async def get_by_name(self, name: str) -> Tool | None:
         """Get tool by name."""
         pass
 
     @abstractmethod
-    async def list_enabled(self) -> List[Tool]:
+    async def list_enabled(self) -> list[Tool]:
         """List all enabled tools."""
         pass
 
@@ -97,14 +96,14 @@ class IAgentExecutionRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_id(self, execution_id: UUID) -> Optional[AgentExecution]:
+    async def get_by_id(self, execution_id: UUID) -> AgentExecution | None:
         """Get execution by ID."""
         pass
 
     @abstractmethod
     async def get_by_conversation_id(
         self, conversation_id: UUID, skip: int = 0, limit: int = 100
-    ) -> List[AgentExecution]:
+    ) -> list[AgentExecution]:
         """Get executions for a conversation."""
         pass
 

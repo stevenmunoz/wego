@@ -1,26 +1,25 @@
 """Text parser for extracting structured data from InDriver OCR output."""
 
+import logging
 import re
 from datetime import datetime
-from typing import Optional, Tuple, Dict, Any
-import logging
 
 from .schemas import (
-    ExtractedInDriverRide,
-    Duration,
     Distance,
-    DurationUnit,
     DistanceUnit,
-    RideStatus,
-    PaymentMethod,
+    Duration,
+    DurationUnit,
+    ExtractedInDriverRide,
     FieldConfidences,
+    PaymentMethod,
+    RideStatus,
 )
 
 logger = logging.getLogger(__name__)
 
 
 # Spanish month abbreviations to month numbers (1-indexed)
-SPANISH_MONTHS: Dict[str, int] = {
+SPANISH_MONTHS: dict[str, int] = {
     "ene": 1,
     "feb": 2,
     "mar": 3,
@@ -218,7 +217,7 @@ class InDriverTextParser:
         text = text.replace("0,00", "0.00")
         return text.strip()
 
-    def _parse_date(self, text: str) -> Optional[Tuple[datetime, float]]:
+    def _parse_date(self, text: str) -> tuple[datetime, float] | None:
         """Extract date from text."""
         match = self.PATTERNS["date"].search(text)
         if match:
@@ -232,7 +231,7 @@ class InDriverTextParser:
                 logger.warning(f"Failed to parse date: {e}")
         return None
 
-    def _parse_time(self, text: str) -> Optional[Tuple[str, float]]:
+    def _parse_time(self, text: str) -> tuple[str, float] | None:
         """Extract time from text."""
         match = self.PATTERNS["time"].search(text)
         if match:
@@ -249,7 +248,7 @@ class InDriverTextParser:
             return f"{hour:02d}:{minute}", 0.95
         return None
 
-    def _parse_duration(self, text: str) -> Optional[Tuple[Duration, float]]:
+    def _parse_duration(self, text: str) -> tuple[Duration, float] | None:
         """Extract duration from text."""
         match = self.PATTERNS["duration"].search(text)
         if match:
@@ -259,7 +258,7 @@ class InDriverTextParser:
             return Duration(value=value, unit=unit), 0.9
         return None
 
-    def _parse_distance(self, text: str) -> Optional[Tuple[Distance, float]]:
+    def _parse_distance(self, text: str) -> tuple[Distance, float] | None:
         """Extract distance from text."""
         match = self.PATTERNS["distance"].search(text)
         if match:
@@ -304,7 +303,7 @@ class InDriverTextParser:
             return Distance(value=value, unit=unit), 0.9
         return None
 
-    def _parse_status(self, text: str) -> Tuple[RideStatus, float]:
+    def _parse_status(self, text: str) -> tuple[RideStatus, float]:
         """Determine ride status."""
         if self.PATTERNS["cancelled_passenger"].search(text):
             return RideStatus.CANCELLED_BY_PASSENGER, 0.95
@@ -312,7 +311,7 @@ class InDriverTextParser:
 
     def _parse_payment_method(
         self, text: str
-    ) -> Tuple[PaymentMethod, str, float]:
+    ) -> tuple[PaymentMethod, str, float]:
         """Extract payment method."""
         if self.PATTERNS["payment_nequi"].search(text):
             return PaymentMethod.NEQUI, "Nequi", 0.95
@@ -320,9 +319,9 @@ class InDriverTextParser:
             return PaymentMethod.CASH, "Pago en efectivo", 0.95
         return PaymentMethod.OTHER, "Otro", 0.5
 
-    def _parse_financial_data(self, text: str) -> Dict[str, float]:
+    def _parse_financial_data(self, text: str) -> dict[str, float]:
         """Extract all financial values from text."""
-        result: Dict[str, float] = {}
+        result: dict[str, float] = {}
 
         # Find all currency values
         currency_matches = list(self.PATTERNS["currency"].finditer(text))
@@ -396,12 +395,12 @@ class InDriverTextParser:
 
         return result
 
-    def _parse_passenger_and_destination(self, lines: list) -> Dict[str, str]:
+    def _parse_passenger_and_destination(self, lines: list) -> dict[str, str]:
         """Extract passenger name and destination address."""
-        result: Dict[str, str] = {}
+        result: dict[str, str] = {}
 
         # Look for patterns
-        for i, line in enumerate(lines):
+        for _i, line in enumerate(lines):
             line = line.strip()
 
             # Skip empty lines and known labels
@@ -438,7 +437,7 @@ class InDriverTextParser:
 
         return result
 
-    def _parse_rating(self, text: str) -> Optional[int]:
+    def _parse_rating(self, text: str) -> int | None:
         """Extract rating from text."""
         # Count stars
         star_count = text.count("★") + text.count("⭐")

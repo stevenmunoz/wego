@@ -1,7 +1,7 @@
 """DTOs for agent application layer."""
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -15,7 +15,7 @@ class MessageCreateDTO(BaseModel):
 
     role: MessageRole
     content: str
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
 
 class MessageResponseDTO(BaseModel):
@@ -25,7 +25,7 @@ class MessageResponseDTO(BaseModel):
     conversation_id: UUID
     role: MessageRole
     content: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
     created_at: datetime
 
     class Config:
@@ -37,14 +37,14 @@ class ConversationCreateDTO(BaseModel):
     """DTO for creating a conversation."""
 
     title: str
-    agent_config: Dict[str, Any] = Field(
+    agent_config: dict[str, Any] = Field(
         default_factory=lambda: {
             "role": "assistant",
             "temperature": 0.7,
             "max_tokens": 2000,
         }
     )
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
 
 class ConversationResponseDTO(BaseModel):
@@ -53,9 +53,9 @@ class ConversationResponseDTO(BaseModel):
     id: UUID
     user_id: UUID
     title: str
-    agent_config: Dict[str, Any]
+    agent_config: dict[str, Any]
     message_count: int
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
     created_at: datetime
     updated_at: datetime
 
@@ -63,7 +63,7 @@ class ConversationResponseDTO(BaseModel):
 class ConversationDetailResponseDTO(ConversationResponseDTO):
     """DTO for detailed conversation response with messages."""
 
-    messages: List[MessageResponseDTO]
+    messages: list[MessageResponseDTO]
 
 
 # Chat DTOs
@@ -71,8 +71,8 @@ class ChatRequestDTO(BaseModel):
     """DTO for chat request."""
 
     message: str
-    conversation_id: Optional[UUID] = None
-    agent_config: Optional[Dict[str, Any]] = None
+    conversation_id: UUID | None = None
+    agent_config: dict[str, Any] | None = None
     use_rag: bool = False
     stream: bool = False
 
@@ -82,8 +82,8 @@ class ChatResponseDTO(BaseModel):
 
     conversation_id: UUID
     message: MessageResponseDTO
-    usage: Optional[Dict[str, Any]] = None
-    execution_id: Optional[UUID] = None
+    usage: dict[str, Any] | None = None
+    execution_id: UUID | None = None
 
 
 # Tool DTOs
@@ -92,9 +92,9 @@ class ToolCreateDTO(BaseModel):
 
     name: str
     description: str
-    parameters_schema: Dict[str, Any]
+    parameters_schema: dict[str, Any]
     enabled: bool = True
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
 
 class ToolResponseDTO(BaseModel):
@@ -103,9 +103,9 @@ class ToolResponseDTO(BaseModel):
     id: UUID
     name: str
     description: str
-    parameters_schema: Dict[str, Any]
+    parameters_schema: dict[str, Any]
     enabled: bool
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
     class Config:
         from_attributes = True
@@ -120,14 +120,14 @@ class AgentExecutionResponseDTO(BaseModel):
     agent_role: AgentRole
     status: AgentStatus
     input_message: str
-    output_message: Optional[str]
-    tools_used: List[str]
-    tokens_used: Optional[int]
-    execution_time_ms: Optional[int]
-    error_message: Optional[str]
-    metadata: Dict[str, Any]
+    output_message: str | None
+    tools_used: list[str]
+    tokens_used: int | None
+    execution_time_ms: int | None
+    error_message: str | None
+    metadata: dict[str, Any]
     created_at: datetime
-    completed_at: Optional[datetime]
+    completed_at: datetime | None
 
     class Config:
         from_attributes = True
@@ -137,9 +137,9 @@ class AgentExecutionResponseDTO(BaseModel):
 class DocumentUploadDTO(BaseModel):
     """DTO for uploading documents to vector store."""
 
-    documents: List[str]
-    metadatas: Optional[List[Dict[str, Any]]] = None
-    conversation_id: Optional[UUID] = None
+    documents: list[str]
+    metadatas: list[dict[str, Any]] | None = None
+    conversation_id: UUID | None = None
 
 
 class DocumentSearchDTO(BaseModel):
@@ -147,12 +147,12 @@ class DocumentSearchDTO(BaseModel):
 
     query: str
     k: int = Field(default=5, ge=1, le=20)
-    filter: Optional[Dict[str, Any]] = None
+    filter: dict[str, Any] | None = None
 
 
 class DocumentSearchResultDTO(BaseModel):
     """DTO for document search results."""
 
     content: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
     score: float
