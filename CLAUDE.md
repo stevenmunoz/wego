@@ -30,12 +30,14 @@ This is the **internal management platform** for:
 - **Charts**: Recharts or Chart.js
 
 ### Backend
-- **Runtime**: Node.js 20+
-- **Framework**: Express or Fastify
-- **ORM**: Prisma
-- **Database**: PostgreSQL
-- **Auth**: JWT with refresh tokens
-- **Validation**: Zod
+- **Runtime**: Python 3.11+
+- **Framework**: FastAPI
+- **Database**: Firebase Firestore
+- **Auth**: Firebase Authentication + JWT
+- **Validation**: Pydantic
+- **OCR**: Tesseract (pytesseract)
+- **PDF Processing**: pdf2image, pdfplumber
+- **Deployment**: Google Cloud Run
 
 ### Infrastructure
 - **Monorepo**: Turborepo (if applicable)
@@ -428,23 +430,23 @@ export const useRidesStore = create<RidesState>((set) => ({
 
 ### Multi-Environment Architecture
 
-WeGo uses two separate Firebase projects for development and production:
+WeGo uses Firebase + Cloud Run for a complete full-stack deployment:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    ENVIRONMENT ARCHITECTURE                      │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  DEV Environment                                                │
-│  ├─ Firebase Project: wego-dev-a5a13                           │
-│  ├─ URL: https://wego-dev-a5a13.web.app                        │
-│  ├─ Branch: develop                                             │
+│  DEV Environment (branch: develop)                              │
+│  ├─ Frontend: https://wego-dev-a5a13.web.app (Firebase)        │
+│  ├─ Backend:  https://wego-backend-dev-xxx.run.app (Cloud Run) │
+│  ├─ Database: Firestore (wego-dev-a5a13)                       │
 │  └─ Badge: 🟠 DEV (orange)                                      │
 │                                                                 │
-│  PROD Environment                                               │
-│  ├─ Firebase Project: wego-bac88                               │
-│  ├─ URL: https://wego-bac88.web.app                            │
-│  ├─ Branch: main                                                │
+│  PROD Environment (branch: main)                                │
+│  ├─ Frontend: https://wego-bac88.web.app (Firebase)            │
+│  ├─ Backend:  https://wego-backend-prod-xxx.run.app (Cloud Run)│
+│  ├─ Database: Firestore (wego-bac88)                           │
 │  └─ Badge: 🟢 PROD (green)                                      │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
@@ -487,6 +489,7 @@ VITE_FIREBASE_APP_ID=<dev-app-id>
 
 ### GitHub Secrets Required
 
+#### Frontend (Firebase Hosting)
 | Secret | Description |
 |--------|-------------|
 | `DEV_FIREBASE_API_KEY` | Firebase API key for dev project |
@@ -498,6 +501,16 @@ VITE_FIREBASE_APP_ID=<dev-app-id>
 | `PROD_FIREBASE_*` | Same variables for production |
 | `FIREBASE_SERVICE_ACCOUNT_DEV` | Service account JSON for dev deployment |
 | `FIREBASE_SERVICE_ACCOUNT_PROD` | Service account JSON for prod deployment |
+
+#### Backend (Cloud Run)
+| Secret | Description |
+|--------|-------------|
+| `GCP_PROJECT_ID_DEV` | GCP project ID for dev (same as Firebase) |
+| `GCP_PROJECT_ID_PROD` | GCP project ID for prod (same as Firebase) |
+| `GCP_SA_KEY_DEV` | Service account JSON with Cloud Run permissions (dev) |
+| `GCP_SA_KEY_PROD` | Service account JSON with Cloud Run permissions (prod) |
+| `DEV_API_URL` | Cloud Run URL for dev backend (set after first deploy) |
+| `PROD_API_URL` | Cloud Run URL for prod backend (set after first deploy) |
 
 ### Environment Badge
 

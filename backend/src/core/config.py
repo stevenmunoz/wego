@@ -25,6 +25,7 @@ class Settings(BaseSettings):
 
     # CORS
     CORS_ORIGINS: List[str] = [
+        # Local development
         "http://localhost:3000",
         "http://localhost:3809",
         "http://localhost:3830",
@@ -34,6 +35,12 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3809",
         "http://127.0.0.1:3830",
         "http://127.0.0.1:5173",
+        # Firebase Hosting - DEV
+        "https://wego-dev-a5a13.web.app",
+        "https://wego-dev-a5a13.firebaseapp.com",
+        # Firebase Hosting - PROD
+        "https://wego-bac88.web.app",
+        "https://wego-bac88.firebaseapp.com",
     ]
 
     @field_validator("CORS_ORIGINS", mode="before")
