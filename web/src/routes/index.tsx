@@ -10,6 +10,7 @@ import { DashboardPage } from '../pages/DashboardPage';
 import { HomePage } from '../pages/HomePage';
 import { ChatPage } from '../pages/ChatPage';
 import { ConversationsPage } from '../pages/ConversationsPage';
+import { InDriverImportPage } from '../pages/InDriverImportPage';
 
 export const router = createBrowserRouter([
   {
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
       {
         path: '/conversations',
         element: <ConversationsPage />,
+      },
+      {
+        path: '/indriver-import',
+        element: <InDriverImportPage />,
       },
     ],
   },
