@@ -413,6 +413,62 @@ export const formatTime = (date: Date | string): string => {
 <p>{rides.length === 0 && 'No pending rides'}</p>
 ```
 
+## Environment Awareness
+
+### Multi-Environment Architecture
+
+WeGo uses two Firebase projects:
+- **DEV**: `wego-dev-a5a13` (branch: `develop`)
+- **PROD**: `wego-bac88` (branch: `main`)
+
+### Environment Detection
+
+```tsx
+// Detect environment from Firebase project ID
+const isDev = import.meta.env.VITE_FIREBASE_PROJECT_ID?.includes('dev');
+const envLabel = isDev ? 'DEV' : 'PROD';
+```
+
+### Environment Badge
+
+The `DashboardLayout` component displays an environment badge:
+
+```tsx
+<span className={`env-badge env-badge-${isDev ? 'dev' : 'prod'}`}>
+  {envLabel}
+</span>
+```
+
+CSS classes:
+- `.env-badge-dev` - Orange background (#f59e0b)
+- `.env-badge-prod` - Green background (#10b981)
+
+### Environment Variables
+
+All Firebase config is injected via `VITE_*` environment variables:
+
+```tsx
+// Available in import.meta.env
+VITE_FIREBASE_API_KEY
+VITE_FIREBASE_AUTH_DOMAIN
+VITE_FIREBASE_PROJECT_ID
+VITE_FIREBASE_STORAGE_BUCKET
+VITE_FIREBASE_MESSAGING_SENDER_ID
+VITE_FIREBASE_APP_ID
+VITE_FIREBASE_MEASUREMENT_ID  // PROD only
+```
+
+### Local Development
+
+Use `.env.development` (gitignored) for local development:
+
+```bash
+VITE_FIREBASE_PROJECT_ID=wego-dev-a5a13
+# ... other DEV values
+```
+
+CI/CD injects these via GitHub Secrets during deployment.
+
 ## Delivery Checklist
 
 Before considering a component complete:
