@@ -1,31 +1,71 @@
 /**
- * Dashboard page component
+ * Dashboard page - displays all driver rides
  */
 
+import { useState, useMemo } from 'react';
 import { useAuthStore } from '@/core/store/auth-store';
-import { useNavigate } from 'react-router-dom';
+import { DashboardLayout } from '@/components/DashboardLayout';
+import { RidesTable } from '@/components/RidesTable';
+import { DateFilter, type DateFilterOption } from '@/components/DateFilter';
+import { StatusFilter, type StatusFilterOption } from '@/components/StatusFilter';
+import { useDriverRides } from '@/hooks/useDriverRides';
+import './DashboardPage.css';
 
 export const DashboardPage = () => {
   const user = useAuthStore((state) => state.user);
-  const logout = useAuthStore((state) => state.logout);
-  const navigate = useNavigate();
+  const [dateFilter, setDateFilter] = useState<DateFilterOption>('all');
+  const [dateRange, setDateRange] = useState<{ startDate?: Date; endDate?: Date }>({});
+  const [statusFilter, setStatusFilter] = useState<StatusFilterOption>('all');
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const options = useMemo(
+    () => ({
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate,
+    }),
+    [dateRange.startDate, dateRange.endDate]
+  );
+
+  const { rides, isLoading, error, refetch } = useDriverRides(user?.id, options);
+
+  const handleDateFilterChange = (
+    option: DateFilterOption,
+    range: { startDate?: Date; endDate?: Date }
+  ) => {
+    setDateFilter(option);
+    setDateRange(range);
   };
 
   return (
-    <div className="dashboard-page">
-      <h1>Dashboard</h1>
-      {user && (
-        <div className="user-info">
-          <p>Welcome, {user.full_name}!</p>
-          <p>Email: {user.email}</p>
-          <p>Role: {user.role}</p>
-          <button onClick={handleLogout}>Logout</button>
-        </div>
-      )}
-    </div>
+    <DashboardLayout>
+      <div className="dashboard-page">
+        <header className="page-header">
+          <div className="page-header-content">
+            <h1 className="page-title">Mis Viajes</h1>
+            <p className="page-subtitle">
+              Historial completo de todos tus viajes registrados
+            </p>
+          </div>
+          <div className="page-header-actions">
+            <DateFilter value={dateFilter} onChange={handleDateFilterChange} />
+            <StatusFilter value={statusFilter} onChange={setStatusFilter} />
+            <button type="button" className="btn btn-outline" onClick={refetch}>
+              <span>🔄</span> Actualizar
+            </button>
+          </div>
+        </header>
+
+        {error && (
+          <div className="error-banner">
+            <span className="error-icon">!</span>
+            <span>{error}</span>
+            <button type="button" className="btn-retry" onClick={refetch}>
+              Reintentar
+            </button>
+          </div>
+        )}
+
+        <RidesTable rides={rides} isLoading={isLoading} statusFilter={statusFilter} />
+      </div>
+    </DashboardLayout>
   );
 };
