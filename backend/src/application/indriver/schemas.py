@@ -1,10 +1,10 @@
 """Pydantic schemas for InDriver extraction."""
 
+import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Dict, List
+
 from pydantic import BaseModel, Field
-import uuid
 
 
 class DurationUnit(str, Enum):
@@ -71,19 +71,19 @@ class ExtractedInDriverRide(BaseModel):
     extraction_confidence: float = 0.0
 
     # Ride Details
-    date: Optional[datetime] = None
+    date: datetime | None = None
     time: str = ""
     destination_address: str = ""
-    duration: Optional[Duration] = None
-    distance: Optional[Distance] = None
+    duration: Duration | None = None
+    distance: Distance | None = None
 
     # Passenger Info
     passenger_name: str = ""
-    rating_given: Optional[int] = Field(default=None, ge=1, le=5)
+    rating_given: int | None = Field(default=None, ge=1, le=5)
 
     # Status
     status: RideStatus = RideStatus.COMPLETED
-    cancellation_reason: Optional[str] = None
+    cancellation_reason: str | None = None
 
     # Payment
     payment_method: PaymentMethod = PaymentMethod.CASH
@@ -104,7 +104,7 @@ class ExtractedInDriverRide(BaseModel):
 
     # Metadata
     extracted_at: datetime = Field(default_factory=datetime.now)
-    raw_ocr_text: Optional[str] = None
+    raw_ocr_text: str | None = None
     field_confidences: FieldConfidences = Field(default_factory=FieldConfidences)
 
     class Config:
@@ -130,8 +130,8 @@ class ExtractionSummary(BaseModel):
 class ExtractResponse(BaseModel):
     """Response from OCR extraction endpoint."""
     success: bool
-    results: List[ExtractedInDriverRide]
-    errors: List[ExtractionError]
+    results: list[ExtractedInDriverRide]
+    errors: list[ExtractionError]
     summary: ExtractionSummary
 
 
@@ -149,15 +149,15 @@ class SkippedRide(BaseModel):
 
 class ImportRequest(BaseModel):
     """Request to import extracted rides."""
-    rides: List[ExtractedInDriverRide]
+    rides: list[ExtractedInDriverRide]
     driver_id: str
 
 
 class ImportResponse(BaseModel):
     """Response from import endpoint."""
     success: bool
-    imported: List[ImportedRide]
-    skipped: List[SkippedRide]
+    imported: list[ImportedRide]
+    skipped: list[SkippedRide]
 
 
 class ExportFormat(str, Enum):
@@ -169,5 +169,5 @@ class ExportFormat(str, Enum):
 
 class ExportRequest(BaseModel):
     """Request to export extracted rides."""
-    rides: List[ExtractedInDriverRide]
+    rides: list[ExtractedInDriverRide]
     format: ExportFormat = ExportFormat.CSV

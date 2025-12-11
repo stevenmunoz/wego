@@ -1,24 +1,21 @@
 """InDriver extraction API endpoints."""
 
 import logging
-from typing import List
-from io import StringIO
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Response
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, File, HTTPException, Response, UploadFile
 
 from src.application.indriver import (
-    InDriverExtractionService,
+    ExportRequest,
+    ExtractedInDriverRide,
     ExtractResponse,
     ImportRequest,
     ImportResponse,
-    ExportRequest,
-    ExtractedInDriverRide,
+    InDriverExtractionService,
 )
 from src.application.indriver.schemas import (
+    ExportFormat,
     ImportedRide,
     SkippedRide,
-    ExportFormat,
 )
 
 logger = logging.getLogger(__name__)
@@ -31,7 +28,7 @@ extraction_service = InDriverExtractionService()
 
 @router.post("/extract", response_model=ExtractResponse)
 async def extract_from_files(
-    files: List[UploadFile] = File(..., description="Image or PDF files to extract from"),
+    files: list[UploadFile] = File(..., description="Image or PDF files to extract from"),
 ) -> ExtractResponse:
     """
     Extract ride data from uploaded InDriver screenshots or PDFs.
@@ -47,7 +44,7 @@ async def extract_from_files(
 
     # Validate file types
     allowed_extensions = {".png", ".jpg", ".jpeg", ".pdf"}
-    file_data: List[tuple] = []
+    file_data: list[tuple] = []
 
     for file in files:
         if not file.filename:
@@ -79,7 +76,7 @@ async def extract_from_files(
         return response
     except Exception as e:
         logger.exception("Extraction failed")
-        raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}") from e
 
 
 @router.post("/import", response_model=ImportResponse)
@@ -93,8 +90,8 @@ async def import_rides(request: ImportRequest) -> ImportResponse:
     if not request.rides:
         raise HTTPException(status_code=400, detail="No rides provided")
 
-    imported: List[ImportedRide] = []
-    skipped: List[SkippedRide] = []
+    imported: list[ImportedRide] = []
+    skipped: list[SkippedRide] = []
 
     for i, ride in enumerate(request.rides):
         try:
@@ -180,7 +177,7 @@ async def export_rides(request: ExportRequest) -> Response:
 
     except Exception as e:
         logger.exception("Export failed")
-        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}") from e
 
 
 @router.get("/stats")

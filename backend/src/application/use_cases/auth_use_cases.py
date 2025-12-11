@@ -3,7 +3,12 @@
 from src.application.dtos import LoginDTO, TokenResponseDTO
 from src.core.exceptions import UnauthorizedException
 from src.core.logging import get_logger
-from src.core.security import create_access_token, create_refresh_token, decode_token, verify_token_type
+from src.core.security import (
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    verify_token_type,
+)
 from src.domain.services import IAuthenticationService
 
 logger = get_logger(__name__)

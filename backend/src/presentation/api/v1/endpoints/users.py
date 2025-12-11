@@ -1,6 +1,5 @@
 """User management endpoints."""
 
-from typing import List
 from uuid import UUID
 
 from dependency_injector.wiring import Provide, inject
@@ -68,14 +67,14 @@ async def update_current_user(
     return await use_case.execute(current_user_id, dto)
 
 
-@router.get("/", response_model=List[UserResponseDTO])
+@router.get("/", response_model=list[UserResponseDTO])
 @inject
 async def list_users(
     skip: int = 0,
     limit: int = 100,
     use_case: ListUsersUseCase = Depends(Provide[Container.list_users_use_case]),
     _: UserRole = Depends(require_admin),
-) -> List[UserResponseDTO]:
+) -> list[UserResponseDTO]:
     """
     List all users.
 

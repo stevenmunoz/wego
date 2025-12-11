@@ -1,7 +1,7 @@
 """Middleware for request/response processing."""
 
 import time
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -33,7 +33,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         start_time = time.time()
 
         logger.info(
-            f"Request started",
+            "Request started",
             extra={
                 "method": request.method,
                 "path": request.url.path,
@@ -46,7 +46,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         process_time = time.time() - start_time
 
         logger.info(
-            f"Request completed",
+            "Request completed",
             extra={
                 "method": request.method,
                 "path": request.url.path,

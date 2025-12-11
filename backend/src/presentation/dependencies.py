@@ -1,18 +1,14 @@
 """FastAPI dependencies for request handling."""
 
-from typing import AsyncGenerator
 from uuid import UUID
 
-from dependency_injector.wiring import Provide, inject
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from google.cloud.firestore_v1 import AsyncClient
 
 from src.core.exceptions import UnauthorizedException
 from src.core.security import decode_token
 from src.domain.entities import UserRole
 from src.infrastructure.container import Container
-from src.infrastructure.database import get_db
 
 # Security scheme
 security = HTTPBearer()
@@ -48,7 +44,7 @@ async def get_current_user_id(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e),
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from e
 
 
 async def get_current_user_role(
@@ -76,7 +72,7 @@ async def get_current_user_role(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e),
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from e
 
 
 async def require_admin(

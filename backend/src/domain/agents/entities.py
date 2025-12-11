@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import UUID, uuid4
 
 
@@ -44,8 +44,8 @@ class Message:
         conversation_id: UUID,
         role: MessageRole,
         content: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        created_at: Optional[datetime] = None,
+        metadata: dict[str, Any] | None = None,
+        created_at: datetime | None = None,
     ) -> None:
         self.id = id
         self.conversation_id = conversation_id
@@ -59,7 +59,7 @@ class Message:
         conversation_id: UUID,
         role: MessageRole,
         content: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> "Message":
         """Factory method to create a new message."""
         return Message(
@@ -79,11 +79,11 @@ class Conversation:
         id: UUID,
         user_id: UUID,
         title: str,
-        agent_config: Dict[str, Any],
-        messages: Optional[List[Message]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        created_at: Optional[datetime] = None,
-        updated_at: Optional[datetime] = None,
+        agent_config: dict[str, Any],
+        messages: list[Message] | None = None,
+        metadata: dict[str, Any] | None = None,
+        created_at: datetime | None = None,
+        updated_at: datetime | None = None,
     ) -> None:
         self.id = id
         self.user_id = user_id
@@ -107,8 +107,8 @@ class Conversation:
     def create(
         user_id: UUID,
         title: str,
-        agent_config: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]] = None,
+        agent_config: dict[str, Any],
+        metadata: dict[str, Any] | None = None,
     ) -> "Conversation":
         """Factory method to create a new conversation."""
         return Conversation(
@@ -128,9 +128,9 @@ class Tool:
         id: UUID,
         name: str,
         description: str,
-        parameters_schema: Dict[str, Any],
+        parameters_schema: dict[str, Any],
         enabled: bool = True,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         self.id = id
         self.name = name
@@ -143,9 +143,9 @@ class Tool:
     def create(
         name: str,
         description: str,
-        parameters_schema: Dict[str, Any],
+        parameters_schema: dict[str, Any],
         enabled: bool = True,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> "Tool":
         """Factory method to create a new tool."""
         return Tool(
@@ -168,14 +168,14 @@ class AgentExecution:
         agent_role: AgentRole,
         status: AgentStatus,
         input_message: str,
-        output_message: Optional[str] = None,
-        tools_used: Optional[List[str]] = None,
-        tokens_used: Optional[int] = None,
-        execution_time_ms: Optional[int] = None,
-        error_message: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        created_at: Optional[datetime] = None,
-        completed_at: Optional[datetime] = None,
+        output_message: str | None = None,
+        tools_used: list[str] | None = None,
+        tokens_used: int | None = None,
+        execution_time_ms: int | None = None,
+        error_message: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        created_at: datetime | None = None,
+        completed_at: datetime | None = None,
     ) -> None:
         self.id = id
         self.conversation_id = conversation_id
@@ -210,7 +210,7 @@ class AgentExecution:
         conversation_id: UUID,
         agent_role: AgentRole,
         input_message: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> "AgentExecution":
         """Factory method to create a new agent execution."""
         return AgentExecution(

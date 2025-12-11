@@ -1,9 +1,7 @@
 """Tool executor implementation."""
 
 import json
-from typing import Any, Dict
-
-import httpx
+from typing import Any
 
 from src.core.logging import get_logger
 
@@ -14,7 +12,7 @@ class ToolExecutor:
     """Executes tools/functions for agent."""
 
     def __init__(self) -> None:
-        self._tools: Dict[str, Any] = {}
+        self._tools: dict[str, Any] = {}
         self._register_default_tools()
 
     def _register_default_tools(self) -> None:
@@ -30,8 +28,8 @@ class ToolExecutor:
     async def execute_tool(
         self,
         tool_name: str,
-        parameters: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        parameters: dict[str, Any],
+    ) -> dict[str, Any]:
         """Execute a tool with given parameters."""
         if tool_name not in self._tools:
             return {
@@ -62,7 +60,7 @@ class ToolExecutor:
                 "success": False,
             }
 
-    async def _web_search(self, query: str, num_results: int = 5) -> Dict[str, Any]:
+    async def _web_search(self, query: str, num_results: int = 5) -> dict[str, Any]:
         """Perform web search (mock implementation)."""
         # In production, integrate with a real search API
         return {
@@ -77,7 +75,7 @@ class ToolExecutor:
             ],
         }
 
-    async def _calculator(self, expression: str) -> Dict[str, Any]:
+    async def _calculator(self, expression: str) -> dict[str, Any]:
         """Evaluate mathematical expression."""
         try:
             # Simple safe evaluation (in production, use a proper math parser)
@@ -96,7 +94,7 @@ class ToolExecutor:
         self,
         location: str,
         unit: str = "celsius",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get current weather (mock implementation)."""
         # In production, integrate with a weather API
         return {

@@ -1,7 +1,6 @@
 """Vector store implementations for RAG."""
 
-import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -21,9 +20,9 @@ class ChromaDBVectorStore:
 
     async def add_documents(
         self,
-        documents: List[str],
-        metadatas: Optional[List[Dict[str, Any]]] = None,
-        ids: Optional[List[str]] = None,
+        documents: list[str],
+        metadatas: list[dict[str, Any]] | None = None,
+        ids: list[str] | None = None,
     ) -> None:
         """Add documents to ChromaDB."""
         if not ids:
@@ -51,8 +50,8 @@ class ChromaDBVectorStore:
         self,
         query: str,
         k: int = 5,
-        filter: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        filter: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """Search for similar documents in ChromaDB."""
         payload = {
             "query_texts": [query],
@@ -94,9 +93,9 @@ class PineconeVectorStore:
 
     async def add_documents(
         self,
-        documents: List[str],
-        metadatas: Optional[List[Dict[str, Any]]] = None,
-        ids: Optional[List[str]] = None,
+        documents: list[str],
+        metadatas: list[dict[str, Any]] | None = None,
+        ids: list[str] | None = None,
     ) -> None:
         """Add documents to Pinecone (requires embedding generation)."""
         # Note: This is a simplified version. In production, you'd:
@@ -109,8 +108,8 @@ class PineconeVectorStore:
         self,
         query: str,
         k: int = 5,
-        filter: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        filter: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """Search Pinecone (requires embedding generation)."""
         # Note: This is a simplified version. In production, you'd:
         # 1. Generate query embedding
@@ -123,13 +122,13 @@ class InMemoryVectorStore:
     """In-memory vector store for development/testing."""
 
     def __init__(self) -> None:
-        self.documents: List[Dict[str, Any]] = []
+        self.documents: list[dict[str, Any]] = []
 
     async def add_documents(
         self,
-        documents: List[str],
-        metadatas: Optional[List[Dict[str, Any]]] = None,
-        ids: Optional[List[str]] = None,
+        documents: list[str],
+        metadatas: list[dict[str, Any]] | None = None,
+        ids: list[str] | None = None,
     ) -> None:
         """Add documents to in-memory store."""
         if not metadatas:
@@ -151,8 +150,8 @@ class InMemoryVectorStore:
         self,
         query: str,
         k: int = 5,
-        filter: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        filter: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """Simple keyword search in in-memory store."""
         query_lower = query.lower()
         results = []

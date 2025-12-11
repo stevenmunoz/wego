@@ -1,6 +1,5 @@
 """Chat endpoints for agent interactions."""
 
-from typing import List
 from uuid import UUID
 
 from dependency_injector.wiring import Provide, inject
@@ -44,7 +43,7 @@ async def create_conversation(
     return await use_case.execute(current_user_id, dto)
 
 
-@router.get("/conversations", response_model=List[ConversationResponseDTO])
+@router.get("/conversations", response_model=list[ConversationResponseDTO])
 @inject
 async def list_conversations(
     skip: int = 0,
@@ -52,7 +51,7 @@ async def list_conversations(
     current_user_id: UUID = Depends(get_current_user_id),
     db: AsyncClient = Depends(get_db),
     use_case: ListConversationsUseCase = Depends(Provide[Container.list_conversations_use_case]),
-) -> List[ConversationResponseDTO]:
+) -> list[ConversationResponseDTO]:
     """
     List user's conversations.
 

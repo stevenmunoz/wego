@@ -1,7 +1,7 @@
 """Security utilities for authentication and authorization."""
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -23,7 +23,7 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
     """Create JWT access token."""
     to_encode = data.copy()
 
@@ -46,7 +46,7 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
     return encoded_jwt
 
 
-def create_refresh_token(data: Dict[str, Any]) -> str:
+def create_refresh_token(data: dict[str, Any]) -> str:
     """Create JWT refresh token."""
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
@@ -65,7 +65,7 @@ def create_refresh_token(data: Dict[str, Any]) -> str:
     return encoded_jwt
 
 
-def decode_token(token: str) -> Dict[str, Any]:
+def decode_token(token: str) -> dict[str, Any]:
     """Decode and verify JWT token."""
     try:
         payload = jwt.decode(
@@ -75,10 +75,10 @@ def decode_token(token: str) -> Dict[str, Any]:
         )
         return payload
     except JWTError as e:
-        raise UnauthorizedException(f"Invalid token: {str(e)}")
+        raise UnauthorizedException(f"Invalid token: {str(e)}") from e
 
 
-def verify_token_type(payload: Dict[str, Any], expected_type: str) -> None:
+def verify_token_type(payload: dict[str, Any], expected_type: str) -> None:
     """Verify token type matches expected type."""
     token_type = payload.get("type")
     if token_type != expected_type:

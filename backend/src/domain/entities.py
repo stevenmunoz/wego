@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 from uuid import UUID, uuid4
 
 
@@ -34,8 +33,8 @@ class User:
         role: UserRole = UserRole.USER,
         status: UserStatus = UserStatus.ACTIVE,
         is_verified: bool = False,
-        created_at: Optional[datetime] = None,
-        updated_at: Optional[datetime] = None,
+        created_at: datetime | None = None,
+        updated_at: datetime | None = None,
     ) -> None:
         self.id = id
         self.email = email

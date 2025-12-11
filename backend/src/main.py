@@ -1,7 +1,7 @@
 """Main FastAPI application."""
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +10,7 @@ from src.core.config import settings
 from src.core.exceptions import AppException
 from src.core.logging import setup_logging
 from src.infrastructure.container import Container
-from src.infrastructure.database import initialize_firebase, close_firebase
+from src.infrastructure.database import close_firebase, initialize_firebase
 from src.presentation.api.v1.router import api_router
 from src.presentation.exception_handlers import app_exception_handler, unhandled_exception_handler
 from src.presentation.middleware import CorrelationIdMiddleware, LoggingMiddleware
