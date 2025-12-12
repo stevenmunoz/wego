@@ -25,7 +25,7 @@ export const DashboardPage = () => {
     [dateRange.startDate, dateRange.endDate]
   );
 
-  const { rides, isLoading, error, refetch } = useDriverRides(user?.id, options);
+  const { rides, isLoading, error, refetch, updateRide } = useDriverRides(user?.id, options);
 
   const handleDateFilterChange = (
     option: DateFilterOption,
@@ -62,7 +62,12 @@ export const DashboardPage = () => {
           </div>
         )}
 
-        <RidesTable rides={rides} isLoading={isLoading} statusFilter={statusFilter} />
+        <RidesTable
+          rides={rides}
+          isLoading={isLoading}
+          statusFilter={statusFilter}
+          onUpdateRide={updateRide}
+        />
       </div>
     </DashboardLayout>
   );

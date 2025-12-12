@@ -1,10 +1,10 @@
 /**
  * Rides Table Component
  *
- * Displays ride data in a read-only table format for dashboard view
+ * Displays ride data in an editable table format for dashboard view
  */
 
-import { type FC, useState, useMemo } from 'react';
+import { type FC, useState, useMemo, useRef, useEffect } from 'react';
 import type { FirestoreInDriverRide } from '@/core/firebase';
 import type { StatusFilterOption } from '@/components/StatusFilter';
 import './RidesTable.css';
@@ -12,12 +12,209 @@ import './RidesTable.css';
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 const DEFAULT_PAGE_SIZE = 10;
 
+type EditableField =
+  | 'date'
+  | 'time'
+  | 'duration'
+  | 'distance'
+  | 'base_fare'
+  | 'total_paid'
+  | 'service_commission'
+  | 'service_tax'
+  | 'net_earnings'
+  | 'status';
+
+interface EditingState {
+  rideId: string;
+  field: EditableField;
+}
+
 interface RidesTableProps {
   rides: FirestoreInDriverRide[];
   isLoading: boolean;
   onImportClick?: () => void;
+  onUpdateRide?: (id: string, updates: Partial<FirestoreInDriverRide>) => void;
   statusFilter?: StatusFilterOption;
 }
+
+// Helper to convert Firestore Timestamp or string date to YYYY-MM-DD for HTML date input
+const toInputDateFormat = (timestamp: { toDate: () => Date } | string | null): string => {
+  if (!timestamp) return '';
+  try {
+    if (typeof timestamp === 'string') {
+      // Already in string format (YYYY-MM-DD), return as-is
+      return timestamp;
+    }
+    const date = timestamp.toDate();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  } catch {
+    return '';
+  }
+};
+
+// Editable Cell Component for inline editing
+interface EditableCellProps {
+  value: string | number;
+  displayValue: string;
+  isEditing: boolean;
+  type: 'text' | 'number' | 'date' | 'time' | 'select';
+  options?: { value: string; label: string }[];
+  onStartEdit: () => void;
+  onSave: (value: string | number) => void;
+  onCancel: () => void;
+  className?: string;
+  disabled?: boolean;
+}
+
+const EditableCell: FC<EditableCellProps> = ({
+  value,
+  displayValue,
+  isEditing,
+  type,
+  options,
+  onStartEdit,
+  onSave,
+  onCancel,
+  className = '',
+  disabled = false,
+}) => {
+  const getInitialValue = () => {
+    return String(value);
+  };
+
+  const [editValue, setEditValue] = useState(getInitialValue);
+  const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+
+      if (inputRef.current instanceof HTMLInputElement) {
+        if (type === 'date' || type === 'time') {
+          setTimeout(() => {
+            try {
+              (inputRef.current as HTMLInputElement)?.showPicker();
+            } catch {
+              // showPicker() may not be supported
+            }
+          }, 50);
+        } else {
+          inputRef.current.select();
+        }
+      } else if (inputRef.current instanceof HTMLSelectElement && type === 'select') {
+        setTimeout(() => {
+          try {
+            (inputRef.current as HTMLSelectElement)?.showPicker();
+          } catch {
+            inputRef.current?.click();
+          }
+        }, 50);
+      }
+    }
+  }, [isEditing, type]);
+
+  useEffect(() => {
+    setEditValue(String(value));
+  }, [value]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSave();
+    } else if (e.key === 'Escape') {
+      onCancel();
+    }
+  };
+
+  const handleSave = () => {
+    if (type === 'number') {
+      const numValue = parseFloat(editValue.replace(/[^\d.-]/g, ''));
+      onSave(isNaN(numValue) ? 0 : numValue);
+    } else {
+      onSave(editValue);
+    }
+  };
+
+  if (disabled) {
+    return <span className={className}>{displayValue}</span>;
+  }
+
+  if (isEditing) {
+    if (type === 'select' && options) {
+      return (
+        <select
+          ref={inputRef as React.RefObject<HTMLSelectElement>}
+          value={editValue}
+          onChange={(e) => {
+            setEditValue(e.target.value);
+            onSave(e.target.value);
+          }}
+          onBlur={onCancel}
+          onKeyDown={handleKeyDown}
+          className="editable-input editable-select"
+        >
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    if (type === 'date') {
+      return (
+        <input
+          ref={inputRef as React.RefObject<HTMLInputElement>}
+          type="date"
+          value={editValue}
+          onChange={(e) => {
+            setEditValue(e.target.value);
+            if (e.target.value) {
+              onSave(e.target.value);
+            }
+          }}
+          onBlur={() => {
+            if (editValue) {
+              handleSave();
+            } else {
+              onCancel();
+            }
+          }}
+          onKeyDown={handleKeyDown}
+          className="editable-input editable-date"
+        />
+      );
+    }
+
+    const getInputClassName = () => {
+      if (type === 'number') return 'editable-input editable-number';
+      if (type === 'time') return 'editable-input editable-time';
+      return 'editable-input';
+    };
+
+    return (
+      <input
+        ref={inputRef as React.RefObject<HTMLInputElement>}
+        type={type === 'number' ? 'text' : type}
+        value={editValue}
+        onChange={(e) => setEditValue(e.target.value)}
+        onBlur={handleSave}
+        onKeyDown={handleKeyDown}
+        className={getInputClassName()}
+      />
+    );
+  }
+
+  return (
+    <span className={`editable-cell ${className}`} onClick={onStartEdit} title="Haz clic para editar">
+      {displayValue}
+      <span className="edit-icon">✎</span>
+    </span>
+  );
+};
 
 // Format helpers
 const formatCurrency = (value: number): string => {
@@ -29,9 +226,25 @@ const formatCurrency = (value: number): string => {
   }).format(value);
 };
 
-const formatDate = (timestamp: { toDate: () => Date } | null): string => {
+const formatDate = (timestamp: { toDate: () => Date } | string | null): string => {
   if (!timestamp) return '-';
-  const date = timestamp.toDate();
+  let date: Date;
+  if (typeof timestamp === 'string') {
+    // Handle string date (YYYY-MM-DD from HTML input after optimistic update)
+    // Parse manually to avoid timezone issues
+    const isoMatch = timestamp.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) {
+      const [, year, month, day] = isoMatch;
+      // Create date at noon local time to avoid timezone edge cases
+      date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0);
+    } else {
+      // Fallback with noon time to avoid timezone issues
+      date = new Date(timestamp + 'T12:00:00');
+    }
+  } else {
+    // Handle Firestore Timestamp
+    date = timestamp.toDate();
+  }
   return new Intl.DateTimeFormat('es-CO', {
     day: '2-digit',
     month: 'short',
@@ -76,16 +289,31 @@ interface Totals {
   totalFare: number;
   totalCommission: number;
   totalTax: number;
+  totalPaid: number;
   totalEarnings: number;
   completedCount: number;
   cancelledCount: number;
 }
 
+const getDateTimestamp = (date: { toDate: () => Date } | string | null | undefined): number => {
+  if (!date) return 0;
+  if (typeof date === 'string') {
+    // Parse YYYY-MM-DD at noon to avoid timezone issues
+    const isoMatch = date.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) {
+      const [, year, month, day] = isoMatch;
+      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0).getTime();
+    }
+    return new Date(date + 'T12:00:00').getTime();
+  }
+  return date.toDate?.()?.getTime() ?? 0;
+};
+
 const sortRidesByDateAndTime = (rides: FirestoreInDriverRide[]): FirestoreInDriverRide[] => {
   return [...rides].sort((a, b) => {
     // First compare by date
-    const dateA = a.date?.toDate?.()?.getTime() ?? 0;
-    const dateB = b.date?.toDate?.()?.getTime() ?? 0;
+    const dateA = getDateTimestamp(a.date);
+    const dateB = getDateTimestamp(b.date);
     if (dateA !== dateB) {
       return dateA - dateB; // ascending by date
     }
@@ -102,6 +330,7 @@ const calculateTotals = (rides: FirestoreInDriverRide[]): Totals => {
       totalFare: acc.totalFare + (ride.base_fare || 0),
       totalCommission: acc.totalCommission + (ride.service_commission || 0),
       totalTax: acc.totalTax + (ride.service_tax || 0),
+      totalPaid: acc.totalPaid + (ride.total_paid || 0),
       totalEarnings: acc.totalEarnings + (ride.net_earnings || 0),
       completedCount: acc.completedCount + (ride.status === 'completed' ? 1 : 0),
       cancelledCount: acc.cancelledCount + (ride.status !== 'completed' ? 1 : 0),
@@ -110,6 +339,7 @@ const calculateTotals = (rides: FirestoreInDriverRide[]): Totals => {
       totalFare: 0,
       totalCommission: 0,
       totalTax: 0,
+      totalPaid: 0,
       totalEarnings: 0,
       completedCount: 0,
       cancelledCount: 0,
@@ -121,10 +351,89 @@ export const RidesTable: FC<RidesTableProps> = ({
   rides,
   isLoading,
   onImportClick,
+  onUpdateRide,
   statusFilter = 'all',
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [editing, setEditing] = useState<EditingState | null>(null);
+
+  const startEditing = (rideId: string, field: EditableField) => {
+    if (onUpdateRide) {
+      setEditing({ rideId, field });
+    }
+  };
+
+  const stopEditing = () => {
+    setEditing(null);
+  };
+
+  const isEditingField = (rideId: string, field: EditableField) => {
+    return editing?.rideId === rideId && editing?.field === field;
+  };
+
+  const handleUpdateField = (
+    ride: FirestoreInDriverRide,
+    field: EditableField,
+    value: string | number
+  ) => {
+    if (!onUpdateRide) return;
+
+    const updates: Partial<FirestoreInDriverRide> = {};
+
+    switch (field) {
+      case 'date':
+        // Pass the date string - Firestore will convert it
+        updates.date = value as unknown as FirestoreInDriverRide['date'];
+        break;
+      case 'time':
+        updates.time = value as string;
+        break;
+      case 'duration':
+        updates.duration_value = value as number;
+        break;
+      case 'distance':
+        updates.distance_value = value as number;
+        break;
+      case 'base_fare':
+        updates.base_fare = value as number;
+        updates.total_received = value as number;
+        // Recalculate net earnings
+        updates.net_earnings = (value as number) - ride.service_commission - ride.service_tax;
+        break;
+      case 'total_paid':
+        updates.total_paid = value as number;
+        // Adjust commission to match the new total (keep tax unchanged)
+        updates.service_commission = (value as number) - ride.service_tax;
+        // Recalculate net earnings
+        updates.net_earnings = ride.base_fare - (value as number);
+        break;
+      case 'service_commission':
+        updates.service_commission = value as number;
+        updates.total_paid = (value as number) + ride.service_tax;
+        // Recalculate net earnings
+        updates.net_earnings = ride.base_fare - (value as number) - ride.service_tax;
+        break;
+      case 'service_tax':
+        updates.service_tax = value as number;
+        updates.total_paid = ride.service_commission + (value as number);
+        // Recalculate net earnings
+        updates.net_earnings = ride.base_fare - ride.service_commission - (value as number);
+        break;
+      case 'net_earnings':
+        updates.net_earnings = value as number;
+        // Adjust base_fare to match the new net earnings (keep deductions unchanged)
+        updates.base_fare = (value as number) + ride.service_commission + ride.service_tax;
+        updates.total_received = updates.base_fare;
+        break;
+      case 'status':
+        updates.status = value as string;
+        break;
+    }
+
+    onUpdateRide(ride.id, updates);
+    stopEditing();
+  };
 
   // Filter rides by status
   const filteredRides = useMemo(() => {
@@ -236,7 +545,7 @@ export const RidesTable: FC<RidesTableProps> = ({
         <div className="summary-card">
           <span className="summary-label">Total Pagado</span>
           <span className="summary-value">
-            {formatCurrency(totals.totalCommission + totals.totalTax)}
+            {formatCurrency(totals.totalPaid)}
           </span>
         </div>
         <div className="summary-card">
@@ -273,37 +582,141 @@ export const RidesTable: FC<RidesTableProps> = ({
             {paginatedRides.map((ride, index) => (
               <tr key={ride.id} className={ride.status !== 'completed' ? 'row-cancelled' : ''}>
                 <td className="cell-index">{startIndex + index + 1}</td>
-                <td className="cell-date">{formatDate(ride.date)}</td>
-                <td className="cell-time">{formatTime(ride.time)}</td>
+                <td className="cell-date">
+                  <EditableCell
+                    value={toInputDateFormat(ride.date)}
+                    displayValue={formatDate(ride.date)}
+                    isEditing={isEditingField(ride.id, 'date')}
+                    type="date"
+                    onStartEdit={() => startEditing(ride.id, 'date')}
+                    onSave={(value) => handleUpdateField(ride, 'date', value)}
+                    onCancel={stopEditing}
+                    disabled={!onUpdateRide}
+                  />
+                </td>
+                <td className="cell-time">
+                  <EditableCell
+                    value={ride.time}
+                    displayValue={formatTime(ride.time)}
+                    isEditing={isEditingField(ride.id, 'time')}
+                    type="time"
+                    onStartEdit={() => startEditing(ride.id, 'time')}
+                    onSave={(value) => handleUpdateField(ride, 'time', value)}
+                    onCancel={stopEditing}
+                    disabled={!onUpdateRide}
+                  />
+                </td>
                 <td className="cell-duration">
-                  {formatDuration(ride.duration_value, ride.duration_unit)}
+                  <EditableCell
+                    value={ride.duration_value ?? 0}
+                    displayValue={formatDuration(ride.duration_value, ride.duration_unit)}
+                    isEditing={isEditingField(ride.id, 'duration')}
+                    type="number"
+                    onStartEdit={() => startEditing(ride.id, 'duration')}
+                    onSave={(value) => handleUpdateField(ride, 'duration', value)}
+                    onCancel={stopEditing}
+                    disabled={!onUpdateRide}
+                  />
                 </td>
                 <td className="cell-distance">
-                  {formatDistance(ride.distance_value, ride.distance_unit)}
+                  <EditableCell
+                    value={ride.distance_value ?? 0}
+                    displayValue={formatDistance(ride.distance_value, ride.distance_unit)}
+                    isEditing={isEditingField(ride.id, 'distance')}
+                    type="number"
+                    onStartEdit={() => startEditing(ride.id, 'distance')}
+                    onSave={(value) => handleUpdateField(ride, 'distance', value)}
+                    onCancel={stopEditing}
+                    disabled={!onUpdateRide}
+                  />
                 </td>
                 <td className="cell-status">
-                  <span className={`status-badge status-${getStatusColor(ride.status)}`}>
-                    {getStatusLabel(ride.status)}
-                  </span>
+                  <EditableCell
+                    value={ride.status}
+                    displayValue={getStatusLabel(ride.status)}
+                    isEditing={isEditingField(ride.id, 'status')}
+                    type="select"
+                    options={[
+                      { value: 'completed', label: 'Completado' },
+                      { value: 'cancelled_by_passenger', label: 'Cancelado (pasajero)' },
+                      { value: 'cancelled_by_driver', label: 'Cancelado (conductor)' },
+                    ]}
+                    onStartEdit={() => startEditing(ride.id, 'status')}
+                    onSave={(value) => handleUpdateField(ride, 'status', value)}
+                    onCancel={stopEditing}
+                    className={`status-badge status-${getStatusColor(ride.status)}`}
+                    disabled={!onUpdateRide}
+                  />
                 </td>
                 <td className="cell-income">
                   <div className="income-breakdown">
-                    <span className="income-value">{formatCurrency(ride.base_fare)}</span>
+                    <EditableCell
+                      value={ride.base_fare}
+                      displayValue={formatCurrency(ride.base_fare)}
+                      isEditing={isEditingField(ride.id, 'base_fare')}
+                      type="number"
+                      onStartEdit={() => startEditing(ride.id, 'base_fare')}
+                      onSave={(value) => handleUpdateField(ride, 'base_fare', value)}
+                      onCancel={stopEditing}
+                      className="income-value"
+                      disabled={!onUpdateRide}
+                    />
                     <span className="income-detail">{ride.payment_method_label || 'Efectivo'}</span>
                   </div>
                 </td>
                 <td className="cell-deductions">
                   <div className="deductions-breakdown">
-                    <span className="deduction-value">{formatCurrency(ride.total_paid)}</span>
+                    <EditableCell
+                      value={ride.total_paid}
+                      displayValue={formatCurrency(ride.total_paid)}
+                      isEditing={isEditingField(ride.id, 'total_paid')}
+                      type="number"
+                      onStartEdit={() => startEditing(ride.id, 'total_paid')}
+                      onSave={(value) => handleUpdateField(ride, 'total_paid', value)}
+                      onCancel={stopEditing}
+                      className="deduction-value"
+                      disabled={!onUpdateRide}
+                    />
                     {ride.service_commission > 0 && (
-                      <span className="deduction-detail">
-                        Comision: {formatCurrency(ride.service_commission)}
-                      </span>
+                      <EditableCell
+                        value={ride.service_commission}
+                        displayValue={`Comisión: ${formatCurrency(ride.service_commission)}`}
+                        isEditing={isEditingField(ride.id, 'service_commission')}
+                        type="number"
+                        onStartEdit={() => startEditing(ride.id, 'service_commission')}
+                        onSave={(value) => handleUpdateField(ride, 'service_commission', value)}
+                        onCancel={stopEditing}
+                        className="deduction-detail"
+                        disabled={!onUpdateRide}
+                      />
+                    )}
+                    {ride.service_tax > 0 && (
+                      <EditableCell
+                        value={ride.service_tax}
+                        displayValue={`IVA: ${formatCurrency(ride.service_tax)}`}
+                        isEditing={isEditingField(ride.id, 'service_tax')}
+                        type="number"
+                        onStartEdit={() => startEditing(ride.id, 'service_tax')}
+                        onSave={(value) => handleUpdateField(ride, 'service_tax', value)}
+                        onCancel={stopEditing}
+                        className="deduction-detail"
+                        disabled={!onUpdateRide}
+                      />
                     )}
                   </div>
                 </td>
                 <td className="cell-net">
-                  <span className="net-value">{formatCurrency(ride.net_earnings)}</span>
+                  <EditableCell
+                    value={ride.net_earnings}
+                    displayValue={formatCurrency(ride.net_earnings)}
+                    isEditing={isEditingField(ride.id, 'net_earnings')}
+                    type="number"
+                    onStartEdit={() => startEditing(ride.id, 'net_earnings')}
+                    onSave={(value) => handleUpdateField(ride, 'net_earnings', value)}
+                    onCancel={stopEditing}
+                    className="net-value"
+                    disabled={!onUpdateRide}
+                  />
                 </td>
               </tr>
             ))}
@@ -320,7 +733,7 @@ export const RidesTable: FC<RidesTableProps> = ({
                 <strong>{formatCurrency(totals.totalFare)}</strong>
               </td>
               <td className="cell-deductions">
-                <strong>{formatCurrency(totals.totalCommission + totals.totalTax)}</strong>
+                <strong>{formatCurrency(totals.totalPaid)}</strong>
               </td>
               <td className="cell-net">
                 <strong>{formatCurrency(totals.totalEarnings)}</strong>
