@@ -209,7 +209,11 @@ const EditableCell: FC<EditableCellProps> = ({
   }
 
   return (
-    <span className={`editable-cell ${className}`} onClick={onStartEdit} title="Haz clic para editar">
+    <span
+      className={`editable-cell ${className}`}
+      onClick={onStartEdit}
+      title="Haz clic para editar"
+    >
       {displayValue}
       <span className="edit-icon">✎</span>
     </span>
@@ -544,9 +548,7 @@ export const RidesTable: FC<RidesTableProps> = ({
         </div>
         <div className="summary-card">
           <span className="summary-label">Total Pagado</span>
-          <span className="summary-value">
-            {formatCurrency(totals.totalPaid)}
-          </span>
+          <span className="summary-value">{formatCurrency(totals.totalPaid)}</span>
         </div>
         <div className="summary-card">
           <span className="summary-label">Ganancias Netas</span>

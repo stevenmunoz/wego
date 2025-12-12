@@ -3,11 +3,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import {
-  getInDriverRides,
-  updateInDriverRide,
-  type FirestoreInDriverRide,
-} from '@/core/firebase';
+import { getInDriverRides, updateInDriverRide, type FirestoreInDriverRide } from '@/core/firebase';
 
 interface UseDriverRidesOptions {
   startDate?: Date;
