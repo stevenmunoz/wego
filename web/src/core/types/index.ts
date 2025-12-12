@@ -60,3 +60,5 @@ export interface UserCreateRequest {
 export interface UserUpdateRequest {
   full_name: string;
 }
+
+export * from './vehicle.types';
