@@ -512,6 +512,26 @@ VITE_FIREBASE_APP_ID=<dev-app-id>
 | `DEV_API_URL` | Cloud Run URL for dev backend (set after first deploy) |
 | `PROD_API_URL` | Cloud Run URL for prod backend (set after first deploy) |
 
+### Service Account IAM Roles
+
+The service accounts used in `FIREBASE_SERVICE_ACCOUNT_DEV` and `FIREBASE_SERVICE_ACCOUNT_PROD` must have the following IAM roles in their respective GCP projects:
+
+| Role | Purpose |
+|------|---------|
+| **Service Usage Admin** | Check and enable API status during deployment |
+| **Firebase Rules Admin** | Deploy Firestore security rules |
+| **Cloud Datastore Index Admin** | Deploy Firestore indexes |
+| **Cloud Storage for Firebase Admin** | Deploy Firebase Storage security rules |
+| **Firebase Hosting Admin** | Deploy to Firebase Hosting |
+| **Service Account User** | Act as the service account |
+
+**To configure IAM roles:**
+1. Go to [GCP IAM Console](https://console.cloud.google.com/iam-admin/iam)
+2. Select the project (wego-dev-a5a13 for DEV, wego-bac88 for PROD)
+3. Find the service account (e.g., `github-actions@wego-dev-a5a13.iam.gserviceaccount.com`)
+4. Click "Edit" and add all required roles listed above
+5. Save changes (IAM propagation may take a few minutes)
+
 ### Environment Badge
 
 The dashboard displays an environment badge in the sidebar:
