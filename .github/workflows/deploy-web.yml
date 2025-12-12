@@ -6,6 +6,7 @@ on:
     paths:
       - 'web/**'
       - '.github/workflows/deploy-web.yml'
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
   deploy:
@@ -104,6 +105,16 @@ jobs:
       - name: Build
         working-directory: ./web
         run: npm run build
+
+      - name: Deploy Firebase Rules and Indexes
+        working-directory: ./web
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ steps.env.outputs.environment == 'production' && secrets.FIREBASE_SERVICE_ACCOUNT_PROD || secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
+        run: |
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/firebase-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-key.json
+          npx firebase-tools deploy --only firestore:rules,firestore:indexes,storage --project ${{ steps.env.outputs.firebase_project_id }} --non-interactive
+          rm /tmp/firebase-key.json
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0

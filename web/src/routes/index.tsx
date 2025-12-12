@@ -7,6 +7,7 @@ import { ProtectedRoute } from './ProtectedRoute';
 import { LoginPage } from '../pages/LoginPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import { VehiclesPage } from '../pages/VehiclesPage';
 import { HomePage } from '../pages/HomePage';
 import { ChatPage } from '../pages/ChatPage';
 import { ConversationsPage } from '../pages/ConversationsPage';
@@ -31,6 +32,10 @@ export const router = createBrowserRouter([
       {
         path: '/dashboard',
         element: <DashboardPage />,
+      },
+      {
+        path: '/vehicles',
+        element: <VehiclesPage />,
       },
       {
         path: '/chat',

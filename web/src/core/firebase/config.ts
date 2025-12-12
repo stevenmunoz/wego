@@ -5,6 +5,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, browserLocalPersistence, setPersistence } from 'firebase/auth';
 import { getAnalytics, isSupported } from 'firebase/analytics';
+import { getStorage } from 'firebase/storage';
 
 // Firebase config loaded from environment variables
 // NEVER hardcode API keys - they will be exposed and disabled by Google
@@ -41,3 +42,6 @@ export const initAnalytics = async () => {
   }
   return null;
 };
+
+// Initialize Firebase Storage
+export const firebaseStorage = getStorage(firebaseApp);
