@@ -5,8 +5,12 @@
 // Only use localhost fallback in development mode
 const getApiUrl = (): string => {
   if (import.meta.env.VITE_API_URL) {
-    // Append /api/v1 to the base URL from environment
-    const baseUrl = import.meta.env.VITE_API_URL.replace(/\/$/, ''); // Remove trailing slash if any
+    // Remove trailing slash if any
+    const baseUrl = import.meta.env.VITE_API_URL.replace(/\/$/, '');
+    // Only append /api/v1 if it's not already in the URL
+    if (baseUrl.endsWith('/api/v1')) {
+      return baseUrl;
+    }
     return `${baseUrl}/api/v1`;
   }
   // In production without API URL, return empty to prevent localhost calls
