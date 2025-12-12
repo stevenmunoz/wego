@@ -15,4 +15,10 @@ export {
   getIdToken,
   type FirebaseAuthUser,
 } from './auth';
-export { db, saveInDriverRides, getInDriverRides, type FirestoreInDriverRide } from './firestore';
+export {
+  db,
+  saveInDriverRides,
+  getInDriverRides,
+  updateInDriverRide,
+  type FirestoreInDriverRide,
+} from './firestore';
