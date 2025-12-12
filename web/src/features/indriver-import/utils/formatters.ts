@@ -17,17 +17,34 @@ export const formatCurrency = (amount: number): string => {
 };
 
 /**
- * Format date in Spanish Colombian format
+ * Format date in Spanish Colombian format (DD/MM/YYYY)
+ * Handles YYYY-MM-DD input without timezone conversion
  */
 export const formatDate = (dateStr: string | null): string => {
   if (!dateStr) return '-';
   try {
-    const date = new Date(dateStr);
-    return new Intl.DateTimeFormat('es-CO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(date);
+    // If already in DD/MM/YYYY format, return as-is
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+      return dateStr;
+    }
+
+    // Handle YYYY-MM-DD format (from date picker) - parse manually to avoid timezone issues
+    const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) {
+      const [, year, month, day] = isoMatch;
+      return `${day}/${month}/${year}`;
+    }
+
+    // Fallback: try parsing with Date but use local methods
+    const date = new Date(dateStr + 'T12:00:00'); // Add noon time to avoid timezone edge cases
+    if (!isNaN(date.getTime())) {
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    return dateStr;
   } catch {
     return dateStr;
   }
