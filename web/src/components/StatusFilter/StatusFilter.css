@@ -89,6 +89,7 @@
 .status-filter-dropdown .dropdown-option {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.5rem;
   width: 100%;
   padding: 0.625rem 0.75rem;
@@ -100,6 +101,7 @@
   text-align: left;
   cursor: pointer;
   transition: background 0.1s ease;
+  white-space: nowrap;
 }
 
 .status-filter-dropdown .dropdown-option:hover {
