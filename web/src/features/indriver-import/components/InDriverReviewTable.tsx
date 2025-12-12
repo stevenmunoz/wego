@@ -21,6 +21,26 @@ import {
 } from '../utils/formatters';
 import './InDriverReviewTable.css';
 
+// Minimum expected value in COP for monetary fields (anything below is suspicious)
+const MIN_EXPECTED_VALUE_COP = 100;
+
+// Helper to detect suspicious values that need attention
+const isSuspiciousValue = (value: number, fieldType: 'currency' | 'numeric' = 'currency'): boolean => {
+  if (value === 0) return true;
+  if (fieldType === 'currency' && value > 0 && value < MIN_EXPECTED_VALUE_COP) return true;
+  return false;
+};
+
+// Helper to detect missing/empty string values
+const isMissingValue = (value: string | null | undefined): boolean => {
+  return !value || value.trim() === '' || value === '-';
+};
+
+// Helper to detect missing numeric values (null, undefined, or 0)
+const isMissingNumeric = (value: number | null | undefined): boolean => {
+  return value === null || value === undefined || value === 0;
+};
+
 interface InDriverReviewTableProps {
   rides: ExtractedInDriverRide[];
   summary: ExtractionSummary | null;
@@ -473,6 +493,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
                     onStartEdit={() => startEditing(ride.id, 'date')}
                     onSave={(value) => handleUpdateField(ride, 'date', value)}
                     onCancel={stopEditing}
+                    className={isMissingValue(ride.date) ? 'value-warning' : ''}
                   />
                 </td>
                 <td className="cell-time">
@@ -484,6 +505,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
                     onStartEdit={() => startEditing(ride.id, 'time')}
                     onSave={(value) => handleUpdateField(ride, 'time', value)}
                     onCancel={stopEditing}
+                    className={isMissingValue(ride.time) ? 'value-warning' : ''}
                   />
                 </td>
                 <td className="cell-duration">
@@ -495,6 +517,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
                     onStartEdit={() => startEditing(ride.id, 'duration')}
                     onSave={(value) => handleUpdateField(ride, 'duration', value)}
                     onCancel={stopEditing}
+                    className={isMissingNumeric(ride.duration?.value) ? 'value-warning' : ''}
                   />
                 </td>
                 <td className="cell-distance">
@@ -506,6 +529,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
                     onStartEdit={() => startEditing(ride.id, 'distance')}
                     onSave={(value) => handleUpdateField(ride, 'distance', value)}
                     onCancel={stopEditing}
+                    className={isMissingNumeric(ride.distance?.value) ? 'value-warning' : ''}
                   />
                 </td>
                 <td className="cell-status">
@@ -521,7 +545,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
                       onStartEdit={() => startEditing(ride.id, 'tarifa')}
                       onSave={(value) => handleUpdateField(ride, 'tarifa', value)}
                       onCancel={stopEditing}
-                      className="income-value"
+                      className={`income-value ${isSuspiciousValue(ride.tarifa) ? 'value-warning' : ''}`}
                     />
                     <span className="income-detail">{ride.payment_method_label || 'Efectivo'}</span>
                   </div>
@@ -536,7 +560,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
                       onStartEdit={() => startEditing(ride.id, 'total_pagado')}
                       onSave={(value) => handleUpdateField(ride, 'total_pagado', value)}
                       onCancel={stopEditing}
-                      className="deduction-value"
+                      className={`deduction-value ${isSuspiciousValue(ride.total_pagado) ? 'value-warning' : ''}`}
                     />
                     <EditableCell
                       value={ride.comision_servicio}
@@ -546,7 +570,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
                       onStartEdit={() => startEditing(ride.id, 'comision_servicio')}
                       onSave={(value) => handleUpdateField(ride, 'comision_servicio', value)}
                       onCancel={stopEditing}
-                      className="deduction-detail"
+                      className={`deduction-detail ${isSuspiciousValue(ride.comision_servicio) ? 'value-warning' : ''}`}
                     />
                     <EditableCell
                       value={ride.iva_pago_servicio}
@@ -569,7 +593,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
                     onStartEdit={() => startEditing(ride.id, 'mis_ingresos')}
                     onSave={(value) => handleUpdateField(ride, 'mis_ingresos', value)}
                     onCancel={stopEditing}
-                    className="net-value"
+                    className={`net-value ${isSuspiciousValue(ride.mis_ingresos) ? 'value-warning' : ''}`}
                   />
                 </td>
                 <td className="cell-confidence">
