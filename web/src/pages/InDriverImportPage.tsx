@@ -34,7 +34,6 @@ export const InDriverImportPage: FC = () => {
     clearFiles,
     extractAll,
     updateRide,
-    removeRide,
     importRides,
     clearExtracted,
   } = useInDriverExtract();
@@ -112,7 +111,6 @@ export const InDriverImportPage: FC = () => {
               summary={summary}
               isImporting={isImporting}
               onUpdateRide={updateRide}
-              onRemoveRide={removeRide}
               onImport={handleImport}
               onBack={handleBackToUpload}
             />
