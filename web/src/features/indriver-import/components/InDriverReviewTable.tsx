@@ -30,7 +30,17 @@ interface InDriverReviewTableProps {
   onBack: () => void;
 }
 
-type EditableField = 'date' | 'time' | 'duration' | 'distance' | 'tarifa' | 'total_pagado' | 'comision_servicio' | 'iva_pago_servicio' | 'mis_ingresos' | 'status';
+type EditableField =
+  | 'date'
+  | 'time'
+  | 'duration'
+  | 'distance'
+  | 'tarifa'
+  | 'total_pagado'
+  | 'comision_servicio'
+  | 'iva_pago_servicio'
+  | 'mis_ingresos'
+  | 'status';
 
 interface EditingState {
   rideId: string;
@@ -342,10 +352,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
     );
   };
 
-  const renderStatusBadge = (
-    ride: ExtractedInDriverRide,
-    isEditingStatus: boolean
-  ) => {
+  const renderStatusBadge = (ride: ExtractedInDriverRide, isEditingStatus: boolean) => {
     const statusOptions = [
       { value: 'completed', label: 'Completado' },
       { value: 'cancelled_by_passenger', label: 'Cancelado por pasajero' },
@@ -407,9 +414,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
                 {formatConfidence(summary.average_confidence)}
               </p>
             )}
-            <p className="review-edit-hint">
-              Haz clic en cualquier valor resaltado para editarlo
-            </p>
+            <p className="review-edit-hint">Haz clic en cualquier valor resaltado para editarlo</p>
           </div>
         </div>
       </div>
@@ -422,9 +427,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
         </div>
         <div className="summary-card">
           <span className="summary-label">Total Pagué</span>
-          <span className="summary-value">
-            {formatCurrency(totals.totalPagado)}
-          </span>
+          <span className="summary-value">{formatCurrency(totals.totalPagado)}</span>
         </div>
         <div className="summary-card">
           <span className="summary-label">Total Neto</span>
