@@ -108,6 +108,7 @@ jobs:
 
       - name: Deploy Firestore Rules and Indexes
         working-directory: ./web
+        continue-on-error: true
         env:
           GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ steps.env.outputs.environment == 'production' && secrets.FIREBASE_SERVICE_ACCOUNT_PROD || secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
         run: |
@@ -118,6 +119,7 @@ jobs:
 
       - name: Deploy Storage Rules
         working-directory: ./web
+        continue-on-error: true
         env:
           GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ steps.env.outputs.environment == 'production' && secrets.FIREBASE_SERVICE_ACCOUNT_PROD || secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
         run: |
