@@ -7,6 +7,7 @@ import {
   collection,
   doc,
   getDocs,
+  updateDoc,
   query,
   where,
   orderBy,
@@ -229,4 +230,52 @@ export async function getInDriverRides(
 
   const snapshot = await getDocs(q);
   return snapshot.docs.map((doc) => doc.data() as FirestoreInDriverRide);
+}
+
+/**
+ * Update a single InDriver ride in Firestore
+ */
+export async function updateInDriverRide(
+  driverId: string,
+  rideId: string,
+  updates: Partial<Omit<FirestoreInDriverRide, 'id' | 'driver_id' | 'imported_at' | 'extracted_at'>>
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const rideDocRef = doc(db, 'drivers', driverId, 'driver_rides', rideId);
+
+    // Convert date string to Timestamp if present
+    const firestoreUpdates: Record<string, unknown> = { ...updates };
+    if ('date' in updates && updates.date !== undefined) {
+      if (updates.date === null) {
+        firestoreUpdates.date = null;
+      } else if (updates.date instanceof Timestamp) {
+        firestoreUpdates.date = updates.date;
+      } else {
+        // It's a string date (YYYY-MM-DD), convert to Timestamp
+        // Parse at noon local time to avoid timezone issues
+        const dateStr = updates.date as unknown as string;
+        const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (isoMatch) {
+          const [, year, month, day] = isoMatch;
+          // Create date at noon local time to avoid timezone edge cases
+          const parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0);
+          firestoreUpdates.date = Timestamp.fromDate(parsedDate);
+        } else {
+          // Fallback with noon time
+          const parsedDate = new Date(dateStr + 'T12:00:00');
+          if (!isNaN(parsedDate.getTime())) {
+            firestoreUpdates.date = Timestamp.fromDate(parsedDate);
+          }
+        }
+      }
+    }
+
+    await updateDoc(rideDocRef, firestoreUpdates);
+
+    return { success: true };
+  } catch (error) {
+    console.error('[Firestore] Error updating ride:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMsg };
+  }
 }

@@ -155,7 +155,18 @@ else
     BACKEND_PORT=$BACKEND_BASE_PORT
 fi
 
+# Determine web port early for CORS configuration
+if ! kill_port_processes $WEB_BASE_PORT "web" 2>/dev/null; then
+    WEB_PORT=$(find_available_port $WEB_BASE_PORT)
+else
+    WEB_PORT=$WEB_BASE_PORT
+fi
+
+# Set CORS origins to include dynamic Conductor ports (JSON array format for Pydantic)
+export CORS_ORIGINS='["http://localhost:'$WEB_PORT'","http://localhost:3000","http://localhost:5173","http://127.0.0.1:'$WEB_PORT'","https://wego-dev-a5a13.web.app","https://wego-bac88.web.app"]'
+
 print_status "Starting FastAPI backend on port $BACKEND_PORT..."
+print_status "CORS configured for frontend at port $WEB_PORT"
 cd backend
 
 # Verify virtual environment
@@ -228,14 +239,7 @@ fi
 # START WEB FRONTEND
 # ============================================================================
 
-# Determine actual web port
-if ! kill_port_processes $WEB_BASE_PORT "web"; then
-    WEB_PORT=$(find_available_port $WEB_BASE_PORT)
-    print_status "Using alternative web port: $WEB_PORT"
-else
-    WEB_PORT=$WEB_BASE_PORT
-fi
-
+# WEB_PORT already determined earlier for CORS configuration
 print_status "Starting React web frontend on port $WEB_PORT..."
 cd web
 
@@ -246,7 +250,7 @@ if [[ ! -f "package.json" ]]; then
 fi
 
 # Set environment variables for frontend
-export VITE_API_URL="http://localhost:$BACKEND_PORT/api/v1"
+export VITE_API_URL="http://localhost:$BACKEND_PORT"
 export VITE_API_BASE_URL="http://localhost:$BACKEND_PORT"
 export VITE_APP_NAME="WeGo App"
 
