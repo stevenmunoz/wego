@@ -2,7 +2,7 @@
  * Firebase module exports
  */
 
-export { firebaseApp, firebaseAuth, initAnalytics } from './config';
+export { firebaseApp, firebaseAuth, firebaseStorage, initAnalytics } from './config';
 export {
   signUp,
   signIn,
@@ -22,3 +22,17 @@ export {
   updateInDriverRide,
   type FirestoreInDriverRide,
 } from './firestore';
+export {
+  getDriverVehicles,
+  getVehicle,
+  createVehicle,
+  updateVehicle,
+  deleteVehicle,
+  setVehicleAsPrimary,
+  type FirestoreVehicle,
+} from './vehicles';
+export {
+  uploadVehicleImage,
+  deleteVehicleImage,
+  compressImage,
+} from './storage';
