@@ -63,6 +63,14 @@
   margin: 0.25rem 0 0 0;
 }
 
+.review-edit-hint {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin: 0.5rem 0 0 0;
+  font-style: italic;
+}
+
 .review-actions {
   display: flex;
   gap: 0.5rem;
@@ -195,6 +203,14 @@
 .cell-time {
   font-family: 'JetBrains Mono', monospace;
   white-space: nowrap;
+}
+
+.cell-date {
+  min-width: 140px;
+}
+
+.cell-time {
+  min-width: 100px;
 }
 
 .cell-passenger {
@@ -441,6 +457,155 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Editable Cells */
+.editable-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.25rem;
+  margin: -0.125rem -0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.editable-cell:hover {
+  background-color: rgba(240, 83, 101, 0.08);
+  outline: 1px dashed var(--color-accent-600, #f05365);
+}
+
+.editable-cell .edit-icon {
+  font-size: 0.625rem;
+  opacity: 0;
+  color: var(--color-accent-600, #f05365);
+  transition: opacity 0.15s ease;
+}
+
+.editable-cell:hover .edit-icon {
+  opacity: 1;
+}
+
+/* Editable Input Styles */
+.editable-input {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--color-accent-600, #f05365);
+  border-radius: 4px;
+  background-color: #fff !important;
+  color: #1e2a3a !important;
+  -webkit-text-fill-color: #1e2a3a !important;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(240, 83, 101, 0.2);
+  min-width: 80px;
+}
+
+/* Force text color for all input types in the review table */
+.review-table input,
+.review-table select {
+  color: #1e2a3a !important;
+  -webkit-text-fill-color: #1e2a3a !important;
+  background-color: #fff !important;
+}
+
+.editable-input:focus {
+  border-color: var(--color-accent-500, #f47585);
+  color: #1e2a3a;
+}
+
+.editable-number {
+  text-align: right;
+  max-width: 120px;
+}
+
+.editable-select {
+  font-family: 'Inter', sans-serif;
+  min-width: 140px;
+  cursor: pointer;
+}
+
+.editable-date {
+  font-family: 'JetBrains Mono', monospace;
+  min-width: 140px;
+  width: 140px;
+  cursor: pointer;
+  color: #1e2a3a !important;
+  background-color: #fff !important;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Style the date picker calendar icon */
+.editable-date::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 4px;
+  opacity: 0.7;
+}
+
+.editable-date::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Ensure date input text is visible in all states */
+input[type="date"].editable-input {
+  color: #1e2a3a;
+  -webkit-text-fill-color: #1e2a3a;
+}
+
+/* Time input styles */
+.editable-time,
+input[type="time"].editable-input {
+  font-family: 'JetBrains Mono', monospace;
+  min-width: 120px;
+  width: 120px;
+  color: #1e2a3a !important;
+  -webkit-text-fill-color: #1e2a3a;
+  background-color: #fff !important;
+}
+
+input[type="time"].editable-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 4px;
+  opacity: 0.7;
+}
+
+input[type="time"].editable-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Status badge editable state */
+.status-badge.editable-cell {
+  cursor: pointer;
+}
+
+.status-badge.editable-cell:hover {
+  outline: 1px dashed currentColor;
+}
+
+.status-badge.editable-cell .edit-icon {
+  margin-left: 0.25rem;
+}
+
+/* Income/Deduction editable cells */
+.income-value.editable-cell,
+.deduction-value.editable-cell,
+.deduction-detail.editable-cell {
+  display: inline-flex;
+}
+
+.deduction-value.editable-cell {
+  font-weight: 600;
+  color: var(--color-error-500, #ef4444);
+}
+
+.net-value.editable-cell {
+  font-weight: 700;
+  color: var(--color-success-600, #16a34a);
+  font-size: 1rem;
 }
 
 /* Responsive */

@@ -1,9 +1,13 @@
 /**
- * Hook for fetching driver rides from Firebase
+ * Hook for fetching and updating driver rides from Firebase
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { getInDriverRides, type FirestoreInDriverRide } from '@/core/firebase';
+import {
+  getInDriverRides,
+  updateInDriverRide,
+  type FirestoreInDriverRide,
+} from '@/core/firebase';
 
 interface UseDriverRidesOptions {
   startDate?: Date;
@@ -16,6 +20,7 @@ interface UseDriverRidesReturn {
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  updateRide: (rideId: string, updates: Partial<FirestoreInDriverRide>) => Promise<void>;
 }
 
 export const useDriverRides = (
@@ -49,6 +54,35 @@ export const useDriverRides = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driverId, options?.startDate, options?.endDate, options?.status]);
 
+  const updateRide = useCallback(
+    async (rideId: string, updates: Partial<FirestoreInDriverRide>) => {
+      if (!driverId) {
+        setError('Usuario no autenticado');
+        return;
+      }
+
+      // Optimistically update local state first
+      setRides((prevRides) =>
+        prevRides.map((ride) => (ride.id === rideId ? { ...ride, ...updates } : ride))
+      );
+
+      try {
+        const result = await updateInDriverRide(driverId, rideId, updates);
+        if (!result.success) {
+          // Revert on error
+          setError(result.error || 'Error al actualizar el viaje');
+          await fetchRides(); // Refetch to get correct state
+        }
+      } catch (err) {
+        console.error('[useDriverRides] Error updating ride:', err);
+        const message = err instanceof Error ? err.message : 'Error al actualizar el viaje';
+        setError(message);
+        await fetchRides(); // Refetch to get correct state
+      }
+    },
+    [driverId, fetchRides]
+  );
+
   useEffect(() => {
     fetchRides();
   }, [fetchRides]);
@@ -58,5 +92,6 @@ export const useDriverRides = (
     isLoading,
     error,
     refetch: fetchRides,
+    updateRide,
   };
 };
