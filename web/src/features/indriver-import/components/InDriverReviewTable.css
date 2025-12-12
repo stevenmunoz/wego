@@ -550,14 +550,14 @@
 }
 
 /* Ensure date input text is visible in all states */
-input[type="date"].editable-input {
+input[type='date'].editable-input {
   color: #1e2a3a;
   -webkit-text-fill-color: #1e2a3a;
 }
 
 /* Time input styles */
 .editable-time,
-input[type="time"].editable-input {
+input[type='time'].editable-input {
   font-family: 'JetBrains Mono', monospace;
   min-width: 120px;
   width: 120px;
@@ -566,14 +566,14 @@ input[type="time"].editable-input {
   background-color: #fff !important;
 }
 
-input[type="time"].editable-input::-webkit-calendar-picker-indicator {
+input[type='time'].editable-input::-webkit-calendar-picker-indicator {
   cursor: pointer;
   padding: 4px;
   margin-left: 4px;
   opacity: 0.7;
 }
 
-input[type="time"].editable-input::-webkit-calendar-picker-indicator:hover {
+input[type='time'].editable-input::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
 }
 
