@@ -297,6 +297,9 @@ interface Totals {
   totalEarnings: number;
   completedCount: number;
   cancelledCount: number;
+  cancelledByPassengerCount: number;
+  cancelledByDriverCount: number;
+  cancelledUncategorizedCount: number;
 }
 
 const getDateTimestamp = (date: { toDate: () => Date } | string | null | undefined): number => {
@@ -330,15 +333,25 @@ const sortRidesByDateAndTime = (rides: FirestoreInDriverRide[]): FirestoreInDriv
 
 const calculateTotals = (rides: FirestoreInDriverRide[]): Totals => {
   return rides.reduce(
-    (acc, ride) => ({
-      totalFare: acc.totalFare + (ride.base_fare || 0),
-      totalCommission: acc.totalCommission + (ride.service_commission || 0),
-      totalTax: acc.totalTax + (ride.service_tax || 0),
-      totalPaid: acc.totalPaid + (ride.total_paid || 0),
-      totalEarnings: acc.totalEarnings + (ride.net_earnings || 0),
-      completedCount: acc.completedCount + (ride.status === 'completed' ? 1 : 0),
-      cancelledCount: acc.cancelledCount + (ride.status !== 'completed' ? 1 : 0),
-    }),
+    (acc, ride) => {
+      const isCancelled = ride.status !== 'completed';
+      const isCancelledByPassenger = ride.status === 'cancelled_by_passenger';
+      const isCancelledByDriver = ride.status === 'cancelled_by_driver';
+      const isUncategorized = isCancelled && !isCancelledByPassenger && !isCancelledByDriver;
+
+      return {
+        totalFare: acc.totalFare + (ride.base_fare || 0),
+        totalCommission: acc.totalCommission + (ride.service_commission || 0),
+        totalTax: acc.totalTax + (ride.service_tax || 0),
+        totalPaid: acc.totalPaid + (ride.total_paid || 0),
+        totalEarnings: acc.totalEarnings + (ride.net_earnings || 0),
+        completedCount: acc.completedCount + (ride.status === 'completed' ? 1 : 0),
+        cancelledCount: acc.cancelledCount + (isCancelled ? 1 : 0),
+        cancelledByPassengerCount: acc.cancelledByPassengerCount + (isCancelledByPassenger ? 1 : 0),
+        cancelledByDriverCount: acc.cancelledByDriverCount + (isCancelledByDriver ? 1 : 0),
+        cancelledUncategorizedCount: acc.cancelledUncategorizedCount + (isUncategorized ? 1 : 0),
+      };
+    },
     {
       totalFare: 0,
       totalCommission: 0,
@@ -347,6 +360,9 @@ const calculateTotals = (rides: FirestoreInDriverRide[]): Totals => {
       totalEarnings: 0,
       completedCount: 0,
       cancelledCount: 0,
+      cancelledByPassengerCount: 0,
+      cancelledByDriverCount: 0,
+      cancelledUncategorizedCount: 0,
     }
   );
 };
@@ -444,6 +460,10 @@ export const RidesTable: FC<RidesTableProps> = ({
     if (statusFilter === 'all') return rides;
     if (statusFilter === 'completed') return rides.filter((r) => r.status === 'completed');
     if (statusFilter === 'cancelled') return rides.filter((r) => r.status !== 'completed');
+    if (statusFilter === 'cancelled_by_passenger')
+      return rides.filter((r) => r.status === 'cancelled_by_passenger');
+    if (statusFilter === 'cancelled_by_driver')
+      return rides.filter((r) => r.status === 'cancelled_by_driver');
     return rides;
   }, [rides, statusFilter]);
 
@@ -558,9 +578,27 @@ export const RidesTable: FC<RidesTableProps> = ({
           <span className="summary-label">Viajes Completados</span>
           <span className="summary-value">{allRidesTotals.completedCount}</span>
         </div>
-        <div className="summary-card">
+        <div className="summary-card summary-card-with-tooltip">
           <span className="summary-label">Viajes Cancelados</span>
           <span className="summary-value error">{allRidesTotals.cancelledCount}</span>
+          {allRidesTotals.cancelledCount > 0 && (
+            <div className="summary-tooltip">
+              <div className="tooltip-row">
+                <span>Pasajero:</span>
+                <span>{allRidesTotals.cancelledByPassengerCount}</span>
+              </div>
+              <div className="tooltip-row">
+                <span>Conductor:</span>
+                <span>{allRidesTotals.cancelledByDriverCount}</span>
+              </div>
+              {allRidesTotals.cancelledUncategorizedCount > 0 && (
+                <div className="tooltip-row">
+                  <span>Sin categoría:</span>
+                  <span>{allRidesTotals.cancelledUncategorizedCount}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

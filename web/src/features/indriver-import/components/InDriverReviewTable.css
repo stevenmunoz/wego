@@ -608,6 +608,34 @@ input[type='time'].editable-input::-webkit-calendar-picker-indicator:hover {
   font-size: 1rem;
 }
 
+/* Warning styles for suspicious values (0 or very low) */
+.value-warning {
+  background-color: rgba(234, 179, 8, 0.15) !important;
+  border-radius: 4px;
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+.value-warning::before {
+  content: '⚠️';
+  margin-right: 0.25rem;
+  font-size: 0.75rem;
+}
+
+@keyframes pulse-warning {
+  0%,
+  100% {
+    background-color: rgba(234, 179, 8, 0.15);
+  }
+  50% {
+    background-color: rgba(234, 179, 8, 0.3);
+  }
+}
+
+.editable-cell.value-warning:hover {
+  background-color: rgba(234, 179, 8, 0.3) !important;
+  outline-color: var(--color-warning-500, #eab308);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .review-header {
