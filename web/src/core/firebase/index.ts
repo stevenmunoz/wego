@@ -45,8 +45,4 @@ export {
   reassignVehicle,
   type FirestoreVehicle,
 } from './vehicles';
-export {
-  uploadVehicleImage,
-  deleteVehicleImage,
-  compressImage,
-} from './storage';
+export { uploadVehicleImage, deleteVehicleImage, compressImage } from './storage';

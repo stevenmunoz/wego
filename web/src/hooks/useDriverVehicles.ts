@@ -95,12 +95,17 @@ export const useDriverVehicles = (
           if (updates.color !== undefined) safeUpdates.color = updates.color;
           if (updates.vehicle_type !== undefined) safeUpdates.vehicle_type = updates.vehicle_type;
           if (updates.fuel_type !== undefined) safeUpdates.fuel_type = updates.fuel_type;
-          if (updates.passenger_capacity !== undefined) safeUpdates.passenger_capacity = updates.passenger_capacity;
-          if (updates.luggage_capacity !== undefined) safeUpdates.luggage_capacity = updates.luggage_capacity;
+          if (updates.passenger_capacity !== undefined)
+            safeUpdates.passenger_capacity = updates.passenger_capacity;
+          if (updates.luggage_capacity !== undefined)
+            safeUpdates.luggage_capacity = updates.luggage_capacity;
           if (updates.accepts_pets !== undefined) safeUpdates.accepts_pets = updates.accepts_pets;
-          if (updates.accepts_wheelchairs !== undefined) safeUpdates.accepts_wheelchairs = updates.accepts_wheelchairs;
-          if (updates.has_child_seat !== undefined) safeUpdates.has_child_seat = updates.has_child_seat;
-          if (updates.has_air_conditioning !== undefined) safeUpdates.has_air_conditioning = updates.has_air_conditioning;
+          if (updates.accepts_wheelchairs !== undefined)
+            safeUpdates.accepts_wheelchairs = updates.accepts_wheelchairs;
+          if (updates.has_child_seat !== undefined)
+            safeUpdates.has_child_seat = updates.has_child_seat;
+          if (updates.has_air_conditioning !== undefined)
+            safeUpdates.has_air_conditioning = updates.has_air_conditioning;
           if (updates.status !== undefined) safeUpdates.status = updates.status;
           if (updates.is_primary !== undefined) safeUpdates.is_primary = updates.is_primary;
           if (updates.notes !== undefined) safeUpdates.notes = updates.notes;

@@ -61,9 +61,7 @@ export const DashboardPage = () => {
           <div className="page-header-content">
             <h1 className="page-title">{pageTitle}</h1>
             <p className="page-subtitle">{pageSubtitle}</p>
-            {isAdmin && (
-              <span className="admin-badge">Admin</span>
-            )}
+            {isAdmin && <span className="admin-badge">Admin</span>}
           </div>
           <div className="page-header-actions">
             <DateFilter value={dateFilter} onChange={handleDateFilterChange} />

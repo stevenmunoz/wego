@@ -125,9 +125,7 @@ export const StepConfirmation: FC<StepProps> = ({ formData }) => {
         {formData.comments && (
           <div className="confirmation-row confirmation-row-full">
             <span className="confirmation-label">Comentarios</span>
-            <span className="confirmation-value confirmation-value-text">
-              {formData.comments}
-            </span>
+            <span className="confirmation-value confirmation-value-text">{formData.comments}</span>
           </div>
         )}
       </div>

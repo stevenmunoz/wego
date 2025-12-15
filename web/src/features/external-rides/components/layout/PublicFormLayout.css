@@ -13,11 +13,7 @@
   min-height: 100dvh; /* Dynamic viewport height for mobile */
   display: flex;
   flex-direction: column;
-  background: linear-gradient(
-    180deg,
-    #ffffff 0%,
-    var(--color-neutral-50, #f9fafb) 100%
-  );
+  background: linear-gradient(180deg, #ffffff 0%, var(--color-neutral-50, #f9fafb) 100%);
 }
 
 /* ============================================================================

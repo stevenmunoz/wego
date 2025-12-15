@@ -194,9 +194,7 @@ export const VehiclesPage = () => {
       <div className="vehicles-page">
         <header className="page-header">
           <div className="page-header-content">
-            <h1 className="page-title">
-              {isAdmin ? 'Gestión de Vehículos' : 'Mis Vehículos'}
-            </h1>
+            <h1 className="page-title">{isAdmin ? 'Gestión de Vehículos' : 'Mis Vehículos'}</h1>
             <p className="page-subtitle">
               {isAdmin
                 ? 'Administra todos los vehículos de la flota'
@@ -262,9 +260,7 @@ export const VehiclesPage = () => {
                       onChange={(e) => setSelectedDriverId(e.target.value)}
                       required
                     >
-                      {!editingVehicle && (
-                        <option value="">Seleccionar conductor...</option>
-                      )}
+                      {!editingVehicle && <option value="">Seleccionar conductor...</option>}
                       {drivers.map((driver) => (
                         <option key={driver.id} value={driver.id}>
                           {driver.name}

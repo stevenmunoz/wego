@@ -22,11 +22,28 @@ interface UseUsersReturn {
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
-  registerNewUser: (data: { email: string; name: string; password: string; role: UserRole }) => Promise<boolean>;
-  createUser: (userId: string, data: { email: string; name: string; role: UserRole }) => Promise<boolean>;
-  updateUser: (userId: string, updates: Partial<Pick<FirestoreUser, 'name' | 'role' | 'is_active'>>) => Promise<boolean>;
-  createDriver: (driverId: string, data: { email: string; name: string; phone: string; unique_slug: string }) => Promise<boolean>;
-  updateDriver: (driverId: string, updates: Partial<Pick<FirestoreDriver, 'name' | 'phone' | 'unique_slug' | 'is_active'>>) => Promise<boolean>;
+  registerNewUser: (data: {
+    email: string;
+    name: string;
+    password: string;
+    role: UserRole;
+  }) => Promise<boolean>;
+  createUser: (
+    userId: string,
+    data: { email: string; name: string; role: UserRole }
+  ) => Promise<boolean>;
+  updateUser: (
+    userId: string,
+    updates: Partial<Pick<FirestoreUser, 'name' | 'role' | 'is_active'>>
+  ) => Promise<boolean>;
+  createDriver: (
+    driverId: string,
+    data: { email: string; name: string; phone: string; unique_slug: string }
+  ) => Promise<boolean>;
+  updateDriver: (
+    driverId: string,
+    updates: Partial<Pick<FirestoreDriver, 'name' | 'phone' | 'unique_slug' | 'is_active'>>
+  ) => Promise<boolean>;
 }
 
 export const useUsers = (): UseUsersReturn => {
@@ -40,10 +57,7 @@ export const useUsers = (): UseUsersReturn => {
     setError(null);
 
     try {
-      const [fetchedUsers, fetchedDrivers] = await Promise.all([
-        getAllUsers(),
-        getAllDrivers(),
-      ]);
+      const [fetchedUsers, fetchedDrivers] = await Promise.all([getAllUsers(), getAllDrivers()]);
 
       setUsers(fetchedUsers);
       setDrivers(fetchedDrivers);
@@ -57,7 +71,12 @@ export const useUsers = (): UseUsersReturn => {
   }, []);
 
   const registerNewUser = useCallback(
-    async (data: { email: string; name: string; password: string; role: UserRole }): Promise<boolean> => {
+    async (data: {
+      email: string;
+      name: string;
+      password: string;
+      role: UserRole;
+    }): Promise<boolean> => {
       setError(null);
       try {
         // Step 1: Create Firebase Auth user
@@ -93,7 +112,10 @@ export const useUsers = (): UseUsersReturn => {
   );
 
   const createUser = useCallback(
-    async (userId: string, data: { email: string; name: string; role: UserRole }): Promise<boolean> => {
+    async (
+      userId: string,
+      data: { email: string; name: string; role: UserRole }
+    ): Promise<boolean> => {
       setError(null);
       try {
         const result = await createUserProfile(userId, data);
@@ -114,14 +136,15 @@ export const useUsers = (): UseUsersReturn => {
   );
 
   const updateUser = useCallback(
-    async (userId: string, updates: Partial<Pick<FirestoreUser, 'name' | 'role' | 'is_active'>>): Promise<boolean> => {
+    async (
+      userId: string,
+      updates: Partial<Pick<FirestoreUser, 'name' | 'role' | 'is_active'>>
+    ): Promise<boolean> => {
       setError(null);
       try {
         const result = await updateUserProfile(userId, updates);
         if (result.success) {
-          setUsers((prev) =>
-            prev.map((u) => (u.id === userId ? { ...u, ...updates } : u))
-          );
+          setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, ...updates } : u)));
           return true;
         }
         setError(result.error || 'Error al actualizar el usuario');
@@ -137,7 +160,10 @@ export const useUsers = (): UseUsersReturn => {
   );
 
   const createDriver = useCallback(
-    async (driverId: string, data: { email: string; name: string; phone: string; unique_slug: string }): Promise<boolean> => {
+    async (
+      driverId: string,
+      data: { email: string; name: string; phone: string; unique_slug: string }
+    ): Promise<boolean> => {
       setError(null);
       try {
         const result = await createDriverProfile(driverId, data);
@@ -158,14 +184,15 @@ export const useUsers = (): UseUsersReturn => {
   );
 
   const updateDriver = useCallback(
-    async (driverId: string, updates: Partial<Pick<FirestoreDriver, 'name' | 'phone' | 'unique_slug' | 'is_active'>>): Promise<boolean> => {
+    async (
+      driverId: string,
+      updates: Partial<Pick<FirestoreDriver, 'name' | 'phone' | 'unique_slug' | 'is_active'>>
+    ): Promise<boolean> => {
       setError(null);
       try {
         const result = await updateDriverProfile(driverId, updates);
         if (result.success) {
-          setDrivers((prev) =>
-            prev.map((d) => (d.id === driverId ? { ...d, ...updates } : d))
-          );
+          setDrivers((prev) => prev.map((d) => (d.id === driverId ? { ...d, ...updates } : d)));
           return true;
         }
         setError(result.error || 'Error al actualizar el conductor');

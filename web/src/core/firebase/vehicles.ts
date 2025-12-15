@@ -80,7 +80,12 @@ export async function getDriverVehicles(
   let q = query(vehiclesCollection, orderBy('is_primary', 'desc'), orderBy('created_at', 'desc'));
 
   if (options?.status) {
-    q = query(vehiclesCollection, where('status', '==', options.status), orderBy('is_primary', 'desc'), orderBy('created_at', 'desc'));
+    q = query(
+      vehiclesCollection,
+      where('status', '==', options.status),
+      orderBy('is_primary', 'desc'),
+      orderBy('created_at', 'desc')
+    );
   }
 
   const snapshot = await getDocs(q);

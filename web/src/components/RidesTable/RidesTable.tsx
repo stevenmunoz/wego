@@ -661,12 +661,8 @@ export const RidesTable: FC<RidesTableProps> = ({
             {paginatedRides.map((ride, index) => (
               <tr key={ride.id} className={ride.status !== 'completed' ? 'row-cancelled' : ''}>
                 <td className="cell-index">{startIndex + index + 1}</td>
-                {showDriverColumn && (
-                  <td className="cell-driver">{ride.driver_name || '-'}</td>
-                )}
-                {showVehicleColumn && (
-                  <td className="cell-vehicle">{ride.vehicle_plate || '-'}</td>
-                )}
+                {showDriverColumn && <td className="cell-driver">{ride.driver_name || '-'}</td>}
+                {showVehicleColumn && <td className="cell-vehicle">{ride.vehicle_plate || '-'}</td>}
                 {showSourceColumn && (
                   <td className="cell-source">
                     <span className={`source-badge source-${ride.category || 'other'}`}>
@@ -815,7 +811,15 @@ export const RidesTable: FC<RidesTableProps> = ({
           </tbody>
           <tfoot>
             <tr className="totals-row">
-              <td colSpan={6 + (showDriverColumn ? 1 : 0) + (showVehicleColumn ? 1 : 0) + (showSourceColumn ? 1 : 0)} className="totals-label">
+              <td
+                colSpan={
+                  6 +
+                  (showDriverColumn ? 1 : 0) +
+                  (showVehicleColumn ? 1 : 0) +
+                  (showSourceColumn ? 1 : 0)
+                }
+                className="totals-label"
+              >
                 <strong>
                   Totales ({sortedRides.length} viajes: {totals.completedCount} completados
                   {totals.cancelledCount > 0 && `, ${totals.cancelledCount} cancelados`})

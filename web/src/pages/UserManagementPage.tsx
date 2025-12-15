@@ -49,16 +49,8 @@ export const UserManagementPage: FC = () => {
     }
   };
 
-  const {
-    users,
-    drivers,
-    isLoading,
-    error,
-    refetch,
-    registerNewUser,
-    updateUser,
-    updateDriver,
-  } = useUsers();
+  const { users, drivers, isLoading, error, refetch, registerNewUser, updateUser, updateDriver } =
+    useUsers();
 
   // Redirect non-admins
   if (!isAdmin) {
@@ -218,14 +210,18 @@ export const UserManagementPage: FC = () => {
                           <select
                             className="role-select"
                             value={user.role}
-                            onChange={(e) => handleChangeUserRole(user.id, e.target.value as UserRole)}
+                            onChange={(e) =>
+                              handleChangeUserRole(user.id, e.target.value as UserRole)
+                            }
                           >
                             <option value="admin">Admin</option>
                             <option value="driver">Conductor</option>
                           </select>
                         </td>
                         <td>
-                          <span className={`status-badge ${user.is_active ? 'status-active' : 'status-inactive'}`}>
+                          <span
+                            className={`status-badge ${user.is_active ? 'status-active' : 'status-inactive'}`}
+                          >
                             {user.is_active ? 'Activo' : 'Inactivo'}
                           </span>
                         </td>
@@ -282,7 +278,9 @@ export const UserManagementPage: FC = () => {
                           </span>
                         </td>
                         <td>
-                          <span className={`status-badge ${driver.is_active ? 'status-active' : 'status-inactive'}`}>
+                          <span
+                            className={`status-badge ${driver.is_active ? 'status-active' : 'status-inactive'}`}
+                          >
                             {driver.is_active ? 'Activo' : 'Inactivo'}
                           </span>
                         </td>
@@ -316,11 +314,7 @@ export const UserManagementPage: FC = () => {
               </div>
               <form onSubmit={handleSubmit}>
                 <div className="modal-body">
-                  {formError && (
-                    <div className="form-error">
-                      {formError}
-                    </div>
-                  )}
+                  {formError && <div className="form-error">{formError}</div>}
 
                   <div className="form-group">
                     <label htmlFor="name">Nombre completo</label>
@@ -364,7 +358,9 @@ export const UserManagementPage: FC = () => {
                     <select
                       id="role"
                       value={formData.role}
-                      onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, role: e.target.value as UserRole })
+                      }
                     >
                       <option value="driver">Conductor</option>
                       <option value="admin">Administrador</option>
@@ -381,11 +377,7 @@ export const UserManagementPage: FC = () => {
                   >
                     Cancelar
                   </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={isSubmitting}
-                  >
+                  <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
                     {isSubmitting ? 'Creando...' : 'Crear Usuario'}
                   </button>
                 </div>
