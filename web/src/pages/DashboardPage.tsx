@@ -39,6 +39,7 @@ export const DashboardPage = () => {
 
   // Select the right data based on role
   const { rides, isLoading, error, refetch, updateRide } = isAdmin ? adminRides : driverRides;
+  const { drivers = [], vehicles = [] } = adminRides;
 
   const handleDateFilterChange = (
     option: DateFilterOption,
@@ -92,6 +93,8 @@ export const DashboardPage = () => {
           showDriverColumn={isAdmin}
           showVehicleColumn={true}
           showSourceColumn={true}
+          drivers={isAdmin ? drivers : []}
+          vehicles={isAdmin ? vehicles : []}
         />
       </div>
     </DashboardLayout>
