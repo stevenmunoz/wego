@@ -62,10 +62,7 @@ export const useAllVehicles = (): UseAllVehiclesReturn => {
 
     try {
       // Fetch all vehicles and drivers in parallel
-      const [allVehicles, allDrivers] = await Promise.all([
-        getAllVehicles(),
-        getAllDrivers(),
-      ]);
+      const [allVehicles, allDrivers] = await Promise.all([getAllVehicles(), getAllDrivers()]);
 
       // Create a map of driver_id -> driver_name for quick lookup
       const driverMap = new Map<string, string>();

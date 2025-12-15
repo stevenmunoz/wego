@@ -75,7 +75,9 @@ const formatDate = (timestamp: { toDate: () => Date } | null): string => {
 };
 
 // Check if document is expiring soon (within 30 days) or expired
-const getExpiryStatus = (timestamp: { toDate: () => Date } | null): 'ok' | 'warning' | 'expired' => {
+const getExpiryStatus = (
+  timestamp: { toDate: () => Date } | null
+): 'ok' | 'warning' | 'expired' => {
   if (!timestamp) return 'ok';
   const date = timestamp.toDate();
   const now = new Date();
@@ -151,8 +153,12 @@ export const VehiclesTable: FC<VehiclesTableProps> = ({
           <span className="summary-label">Vehículo{vehicles.length !== 1 ? 's' : ''}</span>
         </div>
         <div className="summary-item">
-          <span className="summary-count">{vehicles.filter((v) => v.status === 'active').length}</span>
-          <span className="summary-label">Activo{vehicles.filter((v) => v.status === 'active').length !== 1 ? 's' : ''}</span>
+          <span className="summary-count">
+            {vehicles.filter((v) => v.status === 'active').length}
+          </span>
+          <span className="summary-label">
+            Activo{vehicles.filter((v) => v.status === 'active').length !== 1 ? 's' : ''}
+          </span>
         </div>
       </div>
 
@@ -228,12 +234,16 @@ export const VehiclesTable: FC<VehiclesTableProps> = ({
                   <td className={`cell-document expiry-${soatStatus}`}>
                     {formatDate(vehicle.soat_expiry)}
                     {soatStatus === 'expired' && <span className="expiry-tag">Vencido</span>}
-                    {soatStatus === 'warning' && <span className="expiry-tag warning">Por vencer</span>}
+                    {soatStatus === 'warning' && (
+                      <span className="expiry-tag warning">Por vencer</span>
+                    )}
                   </td>
                   <td className={`cell-document expiry-${tecnoStatus}`}>
                     {formatDate(vehicle.tecnomecanica_expiry)}
                     {tecnoStatus === 'expired' && <span className="expiry-tag">Vencido</span>}
-                    {tecnoStatus === 'warning' && <span className="expiry-tag warning">Por vencer</span>}
+                    {tecnoStatus === 'warning' && (
+                      <span className="expiry-tag warning">Por vencer</span>
+                    )}
                   </td>
                   <td className="cell-status">
                     <span className={`status-badge status-${getStatusColor(vehicle.status)}`}>

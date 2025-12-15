@@ -11,9 +11,7 @@ import { MESSAGES } from '../../constants';
 import './Steps.css';
 
 export const StepTip: FC<StepProps> = ({ formData, onUpdate, onNext }) => {
-  const [showAmountInput, setShowAmountInput] = useState<boolean>(
-    formData.tip_received === true
-  );
+  const [showAmountInput, setShowAmountInput] = useState<boolean>(formData.tip_received === true);
 
   useEffect(() => {
     if (formData.tip_received === true) {

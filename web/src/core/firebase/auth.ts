@@ -141,11 +141,7 @@ export const createUserAsAdmin = async (
     const secondaryAuth = getAuth(secondaryApp);
 
     // Create the user with the secondary auth instance
-    const userCredential = await createUserWithEmailAndPassword(
-      secondaryAuth,
-      email,
-      password
-    );
+    const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
 
     // Update the user's display name
     if (userCredential.user) {
