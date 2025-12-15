@@ -287,6 +287,156 @@ type TransactionType = 'ride_payment' | 'commission' | 'payout' | 'refund';
 type TransactionStatus = 'pending' | 'completed' | 'failed';
 ```
 
+### Vehicle Finance (P/L Tracking)
+
+The vehicle finance feature tracks income and expenses for vehicles, enabling Profit/Loss analysis.
+
+```typescript
+// Income types
+type IncomeType = 'weekly_payment' | 'tip_share' | 'bonus' | 'other';
+
+// Expense categories
+type ExpenseCategory =
+  | 'fuel'
+  | 'maintenance'
+  | 'insurance_soat'
+  | 'tecnomecanica'
+  | 'taxes'
+  | 'fines'
+  | 'parking'
+  | 'car_wash'
+  | 'accessories'
+  | 'other';
+
+// Recurrence frequency for recurring income/expenses
+type RecurrenceFrequency = 'weekly' | 'biweekly' | 'monthly';
+
+interface VehicleIncome {
+  id: string;
+  vehicle_id: string;
+  owner_id: string;
+  type: IncomeType;
+  amount: number;
+  description: string;
+  date: Date;
+  is_recurring: boolean;
+  recurrence_pattern?: RecurrencePattern;
+  driver_id?: string;
+  driver_name?: string;
+  created_at: Date;
+  updated_at: Date;
+  notes?: string;
+}
+
+interface VehicleExpense {
+  id: string;
+  vehicle_id: string;
+  owner_id: string;
+  category: ExpenseCategory;
+  amount: number;
+  description: string;
+  date: Date;
+  is_recurring: boolean;
+  recurrence_pattern?: RecurrencePattern;
+  receipt_url?: string;
+  vendor?: string;
+  created_at: Date;
+  updated_at: Date;
+  notes?: string;
+}
+
+interface VehiclePLSummary {
+  vehicle_id: string;
+  period: { start_date: Date; end_date: Date };
+  total_income: number;
+  total_expenses: number;
+  net_profit: number;
+  profit_margin: number;
+  income_by_type: Record<IncomeType, number>;
+  expenses_by_category: Record<ExpenseCategory, number>;
+}
+```
+
+---
+
+## Firestore Data Structure
+
+### Collection Architecture
+
+WeGo uses two vehicle collection structures for backward compatibility:
+
+```
+Firestore Database
+├── users/                          # User profiles
+│   └── {userId}
+│       ├── email, full_name, role, status
+│       └── ...
+│
+├── drivers/                        # Driver profiles (legacy)
+│   └── {driverId}
+│       ├── name, email, phone, slug
+│       ├── driver_rides/           # Rides subcollection
+│       │   └── {rideId}
+│       └── vehicles/               # Legacy vehicles subcollection
+│           └── {vehicleId}
+│
+├── vehicles/                       # Top-level vehicles (new structure)
+│   └── {vehicleId}
+│       ├── owner_id, driver_id, plate, brand, model
+│       ├── weekly_rental_amount, status
+│       ├── income/                 # Income subcollection
+│       │   └── {incomeId}
+│       │       ├── type, amount, description, date
+│       │       ├── owner_id, vehicle_id
+│       │       └── is_recurring, recurrence_pattern
+│       └── expenses/               # Expenses subcollection
+│           └── {expenseId}
+│               ├── category, amount, description, date
+│               ├── owner_id, vehicle_id, vendor
+│               └── is_recurring, recurrence_pattern
+```
+
+### Firestore Security Rules
+
+Income and expense subcollections use owner-based access control:
+
+```javascript
+// Vehicle income subcollection
+match /income/{incomeId} {
+  allow read: if request.auth != null &&
+    (vehicleOwnershipCheck(vehicleId) || isAdmin());
+  allow create: if request.auth != null &&
+    (request.resource.data.owner_id == request.auth.uid || isAdmin());
+  allow update, delete: if request.auth != null &&
+    (resource.data.owner_id == request.auth.uid || isAdmin());
+}
+
+// Vehicle expenses subcollection
+match /expenses/{expenseId} {
+  allow read: if request.auth != null &&
+    (vehicleOwnershipCheck(vehicleId) || isAdmin());
+  allow create: if request.auth != null &&
+    (request.resource.data.owner_id == request.auth.uid || isAdmin());
+  allow update, delete: if request.auth != null &&
+    (resource.data.owner_id == request.auth.uid || isAdmin());
+}
+
+// Helper: Check vehicle ownership (owner_id or driver_id)
+function vehicleOwnershipCheck(vehicleId) {
+  return !exists(/databases/$(database)/documents/vehicles/$(vehicleId)) ||
+    get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.owner_id == request.auth.uid ||
+    get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.driver_id == request.auth.uid;
+}
+```
+
+### Important Data Decisions
+
+1. **Top-level vehicles collection**: New vehicles are stored in `/vehicles/{vehicleId}` with `owner_id` field
+2. **Subcollection pattern**: Income and expenses are subcollections under vehicles for data locality
+3. **Owner-based permissions**: All finance data requires `owner_id` matching the authenticated user
+4. **Admin access**: Admins can read/write all vehicle finance data
+5. **No undefined values**: Firestore doesn't accept `undefined` - always filter out undefined fields before writes
+
 ---
 
 ## Language Rules
@@ -439,6 +589,11 @@ export const useRidesStore = create<RidesState>((set) => ({
 | `design-system/components/*.css` | Component styles |
 | `AGENTS.md` | Specialized agent definitions |
 | `.cursorrules` | Cursor IDE rules |
+| `web/src/core/types/vehicle-finance.types.ts` | Vehicle finance TypeScript types |
+| `web/src/core/firebase/vehicle-finances.ts` | Vehicle finance CRUD operations |
+| `web/src/hooks/useVehicleFinances.ts` | React hook for vehicle finances |
+| `web/firestore.rules` | Firestore security rules |
+| `web/firestore.indexes.json` | Firestore composite indexes |
 
 ---
 
@@ -599,4 +754,4 @@ npm run db:studio    # Open Prisma Studio
 
 ---
 
-*Last updated: December 2024*
+*Last updated: December 2024 - Added Vehicle Finance (P/L) feature documentation*
