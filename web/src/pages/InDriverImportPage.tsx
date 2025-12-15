@@ -4,7 +4,7 @@
  * Main page for importing ride data from InDriver screenshots/PDFs
  */
 
-import { type FC, useState, useCallback } from 'react';
+import { type FC, useState, useCallback, useEffect } from 'react';
 import {
   InDriverUploader,
   InDriverReviewTable,
@@ -12,6 +12,8 @@ import {
 } from '../features/indriver-import';
 import { useAuthStore } from '@/core/store/auth-store';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { useDriverVehicles } from '@/hooks/useDriverVehicles';
+import { useAllVehicles } from '@/hooks/useAllVehicles';
 import { config } from '@/core/config';
 import './InDriverImportPage.css';
 
@@ -20,7 +22,31 @@ type PageView = 'upload' | 'review';
 export const InDriverImportPage: FC = () => {
   const [view, setView] = useState<PageView>('upload');
   const [importSuccess, setImportSuccess] = useState(false);
-  const { user } = useAuthStore();
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
+  const user = useAuthStore((state) => state.user);
+  const userRole = useAuthStore((state) => state.userRole);
+  const isAdmin = userRole === 'admin';
+
+  // Fetch vehicles - use different hooks based on role
+  const driverVehiclesHook = useDriverVehicles(user?.id);
+  const allVehiclesHook = useAllVehicles();
+
+  // Select the appropriate data based on role
+  const vehicles = isAdmin ? allVehiclesHook.vehicles : driverVehiclesHook.vehicles;
+  const isLoadingVehicles = isAdmin ? allVehiclesHook.isLoading : driverVehiclesHook.isLoading;
+
+  // Auto-select primary vehicle when vehicles are loaded
+  useEffect(() => {
+    if (vehicles.length > 0 && !selectedVehicleId) {
+      const primaryVehicle = vehicles.find((v) => v.is_primary);
+      if (primaryVehicle) {
+        setSelectedVehicleId(primaryVehicle.id);
+      } else {
+        // If no primary, select the first one
+        setSelectedVehicleId(vehicles[0].id);
+      }
+    }
+  }, [vehicles, selectedVehicleId]);
 
   const {
     files,
@@ -47,7 +73,20 @@ export const InDriverImportPage: FC = () => {
     if (!user?.id) {
       return;
     }
-    const success = await importRides(user.id);
+
+    // Determine the driver ID to save rides under
+    // If admin selects a vehicle, use the vehicle owner's driver_id
+    // Otherwise use the logged-in user's ID
+    let driverId = user.id;
+    if (isAdmin && selectedVehicleId) {
+      const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
+      if (selectedVehicle?.driver_id) {
+        driverId = selectedVehicle.driver_id;
+      }
+    }
+
+    // Pass selected vehicle ID for tracking
+    const success = await importRides(driverId, selectedVehicleId || undefined);
     if (success) {
       setImportSuccess(true);
       // Clear state after short delay
@@ -58,7 +97,7 @@ export const InDriverImportPage: FC = () => {
         setImportSuccess(false);
       }, 2000);
     }
-  }, [user?.id, importRides, clearFiles, clearExtracted]);
+  }, [user?.id, isAdmin, selectedVehicleId, vehicles, importRides, clearFiles, clearExtracted]);
 
   const handleBackToUpload = useCallback(() => {
     setView('upload');
@@ -106,14 +145,48 @@ export const InDriverImportPage: FC = () => {
               onProcess={handleProcess}
             />
           ) : (
-            <InDriverReviewTable
-              rides={extractedRides}
-              summary={summary}
-              isImporting={isImporting}
-              onUpdateRide={updateRide}
-              onImport={handleImport}
-              onBack={handleBackToUpload}
-            />
+            <>
+              {/* Vehicle Selector */}
+              {vehicles.length > 0 && (
+                <div className="vehicle-selector-bar">
+                  <label htmlFor="vehicle-select" className="vehicle-label">
+                    Vehículo utilizado:
+                  </label>
+                  <select
+                    id="vehicle-select"
+                    className="vehicle-select"
+                    value={selectedVehicleId}
+                    onChange={(e) => setSelectedVehicleId(e.target.value)}
+                    disabled={isImporting}
+                  >
+                    {vehicles.map((vehicle) => (
+                      <option key={vehicle.id} value={vehicle.id}>
+                        {vehicle.plate} - {vehicle.brand} {vehicle.model}
+                        {vehicle.is_primary ? ' (Principal)' : ''}
+                        {isAdmin && 'driver_name' in vehicle ? ` - ${vehicle.driver_name}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {vehicles.length === 0 && !isLoadingVehicles && (
+                <div className="alert alert-warning" role="alert">
+                  <span className="alert-icon">⚠️</span>
+                  <span className="alert-message">
+                    No tienes vehículos registrados. Los viajes se importarán sin asociar a un
+                    vehículo.
+                  </span>
+                </div>
+              )}
+              <InDriverReviewTable
+                rides={extractedRides}
+                summary={summary}
+                isImporting={isImporting}
+                onUpdateRide={updateRide}
+                onImport={handleImport}
+                onBack={handleBackToUpload}
+              />
+            </>
           )}
         </div>
       </div>

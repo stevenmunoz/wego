@@ -289,6 +289,33 @@
 }
 
 /* Actions */
+/* Driver Cell (Admin view) */
+.cell-driver {
+  min-width: 150px;
+}
+
+.cell-driver .driver-select {
+  padding: 0.375rem 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  color: var(--color-primary-800, #1e2a3a);
+  background: #fff;
+  cursor: pointer;
+  min-width: 140px;
+  transition: border-color 0.15s ease;
+}
+
+.cell-driver .driver-select:hover {
+  border-color: #cbd5e1;
+}
+
+.cell-driver .driver-select:focus {
+  outline: none;
+  border-color: var(--color-accent-600, #f05365);
+  box-shadow: 0 0 0 2px rgba(240, 83, 101, 0.1);
+}
+
 .cell-actions {
   white-space: nowrap;
 }

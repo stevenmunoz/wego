@@ -9,7 +9,7 @@ import { getStorage } from 'firebase/storage';
 
 // Firebase config loaded from environment variables
 // NEVER hardcode API keys - they will be exposed and disabled by Google
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,

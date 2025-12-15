@@ -12,10 +12,12 @@ import {
   sendEmailVerification,
   GoogleAuthProvider,
   signInWithPopup,
+  getAuth,
   User as FirebaseUser,
   UserCredential,
 } from 'firebase/auth';
-import { firebaseAuth } from './config';
+import { initializeApp, deleteApp, type FirebaseApp } from 'firebase/app';
+import { firebaseAuth, firebaseConfig } from './config';
 
 // Google Auth Provider instance
 const googleProvider = new GoogleAuthProvider();
@@ -120,4 +122,67 @@ export const getIdToken = async (): Promise<string | null> => {
   const user = getCurrentUser();
   if (!user) return null;
   return user.getIdToken();
+};
+
+/**
+ * Create a new user as admin without logging out the current user.
+ * Uses a secondary Firebase app instance to avoid affecting the main auth state.
+ */
+export const createUserAsAdmin = async (
+  email: string,
+  password: string,
+  displayName: string
+): Promise<{ success: boolean; uid?: string; error?: string }> => {
+  let secondaryApp: FirebaseApp | null = null;
+
+  try {
+    // Create a secondary Firebase app instance
+    secondaryApp = initializeApp(firebaseConfig, `secondary-${Date.now()}`);
+    const secondaryAuth = getAuth(secondaryApp);
+
+    // Create the user with the secondary auth instance
+    const userCredential = await createUserWithEmailAndPassword(
+      secondaryAuth,
+      email,
+      password
+    );
+
+    // Update the user's display name
+    if (userCredential.user) {
+      await updateProfile(userCredential.user, { displayName });
+    }
+
+    const uid = userCredential.user.uid;
+
+    // Sign out from secondary auth and clean up
+    await signOut(secondaryAuth);
+    await deleteApp(secondaryApp);
+
+    return { success: true, uid };
+  } catch (error) {
+    // Clean up secondary app on error
+    if (secondaryApp) {
+      try {
+        await deleteApp(secondaryApp);
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
+
+    console.error('[Auth] Error creating user as admin:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+
+    // Map Firebase error codes to Spanish messages
+    if (errorMsg.includes('email-already-in-use')) {
+      return { success: false, error: 'Este correo ya está registrado' };
+    }
+    if (errorMsg.includes('invalid-email')) {
+      return { success: false, error: 'El correo no es válido' };
+    }
+    if (errorMsg.includes('weak-password')) {
+      return { success: false, error: 'La contraseña debe tener al menos 6 caracteres' };
+    }
+
+    return { success: false, error: errorMsg };
+  }
 };

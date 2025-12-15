@@ -1,0 +1,294 @@
+/**
+ * Form Steps Styles
+ *
+ * Styles for individual wizard step components
+ */
+
+/* ============================================================================
+   BASE STEP
+   ============================================================================ */
+
+.wizard-step {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.wizard-step-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.wizard-step-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wizard-field-label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-neutral-600, #4b5563);
+}
+
+/* Date/Time inputs with icons */
+.wizard-input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.wizard-input-icon {
+  position: absolute;
+  left: 1rem;
+  width: 22px;
+  height: 22px;
+  color: var(--color-neutral-400, #9ca3af);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.wizard-date-input,
+.wizard-time-input {
+  width: 100%;
+  min-height: 56px;
+  padding: 1rem 1.25rem;
+  font-size: 1.125rem;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  color: var(--color-primary-800, #1e2a3a);
+  background-color: #ffffff;
+  border: 2px solid var(--color-neutral-200, #e2e8f0);
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.wizard-input-has-icon {
+  padding-left: 3rem;
+}
+
+.wizard-date-input:focus,
+.wizard-time-input:focus {
+  border-color: var(--color-accent-600, #f05365);
+  box-shadow: 0 0 0 4px rgba(240, 83, 101, 0.1);
+}
+
+.wizard-input-with-icon:focus-within .wizard-input-icon {
+  color: var(--color-accent-600, #f05365);
+}
+
+/* Hide default date/time picker icons on webkit browsers */
+.wizard-date-input::-webkit-calendar-picker-indicator,
+.wizard-time-input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Conditional section (e.g., tip amount) */
+.wizard-step-conditional {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-neutral-200, #e2e8f0);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Optional badge */
+.wizard-step-optional-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-neutral-500, #6b7280);
+  background-color: var(--color-neutral-100, #f3f4f6);
+  border-radius: 9999px;
+  margin-bottom: 0.5rem;
+}
+
+/* ============================================================================
+   CONFIRMATION STEP
+   ============================================================================ */
+
+.wizard-step-confirmation {
+  gap: 0;
+}
+
+.confirmation-card {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border: 1px solid var(--color-neutral-200, #e2e8f0);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.confirmation-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-neutral-100, #f3f4f6);
+  gap: 1rem;
+}
+
+.confirmation-row:last-child {
+  border-bottom: none;
+}
+
+.confirmation-row-full {
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.confirmation-row-highlight {
+  background-color: var(--color-accent-50, #fff5f6);
+}
+
+.confirmation-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-neutral-500, #6b7280);
+  flex-shrink: 0;
+}
+
+.confirmation-value {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-primary-800, #1e2a3a);
+  text-align: right;
+}
+
+.confirmation-value-currency {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-accent-600, #f05365);
+}
+
+.confirmation-value-text {
+  text-align: left;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+/* ============================================================================
+   SUCCESS STEP
+   ============================================================================ */
+
+.wizard-step-success {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.success-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  max-width: 320px;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: var(--color-success-600, #16a34a);
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
+}
+
+.success-title {
+  font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary-800, #1e2a3a);
+  margin: 0;
+}
+
+.success-description {
+  font-size: 1rem;
+  color: var(--color-neutral-600, #4b5563);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.success-button {
+  margin-top: 1rem;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  color: #ffffff;
+  background-color: var(--color-accent-600, #f05365);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.success-button:hover {
+  background-color: var(--color-accent-500, #f47585);
+}
+
+/* ============================================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================================ */
+
+@media (min-width: 768px) {
+  .wizard-step-fields {
+    flex-direction: row;
+  }
+
+  .wizard-step-field {
+    flex: 1;
+  }
+
+  .wizard-date-input,
+  .wizard-time-input {
+    font-size: 1.25rem;
+    min-height: 60px;
+  }
+
+  .confirmation-row {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .success-icon {
+    width: 100px;
+    height: 100px;
+    font-size: 3rem;
+  }
+
+  .success-title {
+    font-size: 1.75rem;
+  }
+}
