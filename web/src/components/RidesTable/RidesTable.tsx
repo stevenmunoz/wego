@@ -5,7 +5,7 @@
  */
 
 import { type FC, useState, useMemo, useRef, useEffect } from 'react';
-import type { FirestoreInDriverRide } from '@/core/firebase';
+import type { FirestoreInDriverRide, FirestoreDriver, FirestoreVehicle } from '@/core/firebase';
 import type { StatusFilterOption } from '@/components/StatusFilter';
 import type { SourceFilterOption } from '@/components/SourceFilter';
 import './RidesTable.css';
@@ -23,7 +23,10 @@ type EditableField =
   | 'service_commission'
   | 'service_tax'
   | 'net_earnings'
-  | 'status';
+  | 'status'
+  | 'driver'
+  | 'vehicle'
+  | 'source';
 
 interface EditingState {
   rideId: string;
@@ -40,6 +43,8 @@ interface RidesTableProps {
   showDriverColumn?: boolean;
   showVehicleColumn?: boolean;
   showSourceColumn?: boolean;
+  drivers?: FirestoreDriver[];
+  vehicles?: FirestoreVehicle[];
 }
 
 // Helper to convert Firestore Timestamp or string date to YYYY-MM-DD for HTML date input
@@ -396,10 +401,53 @@ export const RidesTable: FC<RidesTableProps> = ({
   showDriverColumn = false,
   showVehicleColumn = false,
   showSourceColumn = false,
+  drivers = [],
+  vehicles = [],
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [editing, setEditing] = useState<EditingState | null>(null);
+
+  // Memoized dropdown options
+  const driverOptions = useMemo(
+    () =>
+      drivers.map((d) => ({
+        value: d.id,
+        label: d.name,
+      })),
+    [drivers]
+  );
+
+  const vehicleOptions = useMemo(
+    () =>
+      vehicles.map((v) => ({
+        value: v.id,
+        label: `${v.plate} - ${v.brand} ${v.model}`,
+        driver_id: v.driver_id,
+      })),
+    [vehicles]
+  );
+
+  const sourceOptions = useMemo(
+    () => [
+      { value: 'indriver', label: 'InDriver' },
+      { value: 'external', label: 'Externo' },
+    ],
+    []
+  );
+
+  // Map vehicle_id -> driver info for quick lookup
+  const vehicleDriverMap = useMemo(() => {
+    const map = new Map<string, { driver_id: string; driver_name: string }>();
+    vehicles.forEach((v) => {
+      const driver = drivers.find((d) => d.id === v.driver_id);
+      map.set(v.id, {
+        driver_id: v.driver_id,
+        driver_name: driver?.name || '',
+      });
+    });
+    return map;
+  }, [vehicles, drivers]);
 
   const startEditing = (rideId: string, field: EditableField) => {
     if (onUpdateRide) {
@@ -472,6 +520,25 @@ export const RidesTable: FC<RidesTableProps> = ({
       case 'status':
         updates.status = value as string;
         break;
+      case 'source':
+        updates.category = value as 'indriver' | 'independent' | 'external' | 'other';
+        break;
+      case 'vehicle': {
+        const newVehicleId = value as string;
+        updates.vehicle_id = newVehicleId;
+        // Get the vehicle's driver info
+        const vehicleInfo = vehicleDriverMap.get(newVehicleId);
+        if (vehicleInfo) {
+          // Also update driver_id to match vehicle owner
+          updates.driver_id = vehicleInfo.driver_id;
+        }
+        break;
+      }
+      case 'driver': {
+        const newDriverId = value as string;
+        updates.driver_id = newDriverId;
+        break;
+      }
     }
 
     onUpdateRide(ride.id, updates);
@@ -661,13 +728,50 @@ export const RidesTable: FC<RidesTableProps> = ({
             {paginatedRides.map((ride, index) => (
               <tr key={ride.id} className={ride.status !== 'completed' ? 'row-cancelled' : ''}>
                 <td className="cell-index">{startIndex + index + 1}</td>
-                {showDriverColumn && <td className="cell-driver">{ride.driver_name || '-'}</td>}
-                {showVehicleColumn && <td className="cell-vehicle">{ride.vehicle_plate || '-'}</td>}
+                {showDriverColumn && (
+                  <td className="cell-driver">
+                    <EditableCell
+                      value={ride.driver_id || ''}
+                      displayValue={ride.driver_name || '-'}
+                      isEditing={isEditingField(ride.id, 'driver')}
+                      type="select"
+                      options={driverOptions}
+                      onStartEdit={() => startEditing(ride.id, 'driver')}
+                      onSave={(value) => handleUpdateField(ride, 'driver', value)}
+                      onCancel={stopEditing}
+                      disabled={!onUpdateRide || drivers.length === 0}
+                    />
+                  </td>
+                )}
+                {showVehicleColumn && (
+                  <td className="cell-vehicle">
+                    <EditableCell
+                      value={ride.vehicle_id || ''}
+                      displayValue={ride.vehicle_plate || '-'}
+                      isEditing={isEditingField(ride.id, 'vehicle')}
+                      type="select"
+                      options={vehicleOptions}
+                      onStartEdit={() => startEditing(ride.id, 'vehicle')}
+                      onSave={(value) => handleUpdateField(ride, 'vehicle', value)}
+                      onCancel={stopEditing}
+                      disabled={!onUpdateRide || vehicles.length === 0}
+                    />
+                  </td>
+                )}
                 {showSourceColumn && (
                   <td className="cell-source">
-                    <span className={`source-badge source-${ride.category || 'other'}`}>
-                      {getSourceLabel(ride.category)}
-                    </span>
+                    <EditableCell
+                      value={ride.category || 'indriver'}
+                      displayValue={getSourceLabel(ride.category)}
+                      isEditing={isEditingField(ride.id, 'source')}
+                      type="select"
+                      options={sourceOptions}
+                      onStartEdit={() => startEditing(ride.id, 'source')}
+                      onSave={(value) => handleUpdateField(ride, 'source', value)}
+                      onCancel={stopEditing}
+                      className={`source-badge source-${ride.category || 'other'}`}
+                      disabled={!onUpdateRide}
+                    />
                   </td>
                 )}
                 <td className="cell-date">

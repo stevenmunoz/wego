@@ -27,6 +27,7 @@ export type RideWithDriver = FirestoreInDriverRide & {
 interface UseAdminRidesReturn {
   rides: RideWithDriver[];
   drivers: FirestoreDriver[];
+  vehicles: FirestoreVehicle[];
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -36,6 +37,7 @@ interface UseAdminRidesReturn {
 export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesReturn => {
   const [rides, setRides] = useState<RideWithDriver[]>([]);
   const [drivers, setDrivers] = useState<FirestoreDriver[]>([]);
+  const [vehicles, setVehicles] = useState<FirestoreVehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -87,6 +89,7 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
       });
 
       setDrivers(fetchedDrivers);
+      setVehicles(fetchedVehicles);
       setRides(enrichedRides);
     } catch (err) {
       console.error('[useAdminRides] Error fetching rides:', err);
@@ -134,6 +137,7 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
   return {
     rides,
     drivers,
+    vehicles,
     isLoading,
     error,
     refetch: fetchRides,

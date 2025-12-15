@@ -610,6 +610,37 @@ input[type='time'].editable-input::-webkit-calendar-picker-indicator:hover {
   margin-left: 0.25rem;
 }
 
+/* Source badge editable state */
+.source-badge.editable-cell {
+  cursor: pointer;
+}
+
+.source-badge.editable-cell:hover {
+  outline: 1px dashed currentColor;
+}
+
+.source-badge.editable-cell .edit-icon {
+  margin-left: 0.25rem;
+}
+
+/* Driver and Vehicle editable cells */
+.cell-driver .editable-cell,
+.cell-vehicle .editable-cell {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cell-driver .editable-select,
+.cell-vehicle .editable-select {
+  min-width: 180px;
+  max-width: 220px;
+}
+
+.cell-source .editable-select {
+  min-width: 140px;
+}
+
 /* Income/Deduction editable cells */
 .income-value.editable-cell,
 .deduction-value.editable-cell,
