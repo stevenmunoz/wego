@@ -95,6 +95,7 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
     } finally {
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options?.startDate, options?.endDate, options?.status]);
 
   const updateRide = useCallback(

@@ -4,7 +4,7 @@
  * Fetches driver data by unique slug for public form validation
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Driver } from '../types';
 import { getDriverBySlug } from '../services';
 
@@ -20,7 +20,7 @@ export function useDriverBySlug(slug: string | undefined): UseDriverBySlugReturn
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDriver = async () => {
+  const fetchDriver = useCallback(async () => {
     if (!slug) {
       setIsLoading(false);
       setError('No se proporciono un enlace valido');
@@ -44,11 +44,11 @@ export function useDriverBySlug(slug: string | undefined): UseDriverBySlugReturn
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [slug]);
 
   useEffect(() => {
     fetchDriver();
-  }, [slug]);
+  }, [fetchDriver]);
 
   return {
     driver,
