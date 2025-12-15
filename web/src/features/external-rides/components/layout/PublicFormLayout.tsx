@@ -34,9 +34,7 @@ export const PublicFormLayout: FC<PublicFormLayoutProps> = ({ driver, children }
 
       {/* Footer */}
       <footer className="public-form-footer">
-        <span className="public-form-footer-text">
-          Seguro para ti, comodo para tu mascota
-        </span>
+        <span className="public-form-footer-text">Seguro para ti, comodo para tu mascota</span>
       </footer>
     </div>
   );

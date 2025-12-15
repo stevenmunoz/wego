@@ -108,9 +108,7 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
       }
 
       // Optimistically update local state first
-      setRides((prevRides) =>
-        prevRides.map((r) => (r.id === rideId ? { ...r, ...updates } : r))
-      );
+      setRides((prevRides) => prevRides.map((r) => (r.id === rideId ? { ...r, ...updates } : r)));
 
       try {
         const result = await updateInDriverRide(ride.driver_id, rideId, updates);
