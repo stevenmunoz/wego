@@ -432,7 +432,6 @@ export const RidesTable: FC<RidesTableProps> = ({
     () => [
       { value: 'indriver', label: 'InDriver' },
       { value: 'external', label: 'Externo' },
-      { value: 'independent', label: 'Independiente' },
     ],
     []
   );
