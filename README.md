@@ -112,9 +112,15 @@ wego/
 │   ├── src/
 │   │   ├── features/          # Feature modules (indriver-import, auth, etc.)
 │   │   ├── components/        # Shared components
+│   │   │   └── VehicleFinances/  # Income/Expense forms
 │   │   ├── core/              # API client, auth, config
+│   │   │   ├── firebase/      # Firebase CRUD operations
+│   │   │   └── types/         # TypeScript types (vehicle, vehicle-finance)
+│   │   ├── hooks/             # Custom hooks (useVehicleFinances, etc.)
 │   │   ├── routes/            # Routing configuration
 │   │   └── pages/             # Page components
+│   ├── firestore.rules        # Firestore security rules
+│   ├── firestore.indexes.json # Firestore composite indexes
 │   └── package.json
 │
 ├── design-system/             # WeGo Design System
@@ -157,7 +163,26 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed setup instructions.
 - Real-time ride statistics
 - Driver performance metrics
 - Commission tracking
+- Inline editing for driver, vehicle, and source fields
 - Financial reports
+
+### Vehicle Management
+- Top-level vehicles collection with owner/driver associations
+- Vehicle status tracking (active, inactive, sold)
+- Document expiry tracking (SOAT, Tecnomecánica)
+- Backward compatibility with legacy driver subcollection
+
+### Vehicle Finance (P/L Tracking)
+- **Income Tracking**: Weekly payments, tips, bonuses, and custom income types
+- **Expense Tracking**: Fuel, maintenance, insurance, taxes, fines, parking, and more
+- **Recurring Entries**: Support for weekly, biweekly, and monthly recurring transactions
+- **P/L Summary**: Real-time profit/loss calculations with breakdowns by category
+- **Multi-tenant**: Owner-based access control with admin override
+
+### External Rides
+- Public form for ride submissions (WhatsApp, phone, referral)
+- Strict validation with Firestore security rules
+- Multi-source ride tracking (InDriver, external, manual)
 
 ## Documentation
 
