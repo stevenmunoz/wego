@@ -21,6 +21,7 @@ interface NavItem {
 const allNavItems: NavItem[] = [
   { path: '/dashboard', label: 'Mis Viajes', icon: '🚗' },
   { path: '/vehicles', label: 'Mis Vehículos', icon: '🚙' },
+  { path: '/finances', label: 'Finanzas', icon: '💰' },
   { path: '/indriver-import', label: 'Importar Viajes', icon: '📸' },
   { path: '/usuarios', label: 'Usuarios', icon: '👥', adminOnly: true },
 ];

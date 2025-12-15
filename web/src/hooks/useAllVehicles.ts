@@ -99,8 +99,8 @@ export const useAllVehicles = (): UseAllVehiclesReturn => {
   );
 
   const handleUpdateVehicle = useCallback(
-    async (driverId: string, vehicleId: string, updates: VehicleUpdateInput) => {
-      const result = await updateVehicle(driverId, vehicleId, updates);
+    async (_driverId: string, vehicleId: string, updates: VehicleUpdateInput) => {
+      const result = await updateVehicle(vehicleId, updates);
       if (result.success) {
         await fetchData();
       }
@@ -110,8 +110,8 @@ export const useAllVehicles = (): UseAllVehiclesReturn => {
   );
 
   const handleDeleteVehicle = useCallback(
-    async (driverId: string, vehicleId: string) => {
-      const result = await deleteVehicle(driverId, vehicleId);
+    async (_driverId: string, vehicleId: string) => {
+      const result = await deleteVehicle(vehicleId);
       if (result.success) {
         await fetchData();
       }

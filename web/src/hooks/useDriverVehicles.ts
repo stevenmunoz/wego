@@ -1,5 +1,6 @@
 /**
- * Hook for fetching and managing driver vehicles from Firebase
+ * Hook for fetching and managing vehicles from Firebase
+ * Vehicles are now stored as a top-level collection
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -31,7 +32,7 @@ interface UseDriverVehiclesReturn {
 }
 
 export const useDriverVehicles = (
-  driverId: string | undefined,
+  ownerId: string | undefined,
   options?: UseDriverVehiclesOptions
 ): UseDriverVehiclesReturn => {
   const [vehicles, setVehicles] = useState<FirestoreVehicle[]>([]);
@@ -39,7 +40,7 @@ export const useDriverVehicles = (
   const [error, setError] = useState<string | null>(null);
 
   const fetchVehicles = useCallback(async () => {
-    if (!driverId) {
+    if (!ownerId) {
       setVehicles([]);
       setIsLoading(false);
       return;
@@ -49,7 +50,7 @@ export const useDriverVehicles = (
     setError(null);
 
     try {
-      const fetchedVehicles = await getDriverVehicles(driverId, options);
+      const fetchedVehicles = await getDriverVehicles(ownerId, options);
       setVehicles(fetchedVehicles);
     } catch (err) {
       console.error('[useDriverVehicles] Error fetching vehicles:', err);
@@ -59,26 +60,26 @@ export const useDriverVehicles = (
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [driverId, options?.status]);
+  }, [ownerId, options?.status]);
 
   const handleAddVehicle = useCallback(
     async (input: VehicleCreateInput) => {
-      if (!driverId) {
+      if (!ownerId) {
         return { success: false, error: 'Usuario no autenticado' };
       }
 
-      const result = await createVehicle(driverId, input);
+      const result = await createVehicle(ownerId, input);
       if (result.success) {
         await fetchVehicles();
       }
       return result;
     },
-    [driverId, fetchVehicles]
+    [ownerId, fetchVehicles]
   );
 
   const handleUpdateVehicle = useCallback(
     async (vehicleId: string, updates: VehicleUpdateInput) => {
-      if (!driverId) {
+      if (!ownerId) {
         setError('Usuario no autenticado');
         return;
       }
@@ -114,7 +115,7 @@ export const useDriverVehicles = (
       );
 
       try {
-        const result = await updateVehicle(driverId, vehicleId, updates);
+        const result = await updateVehicle(vehicleId, updates);
         if (!result.success) {
           setError(result.error || 'Error al actualizar el vehículo');
           await fetchVehicles();
@@ -126,12 +127,12 @@ export const useDriverVehicles = (
         await fetchVehicles();
       }
     },
-    [driverId, fetchVehicles]
+    [ownerId, fetchVehicles]
   );
 
   const handleDeleteVehicle = useCallback(
     async (vehicleId: string) => {
-      if (!driverId) {
+      if (!ownerId) {
         setError('Usuario no autenticado');
         return;
       }
@@ -140,7 +141,7 @@ export const useDriverVehicles = (
       setVehicles((prev) => prev.filter((v) => v.id !== vehicleId));
 
       try {
-        const result = await deleteVehicle(driverId, vehicleId);
+        const result = await deleteVehicle(vehicleId);
         if (!result.success) {
           setError(result.error || 'Error al eliminar el vehículo');
           await fetchVehicles();
@@ -152,12 +153,12 @@ export const useDriverVehicles = (
         await fetchVehicles();
       }
     },
-    [driverId, fetchVehicles]
+    [ownerId, fetchVehicles]
   );
 
   const handleSetPrimaryVehicle = useCallback(
     async (vehicleId: string) => {
-      if (!driverId) {
+      if (!ownerId) {
         setError('Usuario no autenticado');
         return;
       }
@@ -166,7 +167,7 @@ export const useDriverVehicles = (
       setVehicles((prev) => prev.map((v) => ({ ...v, is_primary: v.id === vehicleId })));
 
       try {
-        const result = await setVehicleAsPrimary(driverId, vehicleId);
+        const result = await setVehicleAsPrimary(ownerId, vehicleId);
         if (!result.success) {
           setError(result.error || 'Error al establecer vehículo principal');
           await fetchVehicles();
@@ -179,7 +180,7 @@ export const useDriverVehicles = (
         await fetchVehicles();
       }
     },
-    [driverId, fetchVehicles]
+    [ownerId, fetchVehicles]
   );
 
   useEffect(() => {

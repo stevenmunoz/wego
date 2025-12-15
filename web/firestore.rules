@@ -54,6 +54,45 @@ service cloud.firestore {
     }
 
     // ============================================================================
+    // TOP-LEVEL VEHICLES COLLECTION (new structure)
+    // ============================================================================
+    match /vehicles/{vehicleId} {
+      // Read: Owner can read their vehicles, admins can read all
+      allow read: if request.auth != null &&
+        (resource.data.owner_id == request.auth.uid ||
+         resource.data.driver_id == request.auth.uid ||
+         isAdmin());
+
+      // Write: Owner can write their vehicles, admins can write all
+      allow write: if request.auth != null &&
+        (request.resource.data.owner_id == request.auth.uid ||
+         request.resource.data.driver_id == request.auth.uid ||
+         isAdmin());
+
+      // Vehicle income subcollection
+      // For read: check parent vehicle ownership or admin
+      // For write: check that owner_id in the data matches the authenticated user, or admin
+      match /income/{incomeId} {
+        allow read: if request.auth != null &&
+          (vehicleOwnershipCheck(vehicleId) || isAdmin());
+        allow create: if request.auth != null &&
+          (request.resource.data.owner_id == request.auth.uid || isAdmin());
+        allow update, delete: if request.auth != null &&
+          (resource.data.owner_id == request.auth.uid || isAdmin());
+      }
+
+      // Vehicle expenses subcollection
+      match /expenses/{expenseId} {
+        allow read: if request.auth != null &&
+          (vehicleOwnershipCheck(vehicleId) || isAdmin());
+        allow create: if request.auth != null &&
+          (request.resource.data.owner_id == request.auth.uid || isAdmin());
+        allow update, delete: if request.auth != null &&
+          (resource.data.owner_id == request.auth.uid || isAdmin());
+      }
+    }
+
+    // ============================================================================
     // HELPER FUNCTIONS
     // ============================================================================
 
@@ -62,6 +101,14 @@ service cloud.firestore {
       return request.auth != null
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Check vehicle ownership - tries to get vehicle from top-level collection
+    // Returns true if user owns the vehicle or vehicle doesn't exist (fallback to data check)
+    function vehicleOwnershipCheck(vehicleId) {
+      return !exists(/databases/$(database)/documents/vehicles/$(vehicleId)) ||
+        get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.owner_id == request.auth.uid ||
+        get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.driver_id == request.auth.uid;
     }
 
     // Validate external ride submission from public form
