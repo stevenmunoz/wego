@@ -63,6 +63,53 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+/* Vehicle Selector Bar */
+.vehicle-selector-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.vehicle-label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-primary-800, #1e2a3a);
+  white-space: nowrap;
+}
+
+.vehicle-select {
+  flex: 1;
+  max-width: 400px;
+  padding: 0.625rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: var(--color-primary-800, #1e2a3a);
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.vehicle-select:hover {
+  border-color: #cbd5e1;
+}
+
+.vehicle-select:focus {
+  outline: none;
+  border-color: var(--color-accent-600, #f05365);
+  box-shadow: 0 0 0 3px rgba(240, 83, 101, 0.1);
+}
+
+.vehicle-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .indriver-import-page {

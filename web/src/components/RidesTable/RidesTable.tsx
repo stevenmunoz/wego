@@ -7,6 +7,7 @@
 import { type FC, useState, useMemo, useRef, useEffect } from 'react';
 import type { FirestoreInDriverRide } from '@/core/firebase';
 import type { StatusFilterOption } from '@/components/StatusFilter';
+import type { SourceFilterOption } from '@/components/SourceFilter';
 import './RidesTable.css';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
@@ -30,11 +31,15 @@ interface EditingState {
 }
 
 interface RidesTableProps {
-  rides: FirestoreInDriverRide[];
+  rides: Array<FirestoreInDriverRide & { driver_name?: string; vehicle_plate?: string }>;
   isLoading: boolean;
   onImportClick?: () => void;
   onUpdateRide?: (id: string, updates: Partial<FirestoreInDriverRide>) => void;
   statusFilter?: StatusFilterOption;
+  sourceFilter?: SourceFilterOption;
+  showDriverColumn?: boolean;
+  showVehicleColumn?: boolean;
+  showSourceColumn?: boolean;
 }
 
 // Helper to convert Firestore Timestamp or string date to YYYY-MM-DD for HTML date input
@@ -316,7 +321,7 @@ const getDateTimestamp = (date: { toDate: () => Date } | string | null | undefin
   return date.toDate?.()?.getTime() ?? 0;
 };
 
-const sortRidesByDateAndTime = (rides: FirestoreInDriverRide[]): FirestoreInDriverRide[] => {
+const sortRidesByDateAndTime = <T extends FirestoreInDriverRide>(rides: T[]): T[] => {
   return [...rides].sort((a, b) => {
     // First compare by date
     const dateA = getDateTimestamp(a.date);
@@ -367,12 +372,30 @@ const calculateTotals = (rides: FirestoreInDriverRide[]): Totals => {
   );
 };
 
+// Helper to get source label
+const getSourceLabel = (category?: string): string => {
+  switch (category) {
+    case 'indriver':
+      return 'InDriver';
+    case 'external':
+      return 'Externo';
+    case 'independent':
+      return 'Independiente';
+    default:
+      return 'Otro';
+  }
+};
+
 export const RidesTable: FC<RidesTableProps> = ({
   rides,
   isLoading,
   onImportClick,
   onUpdateRide,
   statusFilter = 'all',
+  sourceFilter = 'all',
+  showDriverColumn = false,
+  showVehicleColumn = false,
+  showSourceColumn = false,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -455,17 +478,30 @@ export const RidesTable: FC<RidesTableProps> = ({
     stopEditing();
   };
 
-  // Filter rides by status
+  // Filter rides by status and source
   const filteredRides = useMemo(() => {
-    if (statusFilter === 'all') return rides;
-    if (statusFilter === 'completed') return rides.filter((r) => r.status === 'completed');
-    if (statusFilter === 'cancelled') return rides.filter((r) => r.status !== 'completed');
-    if (statusFilter === 'cancelled_by_passenger')
-      return rides.filter((r) => r.status === 'cancelled_by_passenger');
-    if (statusFilter === 'cancelled_by_driver')
-      return rides.filter((r) => r.status === 'cancelled_by_driver');
-    return rides;
-  }, [rides, statusFilter]);
+    let filtered = rides;
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'completed') {
+        filtered = filtered.filter((r) => r.status === 'completed');
+      } else if (statusFilter === 'cancelled') {
+        filtered = filtered.filter((r) => r.status !== 'completed');
+      } else if (statusFilter === 'cancelled_by_passenger') {
+        filtered = filtered.filter((r) => r.status === 'cancelled_by_passenger');
+      } else if (statusFilter === 'cancelled_by_driver') {
+        filtered = filtered.filter((r) => r.status === 'cancelled_by_driver');
+      }
+    }
+
+    // Filter by source
+    if (sourceFilter !== 'all') {
+      filtered = filtered.filter((r) => r.category === sourceFilter);
+    }
+
+    return filtered;
+  }, [rides, statusFilter, sourceFilter]);
 
   const sortedRides = useMemo(() => sortRidesByDateAndTime(filteredRides), [filteredRides]);
   const totals = useMemo(() => calculateTotals(sortedRides), [sortedRides]);
@@ -608,6 +644,9 @@ export const RidesTable: FC<RidesTableProps> = ({
           <thead>
             <tr>
               <th>#</th>
+              {showDriverColumn && <th>Conductor</th>}
+              {showVehicleColumn && <th>Vehículo</th>}
+              {showSourceColumn && <th>Fuente</th>}
               <th>Fecha</th>
               <th>Hora</th>
               <th>Duracion</th>
@@ -622,6 +661,19 @@ export const RidesTable: FC<RidesTableProps> = ({
             {paginatedRides.map((ride, index) => (
               <tr key={ride.id} className={ride.status !== 'completed' ? 'row-cancelled' : ''}>
                 <td className="cell-index">{startIndex + index + 1}</td>
+                {showDriverColumn && (
+                  <td className="cell-driver">{ride.driver_name || '-'}</td>
+                )}
+                {showVehicleColumn && (
+                  <td className="cell-vehicle">{ride.vehicle_plate || '-'}</td>
+                )}
+                {showSourceColumn && (
+                  <td className="cell-source">
+                    <span className={`source-badge source-${ride.category || 'other'}`}>
+                      {getSourceLabel(ride.category)}
+                    </span>
+                  </td>
+                )}
                 <td className="cell-date">
                   <EditableCell
                     value={toInputDateFormat(ride.date)}
@@ -763,7 +815,7 @@ export const RidesTable: FC<RidesTableProps> = ({
           </tbody>
           <tfoot>
             <tr className="totals-row">
-              <td colSpan={6} className="totals-label">
+              <td colSpan={6 + (showDriverColumn ? 1 : 0) + (showVehicleColumn ? 1 : 0) + (showSourceColumn ? 1 : 0)} className="totals-label">
                 <strong>
                   Totales ({sortedRides.length} viajes: {totals.completedCount} completados
                   {totals.cancelledCount > 0 && `, ${totals.cancelledCount} cancelados`})

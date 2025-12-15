@@ -2,6 +2,22 @@
 
 > **Slogan (Spanish):** "Seguro para ti, cómodo para tu mascota"
 
+---
+
+## CRITICAL SAFETY RULES
+
+**NEVER perform any of the following destructive operations:**
+
+1. **NEVER DELETE DATA** from Firebase Firestore, Storage, or any database
+2. **NEVER run `firebase firestore:delete`** or any delete commands
+3. **NEVER run destructive CLI commands** (`rm -rf`, `drop`, `truncate`, etc.)
+4. **NEVER modify production data** without explicit user confirmation
+5. **NEVER run commands that could cause data loss**
+
+If data needs to be deleted or modified, **ALWAYS ask the user to do it manually** and provide step-by-step instructions instead.
+
+---
+
 ## Project Overview
 
 WeGo is a transportation platform offering:

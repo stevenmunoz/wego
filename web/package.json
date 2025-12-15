@@ -11,7 +11,8 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "seed:driver": "npx tsx scripts/seed-test-driver.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
@@ -26,6 +27,8 @@
     "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "firebase-admin": "^13.0.2",
+    "tsx": "^4.19.2",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.1",
