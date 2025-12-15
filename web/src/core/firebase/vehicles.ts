@@ -4,6 +4,7 @@
 
 import {
   collection,
+  collectionGroup,
   doc,
   getDocs,
   getDoc,
@@ -55,6 +56,17 @@ export interface FirestoreVehicle {
 }
 
 // Collection path: drivers/{driverId}/vehicles/{vehicleId}
+
+/**
+ * Get ALL vehicles across all drivers (admin only)
+ * Uses collectionGroup to query all 'vehicles' subcollections
+ */
+export async function getAllVehicles(): Promise<FirestoreVehicle[]> {
+  const vehiclesGroup = collectionGroup(db, 'vehicles');
+  const q = query(vehiclesGroup, orderBy('created_at', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => doc.data() as FirestoreVehicle);
+}
 
 /**
  * Get all vehicles for a driver
@@ -223,6 +235,46 @@ export async function setVehicleAsPrimary(
     return { success: true };
   } catch (error) {
     console.error('[Firestore] Error setting primary vehicle:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Reassign a vehicle to a different driver (admin only)
+ * This moves the vehicle document from one driver's subcollection to another
+ */
+export async function reassignVehicle(
+  currentDriverId: string,
+  newDriverId: string,
+  vehicleId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Get the vehicle data from current location
+    const currentVehicleRef = doc(db, 'drivers', currentDriverId, 'vehicles', vehicleId);
+    const vehicleSnapshot = await getDoc(currentVehicleRef);
+
+    if (!vehicleSnapshot.exists()) {
+      return { success: false, error: 'Vehículo no encontrado' };
+    }
+
+    const vehicleData = vehicleSnapshot.data() as FirestoreVehicle;
+
+    // Create in new location with updated driver_id
+    const newVehicleRef = doc(db, 'drivers', newDriverId, 'vehicles', vehicleId);
+    await setDoc(newVehicleRef, {
+      ...vehicleData,
+      driver_id: newDriverId,
+      is_primary: false, // Reset primary status when reassigning
+      updated_at: serverTimestamp(),
+    });
+
+    // Delete from old location
+    await deleteDoc(currentVehicleRef);
+
+    return { success: true };
+  } catch (error) {
+    console.error('[Firestore] Error reassigning vehicle:', error);
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     return { success: false, error: errorMsg };
   }

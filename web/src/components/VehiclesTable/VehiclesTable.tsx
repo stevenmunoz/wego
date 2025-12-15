@@ -2,20 +2,28 @@
  * Vehicles Table Component
  *
  * Displays vehicle data in a table format with edit/delete actions
+ * Supports admin view with driver assignment capabilities
  */
 
 import { type FC } from 'react';
-import type { FirestoreVehicle } from '@/core/firebase';
+import type { FirestoreVehicle, FirestoreDriver } from '@/core/firebase';
 import type { VehicleStatus } from '@/core/types';
 import './VehiclesTable.css';
 
+interface VehicleWithDriver extends FirestoreVehicle {
+  driver_name?: string;
+}
+
 interface VehiclesTableProps {
-  vehicles: FirestoreVehicle[];
+  vehicles: (FirestoreVehicle | VehicleWithDriver)[];
   isLoading: boolean;
+  isAdminView?: boolean;
+  drivers?: FirestoreDriver[];
   onAddClick?: () => void;
   onEditVehicle?: (vehicle: FirestoreVehicle) => void;
   onDeleteVehicle?: (id: string) => void;
   onSetPrimary?: (id: string) => void;
+  onReassignVehicle?: (vehicleId: string, newDriverId: string) => void;
 }
 
 // Status helpers
@@ -81,15 +89,33 @@ const getExpiryStatus = (timestamp: { toDate: () => Date } | null): 'ok' | 'warn
 export const VehiclesTable: FC<VehiclesTableProps> = ({
   vehicles,
   isLoading,
+  isAdminView = false,
+  drivers = [],
   onAddClick,
   onEditVehicle,
   onDeleteVehicle,
   onSetPrimary,
+  onReassignVehicle,
 }) => {
   const handleDelete = (vehicleId: string) => {
     if (onDeleteVehicle && window.confirm('¿Estás seguro de eliminar este vehículo?')) {
       onDeleteVehicle(vehicleId);
     }
+  };
+
+  const handleDriverChange = (vehicleId: string, newDriverId: string) => {
+    if (onReassignVehicle && newDriverId) {
+      onReassignVehicle(vehicleId, newDriverId);
+    }
+  };
+
+  // Helper to get driver name from vehicle
+  const getDriverName = (vehicle: FirestoreVehicle | VehicleWithDriver): string => {
+    if ('driver_name' in vehicle && vehicle.driver_name) {
+      return vehicle.driver_name;
+    }
+    const driver = drivers.find((d) => d.id === vehicle.driver_id);
+    return driver?.name || 'Sin asignar';
   };
 
   if (isLoading) {
@@ -138,6 +164,7 @@ export const VehiclesTable: FC<VehiclesTableProps> = ({
               <th className="th-photo">Foto</th>
               <th>Placa</th>
               <th>Vehículo</th>
+              {isAdminView && <th>Conductor</th>}
               <th>Tipo</th>
               <th>Color</th>
               <th>Capacidad</th>
@@ -176,6 +203,25 @@ export const VehiclesTable: FC<VehiclesTableProps> = ({
                       <span className="vehicle-year">{vehicle.year}</span>
                     </div>
                   </td>
+                  {isAdminView && (
+                    <td className="cell-driver">
+                      {onReassignVehicle ? (
+                        <select
+                          className="driver-select"
+                          value={vehicle.driver_id}
+                          onChange={(e) => handleDriverChange(vehicle.id, e.target.value)}
+                        >
+                          {drivers.map((driver) => (
+                            <option key={driver.id} value={driver.id}>
+                              {driver.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span>{getDriverName(vehicle)}</span>
+                      )}
+                    </td>
+                  )}
                   <td className="cell-type">{getVehicleTypeLabel(vehicle.vehicle_type)}</td>
                   <td className="cell-color">{vehicle.color}</td>
                   <td className="cell-capacity">{vehicle.passenger_capacity} pasajeros</td>

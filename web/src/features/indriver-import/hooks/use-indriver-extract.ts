@@ -29,7 +29,7 @@ interface UseInDriverExtractReturn {
   extractAll: () => Promise<void>;
   updateRide: (id: string, updates: Partial<ExtractedInDriverRide>) => void;
   removeRide: (id: string) => void;
-  importRides: (driverId: string) => Promise<boolean>;
+  importRides: (driverId: string, vehicleId?: string) => Promise<boolean>;
   exportRides: (format: ExportFormat) => Promise<void>;
   clearExtracted: () => void;
 }
@@ -150,7 +150,7 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
    * Import extracted rides to Firebase
    */
   const importRides = useCallback(
-    async (driverId: string): Promise<boolean> => {
+    async (driverId: string, vehicleId?: string): Promise<boolean> => {
       if (extractedRides.length === 0) {
         setError('No hay viajes para importar');
         return false;
@@ -165,8 +165,8 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
       setError(null);
 
       try {
-        // Save to Firebase Firestore
-        const result = await saveInDriverRides(driverId, extractedRides);
+        // Save to Firebase Firestore with vehicle tracking
+        const result = await saveInDriverRides(driverId, extractedRides, vehicleId);
 
         if (result.success) {
           // Clear rides after successful import
