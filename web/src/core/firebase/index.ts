@@ -46,3 +46,18 @@ export {
   type FirestoreVehicle,
 } from './vehicles';
 export { uploadVehicleImage, deleteVehicleImage, compressImage } from './storage';
+export {
+  getVehicleIncome,
+  createVehicleIncome,
+  updateVehicleIncome,
+  deleteVehicleIncome,
+  getVehicleExpenses,
+  createVehicleExpense,
+  updateVehicleExpense,
+  deleteVehicleExpense,
+  calculatePLSummary,
+  convertFirestoreIncome,
+  convertFirestoreExpense,
+  type FirestoreVehicleIncome,
+  type FirestoreVehicleExpense,
+} from './vehicle-finances';

@@ -14,6 +14,7 @@ import { ConversationsPage } from '../pages/ConversationsPage';
 import { InDriverImportPage } from '../pages/InDriverImportPage';
 import { ExternalRideFormPage } from '../pages/ExternalRideFormPage';
 import { UserManagementPage } from '../pages/UserManagementPage';
+import { VehicleFinancesPage } from '../pages/VehicleFinancesPage';
 
 export const router = createBrowserRouter([
   {
@@ -63,6 +64,10 @@ export const router = createBrowserRouter([
       {
         path: '/usuarios',
         element: <UserManagementPage />,
+      },
+      {
+        path: '/finances',
+        element: <VehicleFinancesPage />,
       },
     ],
   },
