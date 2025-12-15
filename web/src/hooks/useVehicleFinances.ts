@@ -69,8 +69,15 @@ export const useVehicleFinances = (
   const [error, setError] = useState<string | null>(null);
 
   // Default date range to current month if not specified
-  const effectiveStartDate = options?.startDate ?? new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-  const effectiveEndDate = options?.endDate ?? new Date();
+  // Memoize dates to prevent new object creation on every render
+  const effectiveStartDate = useMemo(
+    () => options?.startDate ?? new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    [options?.startDate]
+  );
+  const effectiveEndDate = useMemo(
+    () => options?.endDate ?? new Date(),
+    [options?.endDate]
+  );
 
   const fetchData = useCallback(async () => {
     if (!ownerId || !vehicleId) {
@@ -110,12 +117,11 @@ export const useVehicleFinances = (
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     ownerId,
     vehicleId,
-    effectiveStartDate?.getTime(),
-    effectiveEndDate?.getTime(),
+    effectiveStartDate,
+    effectiveEndDate,
     options?.incomeType,
     options?.expenseCategory,
   ]);

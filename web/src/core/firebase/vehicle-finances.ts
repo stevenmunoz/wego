@@ -253,7 +253,7 @@ export async function getVehicleIncome(
 ): Promise<FirestoreVehicleIncome[]> {
   const incomeCollection = collection(db, 'vehicles', vehicleId, 'income');
 
-  let q = query(incomeCollection, orderBy('date', 'desc'));
+  const q = query(incomeCollection, orderBy('date', 'desc'));
 
   // Note: Firestore requires composite indexes for multiple where clauses
   // For now, we'll filter in memory if needed
@@ -412,7 +412,7 @@ export async function getVehicleExpenses(
 ): Promise<FirestoreVehicleExpense[]> {
   const expenseCollection = collection(db, 'vehicles', vehicleId, 'expenses');
 
-  let q = query(expenseCollection, orderBy('date', 'desc'));
+  const q = query(expenseCollection, orderBy('date', 'desc'));
 
   const snapshot = await getDocs(q);
   let results = snapshot.docs.map((doc) => doc.data() as FirestoreVehicleExpense);
