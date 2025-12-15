@@ -53,7 +53,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const user = convertFirebaseUser(firebaseUser);
       set({ firebaseUser, user, isAuthenticated: true, isLoading: false });
     } else {
-      set({ firebaseUser: null, user: null, userRole: null, isAuthenticated: false, isLoading: false });
+      set({
+        firebaseUser: null,
+        user: null,
+        userRole: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
     }
   },
 

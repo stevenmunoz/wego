@@ -77,7 +77,7 @@ export async function getAllUsers(): Promise<FirestoreUser[]> {
     const usersCollection = collection(db, 'users');
     const q = query(usersCollection, orderBy('created_at', 'desc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as FirestoreUser));
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as FirestoreUser);
   } catch (error) {
     console.error('[Firestore] Error fetching all users:', error);
     return [];
@@ -218,7 +218,7 @@ export async function getAllDrivers(): Promise<FirestoreDriver[]> {
   try {
     const driversCollection = collection(db, 'drivers');
     const snapshot = await getDocs(driversCollection);
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as FirestoreDriver));
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as FirestoreDriver);
   } catch (error) {
     console.error('[Firestore] Error fetching all drivers:', error);
     return [];
@@ -229,13 +229,11 @@ export async function getAllDrivers(): Promise<FirestoreDriver[]> {
  * Get all rides from all drivers (admin only)
  * Uses collection group query to fetch ALL rides regardless of driver document existence
  */
-export async function getAllDriversRides(
-  options?: {
-    startDate?: Date;
-    endDate?: Date;
-    status?: string;
-  }
-): Promise<Array<FirestoreInDriverRide & { driver_name?: string }>> {
+export async function getAllDriversRides(options?: {
+  startDate?: Date;
+  endDate?: Date;
+  status?: string;
+}): Promise<Array<FirestoreInDriverRide & { driver_name?: string }>> {
   try {
     // Use collection group query to get ALL rides across ALL drivers
     const ridesCollectionGroup = collectionGroup(db, 'driver_rides');
@@ -254,7 +252,11 @@ export async function getAllDriversRides(
     }
 
     const snapshot = await getDocs(q);
-    console.log('[Firestore] getAllDriversRides - Collection group query returned:', snapshot.docs.length, 'rides');
+    console.log(
+      '[Firestore] getAllDriversRides - Collection group query returned:',
+      snapshot.docs.length,
+      'rides'
+    );
 
     // Get all drivers AND users to map driver_id -> name
     // Some drivers may only exist in users collection, not drivers collection
@@ -273,13 +275,15 @@ export async function getAllDriversRides(
     });
 
     // Map rides with driver names
-    const allRides: Array<FirestoreInDriverRide & { driver_name?: string }> = snapshot.docs.map((docSnap) => {
-      const data = docSnap.data() as FirestoreInDriverRide;
-      return {
-        ...data,
-        driver_name: nameMap.get(data.driver_id) || `Driver ${data.driver_id.slice(0, 8)}...`,
-      };
-    });
+    const allRides: Array<FirestoreInDriverRide & { driver_name?: string }> = snapshot.docs.map(
+      (docSnap) => {
+        const data = docSnap.data() as FirestoreInDriverRide;
+        return {
+          ...data,
+          driver_name: nameMap.get(data.driver_id) || `Driver ${data.driver_id.slice(0, 8)}...`,
+        };
+      }
+    );
 
     console.log('[Firestore] getAllDriversRides - Total rides:', allRides.length);
 

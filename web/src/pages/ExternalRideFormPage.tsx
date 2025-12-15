@@ -38,9 +38,7 @@ export const ExternalRideFormPage: FC = () => {
         <div className="public-form-error">
           <span className="public-form-error-icon">😕</span>
           <h2 className="public-form-error-title">Enlace no valido</h2>
-          <p className="public-form-error-message">
-            {error || MESSAGES.DRIVER_NOT_FOUND}
-          </p>
+          <p className="public-form-error-message">{error || MESSAGES.DRIVER_NOT_FOUND}</p>
         </div>
       </PublicFormLayout>
     );
