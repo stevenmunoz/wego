@@ -58,6 +58,75 @@ export interface FirestoreVehicle {
 }
 
 // Collection path: vehicles/{vehicleId} (top-level collection)
+// Legacy path: drivers/{driverId}/vehicles/{vehicleId} (subcollection)
+
+/**
+ * Helper to find the correct document reference for a vehicle
+ * Checks both top-level collection and legacy subcollections
+ * Returns the document reference and location info
+ */
+async function findVehicleDocRef(
+  vehicleId: string,
+  ownerId?: string
+): Promise<{
+  ref: ReturnType<typeof doc>;
+  exists: boolean;
+  location: 'top-level' | 'subcollection' | 'not-found';
+  data?: FirestoreVehicle;
+}> {
+  // First, check top-level collection
+  const topLevelRef = doc(db, 'vehicles', vehicleId);
+  const topLevelSnap = await getDoc(topLevelRef);
+
+  if (topLevelSnap.exists()) {
+    return {
+      ref: topLevelRef,
+      exists: true,
+      location: 'top-level',
+      data: topLevelSnap.data() as FirestoreVehicle,
+    };
+  }
+
+  // If ownerId provided, check that specific subcollection
+  if (ownerId) {
+    const subRef = doc(db, 'drivers', ownerId, 'vehicles', vehicleId);
+    const subSnap = await getDoc(subRef);
+
+    if (subSnap.exists()) {
+      return {
+        ref: subRef,
+        exists: true,
+        location: 'subcollection',
+        data: subSnap.data() as FirestoreVehicle,
+      };
+    }
+  }
+
+  // If no ownerId, search across all subcollections using collectionGroup
+  // This is less efficient but handles cases where ownerId is unknown
+  if (!ownerId) {
+    const vehiclesGroup = collectionGroup(db, 'vehicles');
+    const q = query(vehiclesGroup, where('id', '==', vehicleId));
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+      const docSnap = snapshot.docs[0];
+      return {
+        ref: docSnap.ref,
+        exists: true,
+        location: 'subcollection',
+        data: docSnap.data() as FirestoreVehicle,
+      };
+    }
+  }
+
+  // Not found anywhere
+  return {
+    ref: topLevelRef, // Default to top-level for new documents
+    exists: false,
+    location: 'not-found',
+  };
+}
 
 /**
  * Get ALL vehicles across all drivers (admin only)
@@ -149,15 +218,14 @@ export async function getDriverVehicles(
 
 /**
  * Get a single vehicle by ID
+ * Checks both top-level collection and legacy subcollections
  */
 export async function getVehicle(
-  vehicleId: string
+  vehicleId: string,
+  ownerId?: string
 ): Promise<FirestoreVehicle | null> {
-  const vehicleRef = doc(db, 'vehicles', vehicleId);
-  const snapshot = await getDoc(vehicleRef);
-
-  if (!snapshot.exists()) return null;
-  return snapshot.data() as FirestoreVehicle;
+  const { exists, data } = await findVehicleDocRef(vehicleId, ownerId);
+  return exists && data ? data : null;
 }
 
 /**
@@ -212,13 +280,23 @@ export async function createVehicle(
 
 /**
  * Update an existing vehicle
+ * Handles both top-level collection and legacy subcollection structures
  */
 export async function updateVehicle(
   vehicleId: string,
-  updates: VehicleUpdateInput
+  updates: VehicleUpdateInput,
+  ownerId?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const vehicleRef = doc(db, 'vehicles', vehicleId);
+    // Find the vehicle in either top-level or subcollection
+    const { ref: vehicleRef, exists, location } = await findVehicleDocRef(vehicleId, ownerId);
+
+    if (!exists) {
+      console.error(`[Firestore] Vehicle ${vehicleId} not found in any collection`);
+      return { success: false, error: 'Vehículo no encontrado' };
+    }
+
+    console.log(`[Firestore] Updating vehicle ${vehicleId} in ${location} collection`);
 
     const firestoreUpdates: Record<string, unknown> = {
       ...updates,
@@ -254,12 +332,22 @@ export async function updateVehicle(
 
 /**
  * Delete a vehicle
+ * Handles both top-level collection and legacy subcollection structures
  */
 export async function deleteVehicle(
-  vehicleId: string
+  vehicleId: string,
+  ownerId?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const vehicleRef = doc(db, 'vehicles', vehicleId);
+    // Find the vehicle in either top-level or subcollection
+    const { ref: vehicleRef, exists, location } = await findVehicleDocRef(vehicleId, ownerId);
+
+    if (!exists) {
+      console.error(`[Firestore] Vehicle ${vehicleId} not found in any collection`);
+      return { success: false, error: 'Vehículo no encontrado' };
+    }
+
+    console.log(`[Firestore] Deleting vehicle ${vehicleId} from ${location} collection`);
     await deleteDoc(vehicleRef);
 
     return { success: true };
@@ -272,22 +360,29 @@ export async function deleteVehicle(
 
 /**
  * Set a vehicle as primary (and unset others)
+ * Handles both top-level collection and legacy subcollection structures
  */
 export async function setVehicleAsPrimary(
   ownerId: string,
   vehicleId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Get all vehicles for this owner
+    // Get all vehicles for this owner (from both collections)
     const vehicles = await getDriverVehicles(ownerId);
 
-    // Update all vehicles
+    // Update all vehicles - find each one's correct location
     for (const vehicle of vehicles) {
-      const vehicleRef = doc(db, 'vehicles', vehicle.id);
-      await updateDoc(vehicleRef, {
-        is_primary: vehicle.id === vehicleId,
-        updated_at: serverTimestamp(),
-      });
+      const { ref: vehicleRef, exists, location } = await findVehicleDocRef(vehicle.id, ownerId);
+
+      if (exists) {
+        console.log(`[Firestore] Setting is_primary=${vehicle.id === vehicleId} for vehicle ${vehicle.id} in ${location}`);
+        await updateDoc(vehicleRef, {
+          is_primary: vehicle.id === vehicleId,
+          updated_at: serverTimestamp(),
+        });
+      } else {
+        console.warn(`[Firestore] Vehicle ${vehicle.id} not found when setting primary`);
+      }
     }
 
     return { success: true };
