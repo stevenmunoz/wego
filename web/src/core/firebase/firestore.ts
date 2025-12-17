@@ -5,8 +5,11 @@
 import {
   getFirestore,
   collection,
+  collectionGroup,
   doc,
+  getDoc,
   getDocs,
+  setDoc,
   updateDoc,
   query,
   where,
@@ -19,15 +22,294 @@ import { firebaseApp } from './config';
 // Initialize Firestore
 export const db = getFirestore(firebaseApp);
 
+// ============================================================================
+// USER ROLES
+// ============================================================================
+
+export type UserRole = 'admin' | 'driver';
+
+export interface FirestoreUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  is_active: boolean;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface FirestoreDriver {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  unique_slug: string;
+  is_active: boolean;
+  role?: UserRole;
+  // Other driver fields...
+  created_at?: Timestamp;
+  updated_at?: Timestamp;
+}
+
 /**
- * InDriver ride data structure for Firestore
+ * Get user profile from Firestore users collection
+ */
+export async function getUserProfile(userId: string): Promise<FirestoreUser | null> {
+  try {
+    const userDocRef = doc(db, 'users', userId);
+    const userSnapshot = await getDoc(userDocRef);
+
+    if (userSnapshot.exists()) {
+      return { id: userSnapshot.id, ...userSnapshot.data() } as FirestoreUser;
+    }
+    return null;
+  } catch (error) {
+    console.error('[Firestore] Error fetching user profile:', error);
+    return null;
+  }
+}
+
+/**
+ * Get all users (admin only)
+ */
+export async function getAllUsers(): Promise<FirestoreUser[]> {
+  try {
+    const usersCollection = collection(db, 'users');
+    const q = query(usersCollection, orderBy('created_at', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as FirestoreUser);
+  } catch (error) {
+    console.error('[Firestore] Error fetching all users:', error);
+    return [];
+  }
+}
+
+/**
+ * Create a new user in Firestore
+ * Note: This creates the Firestore document. Firebase Auth user must be created separately.
+ */
+export async function createUserProfile(
+  userId: string,
+  data: {
+    email: string;
+    name: string;
+    role: UserRole;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const userDocRef = doc(db, 'users', userId);
+    const now = Timestamp.now();
+
+    await setDoc(userDocRef, {
+      email: data.email,
+      name: data.name,
+      role: data.role,
+      is_active: true,
+      created_at: now,
+      updated_at: now,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('[Firestore] Error creating user profile:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Update a user profile in Firestore
+ */
+export async function updateUserProfile(
+  userId: string,
+  updates: Partial<Pick<FirestoreUser, 'name' | 'role' | 'is_active'>>
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const userDocRef = doc(db, 'users', userId);
+    await updateDoc(userDocRef, {
+      ...updates,
+      updated_at: Timestamp.now(),
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('[Firestore] Error updating user profile:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Create a new driver in Firestore
+ */
+export async function createDriverProfile(
+  driverId: string,
+  data: {
+    email: string;
+    name: string;
+    phone: string;
+    unique_slug: string;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const driverDocRef = doc(db, 'drivers', driverId);
+    const now = Timestamp.now();
+
+    await setDoc(driverDocRef, {
+      email: data.email,
+      name: data.name,
+      phone: data.phone,
+      unique_slug: data.unique_slug,
+      is_active: true,
+      created_at: now,
+      updated_at: now,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('[Firestore] Error creating driver profile:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Update a driver profile in Firestore
+ */
+export async function updateDriverProfile(
+  driverId: string,
+  updates: Partial<Pick<FirestoreDriver, 'name' | 'phone' | 'unique_slug' | 'is_active'>>
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const driverDocRef = doc(db, 'drivers', driverId);
+    await updateDoc(driverDocRef, {
+      ...updates,
+      updated_at: Timestamp.now(),
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('[Firestore] Error updating driver profile:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Get driver profile from Firestore drivers collection
+ */
+export async function getDriverProfile(driverId: string): Promise<FirestoreDriver | null> {
+  try {
+    const driverDocRef = doc(db, 'drivers', driverId);
+    const driverSnapshot = await getDoc(driverDocRef);
+
+    if (driverSnapshot.exists()) {
+      return { id: driverSnapshot.id, ...driverSnapshot.data() } as FirestoreDriver;
+    }
+    return null;
+  } catch (error) {
+    console.error('[Firestore] Error fetching driver profile:', error);
+    return null;
+  }
+}
+
+/**
+ * Get all drivers (admin only)
+ */
+export async function getAllDrivers(): Promise<FirestoreDriver[]> {
+  try {
+    const driversCollection = collection(db, 'drivers');
+    const snapshot = await getDocs(driversCollection);
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as FirestoreDriver);
+  } catch (error) {
+    console.error('[Firestore] Error fetching all drivers:', error);
+    return [];
+  }
+}
+
+/**
+ * Get all rides from all drivers (admin only)
+ * Uses collection group query to fetch ALL rides regardless of driver document existence
+ */
+export async function getAllDriversRides(options?: {
+  startDate?: Date;
+  endDate?: Date;
+  status?: string;
+}): Promise<Array<FirestoreInDriverRide & { driver_name?: string }>> {
+  try {
+    // Use collection group query to get ALL rides across ALL drivers
+    const ridesCollectionGroup = collectionGroup(db, 'driver_rides');
+    let q = query(ridesCollectionGroup, orderBy('date', 'asc'));
+
+    if (options?.startDate) {
+      q = query(q, where('date', '>=', Timestamp.fromDate(options.startDate)));
+    }
+
+    if (options?.endDate) {
+      q = query(q, where('date', '<=', Timestamp.fromDate(options.endDate)));
+    }
+
+    if (options?.status) {
+      q = query(q, where('status', '==', options.status));
+    }
+
+    const snapshot = await getDocs(q);
+    console.log(
+      '[Firestore] getAllDriversRides - Collection group query returned:',
+      snapshot.docs.length,
+      'rides'
+    );
+
+    // Get all drivers AND users to map driver_id -> name
+    // Some drivers may only exist in users collection, not drivers collection
+    const [drivers, users] = await Promise.all([getAllDrivers(), getAllUsers()]);
+
+    const nameMap = new Map<string, string>();
+
+    // First add user names (lower priority)
+    users.forEach((user) => {
+      nameMap.set(user.id, user.name);
+    });
+
+    // Then add driver names (higher priority - will override user names if same ID)
+    drivers.forEach((driver) => {
+      nameMap.set(driver.id, driver.name);
+    });
+
+    // Map rides with driver names
+    const allRides: Array<FirestoreInDriverRide & { driver_name?: string }> = snapshot.docs.map(
+      (docSnap) => {
+        const data = docSnap.data() as FirestoreInDriverRide;
+        return {
+          ...data,
+          driver_name: nameMap.get(data.driver_id) || `Driver ${data.driver_id.slice(0, 8)}...`,
+        };
+      }
+    );
+
+    console.log('[Firestore] getAllDriversRides - Total rides:', allRides.length);
+
+    return allRides;
+  } catch (error) {
+    console.error('[Firestore] Error fetching all drivers rides:', error);
+    return [];
+  }
+}
+
+/**
+ * Ride data structure for Firestore
+ *
+ * Supports multiple ride sources:
+ * - 'indriver': Imported from InDriver screenshots via OCR
+ * - 'external': Registered via public form (WhatsApp, phone, etc.)
+ * - 'independent': Other independent rides
+ * - 'other': Miscellaneous
  */
 export interface FirestoreInDriverRide {
   // Identification
   id: string;
   driver_id: string;
-  source_image_path: string;
-  extraction_confidence: number;
+  vehicle_id?: string; // Optional for backward compatibility, will be required for new rides
+  source_image_path: string | null;
+  extraction_confidence: number | null;
 
   // Ride Details
   date: Timestamp | null;
@@ -38,8 +320,19 @@ export interface FirestoreInDriverRide {
   distance_value: number | null;
   distance_unit: string | null;
 
+  // External ride fields (optional for backward compatibility)
+  origin_address?: string;
+  request_source?: 'whatsapp' | 'phone' | 'referral' | 'other';
+  trip_reason?: 'personal' | 'work' | 'emergency' | 'other';
+  time_of_day?: 'morning' | 'afternoon' | 'evening' | 'night';
+  is_recurring?: boolean;
+  tip_received?: boolean;
+  tip_amount?: number | null;
+  comments?: string | null;
+  source_type?: 'ocr_import' | 'public_form' | 'manual';
+
   // Passenger Info
-  passenger_name: string;
+  passenger_name: string | null;
   rating_given: number | null;
 
   // Status
@@ -60,12 +353,13 @@ export interface FirestoreInDriverRide {
   net_earnings: number;
 
   // Metadata
-  extracted_at: Timestamp;
-  imported_at: Timestamp;
+  extracted_at: Timestamp | null;
+  imported_at: Timestamp | null;
+  created_at?: Timestamp;
   raw_ocr_text: string | null;
 
   // Categorization (for filtering/reporting)
-  category: 'indriver' | 'independent' | 'other';
+  category: 'indriver' | 'independent' | 'external' | 'other';
 }
 
 /**
@@ -97,7 +391,8 @@ export async function saveInDriverRides(
     mis_ingresos: number;
     extracted_at: string;
     raw_ocr_text: string | null;
-  }>
+  }>,
+  vehicleId?: string // Optional vehicle ID for tracking
 ): Promise<{ success: boolean; savedCount: number; errors: string[] }> {
   const errors: string[] = [];
   let savedCount = 0;
@@ -124,6 +419,7 @@ export async function saveInDriverRides(
         const firestoreRide: FirestoreInDriverRide = {
           id: ride.id,
           driver_id: driverId,
+          vehicle_id: vehicleId, // Track which vehicle was used
           source_image_path: ride.source_image_path,
           extraction_confidence: ride.extraction_confidence,
           date: dateTimestamp,
@@ -148,7 +444,9 @@ export async function saveInDriverRides(
           net_earnings: ride.mis_ingresos,
           extracted_at: Timestamp.fromDate(new Date(ride.extracted_at)),
           imported_at: Timestamp.now(),
+          created_at: Timestamp.now(),
           raw_ocr_text: ride.raw_ocr_text,
+          source_type: 'ocr_import',
           category: 'indriver',
         };
 
@@ -212,24 +510,29 @@ export async function getInDriverRides(
     status?: string;
   }
 ): Promise<FirestoreInDriverRide[]> {
-  const ridesCollection = collection(db, 'drivers', driverId, 'driver_rides');
+  try {
+    const ridesCollection = collection(db, 'drivers', driverId, 'driver_rides');
 
-  let q = query(ridesCollection, orderBy('date', 'asc'));
+    let q = query(ridesCollection, orderBy('date', 'asc'));
 
-  if (options?.startDate) {
-    q = query(q, where('date', '>=', Timestamp.fromDate(options.startDate)));
+    if (options?.startDate) {
+      q = query(q, where('date', '>=', Timestamp.fromDate(options.startDate)));
+    }
+
+    if (options?.endDate) {
+      q = query(q, where('date', '<=', Timestamp.fromDate(options.endDate)));
+    }
+
+    if (options?.status) {
+      q = query(q, where('status', '==', options.status));
+    }
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => doc.data() as FirestoreInDriverRide);
+  } catch (error) {
+    console.error(`[Firestore] Error fetching rides for driver ${driverId}:`, error);
+    throw error; // Re-throw so caller can handle
   }
-
-  if (options?.endDate) {
-    q = query(q, where('date', '<=', Timestamp.fromDate(options.endDate)));
-  }
-
-  if (options?.status) {
-    q = query(q, where('status', '==', options.status));
-  }
-
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => doc.data() as FirestoreInDriverRide);
 }
 
 /**

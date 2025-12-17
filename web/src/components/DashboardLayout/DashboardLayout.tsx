@@ -2,7 +2,7 @@
  * Dashboard Layout with sidebar navigation
  */
 
-import { type FC, type ReactNode } from 'react';
+import { type FC, type ReactNode, useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/core/store/auth-store';
 import './DashboardLayout.css';
@@ -15,12 +15,15 @@ interface NavItem {
   path: string;
   label: string;
   icon: string;
+  adminOnly?: boolean;
 }
 
-const navItems: NavItem[] = [
+const allNavItems: NavItem[] = [
   { path: '/dashboard', label: 'Mis Viajes', icon: '🚗' },
   { path: '/vehicles', label: 'Mis Vehículos', icon: '🚙' },
+  { path: '/finances', label: 'Finanzas', icon: '💰' },
   { path: '/indriver-import', label: 'Importar Viajes', icon: '📸' },
+  { path: '/usuarios', label: 'Usuarios', icon: '👥', adminOnly: true },
 ];
 
 // Environment indicator
@@ -29,8 +32,17 @@ const envLabel = isDev ? 'DEV' : 'PROD';
 
 export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
   const user = useAuthStore((state) => state.user);
+  const userRole = useAuthStore((state) => state.userRole);
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
+
+  const isAdmin = userRole === 'admin';
+
+  // Filter nav items based on user role
+  const navItems = useMemo(
+    () => allNavItems.filter((item) => !item.adminOnly || isAdmin),
+    [isAdmin]
+  );
 
   const handleLogout = async () => {
     await logout();

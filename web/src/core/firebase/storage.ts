@@ -2,12 +2,7 @@
  * Firebase Storage service for vehicle images
  */
 
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject,
-} from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { firebaseStorage } from './config';
 
 // Max file size: 5MB
@@ -59,10 +54,7 @@ export async function uploadVehicleImage(
     const filename = `vehicle_${timestamp}.${extension}`;
 
     // Create storage reference
-    const storageRef = ref(
-      firebaseStorage,
-      `vehicles/${driverId}/${vehicleId}/${filename}`
-    );
+    const storageRef = ref(firebaseStorage, `vehicles/${driverId}/${vehicleId}/${filename}`);
 
     // Upload file
     const snapshot = await uploadBytes(storageRef, file, {

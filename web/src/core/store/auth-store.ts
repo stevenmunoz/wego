@@ -6,17 +6,21 @@ import { create } from 'zustand';
 import { User as FirebaseUser } from 'firebase/auth';
 import { onAuthChange, logOut as firebaseLogOut } from '../firebase';
 import { User, UserRole, UserStatus } from '../types';
+import { getUserProfile, type UserRole as FirestoreUserRole } from '../firebase/firestore';
 
 interface AuthState {
   user: User | null;
   firebaseUser: FirebaseUser | null;
+  userRole: FirestoreUserRole | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   setUser: (user: User | null) => void;
   setFirebaseUser: (user: FirebaseUser | null) => void;
+  setUserRole: (role: FirestoreUserRole | null) => void;
   setLoading: (loading: boolean) => void;
   logout: () => Promise<void>;
   initAuth: () => () => void;
+  isAdmin: () => boolean;
 }
 
 /**
@@ -33,9 +37,10 @@ const convertFirebaseUser = (firebaseUser: FirebaseUser): User => ({
   updated_at: firebaseUser.metadata.lastSignInTime || new Date().toISOString(),
 });
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   firebaseUser: null,
+  userRole: null,
   isAuthenticated: false,
   isLoading: true,
 
@@ -48,8 +53,18 @@ export const useAuthStore = create<AuthState>((set) => ({
       const user = convertFirebaseUser(firebaseUser);
       set({ firebaseUser, user, isAuthenticated: true, isLoading: false });
     } else {
-      set({ firebaseUser: null, user: null, isAuthenticated: false, isLoading: false });
+      set({
+        firebaseUser: null,
+        user: null,
+        userRole: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
     }
+  },
+
+  setUserRole: (userRole) => {
+    set({ userRole });
   },
 
   setLoading: (isLoading) => set({ isLoading }),
@@ -57,24 +72,46 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     try {
       await firebaseLogOut();
-      set({ user: null, firebaseUser: null, isAuthenticated: false });
+      set({ user: null, firebaseUser: null, userRole: null, isAuthenticated: false });
     } catch (error) {
       console.error('Logout error:', error);
       throw error;
     }
   },
 
+  isAdmin: () => {
+    return get().userRole === 'admin';
+  },
+
   initAuth: () => {
     // Subscribe to Firebase auth state changes
-    const unsubscribe = onAuthChange((firebaseUser) => {
+    const unsubscribe = onAuthChange(async (firebaseUser) => {
       console.log('Auth state changed:', firebaseUser?.email || 'null');
       if (firebaseUser) {
         const user = convertFirebaseUser(firebaseUser);
         console.log('User authenticated:', user.email);
-        set({ firebaseUser, user, isAuthenticated: true, isLoading: false });
+
+        // Fetch user role from Firestore
+        const userProfile = await getUserProfile(firebaseUser.uid);
+        const userRole = userProfile?.role || null;
+        console.log('User role:', userRole);
+
+        set({
+          firebaseUser,
+          user,
+          userRole,
+          isAuthenticated: true,
+          isLoading: false,
+        });
       } else {
         console.log('No user authenticated');
-        set({ firebaseUser: null, user: null, isAuthenticated: false, isLoading: false });
+        set({
+          firebaseUser: null,
+          user: null,
+          userRole: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
       }
     });
 

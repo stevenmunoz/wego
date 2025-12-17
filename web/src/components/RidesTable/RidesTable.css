@@ -134,7 +134,9 @@
   white-space: nowrap;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
   z-index: 100;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -215,6 +217,52 @@
   width: 50px;
   color: #94a3b8;
   font-family: 'JetBrains Mono', monospace;
+}
+
+.cell-driver,
+.cell-vehicle {
+  white-space: nowrap;
+  font-size: 0.875rem;
+}
+
+.cell-vehicle {
+  font-family: 'JetBrains Mono', monospace;
+  color: #64748b;
+}
+
+.cell-source {
+  white-space: nowrap;
+}
+
+/* Source Badge */
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.source-indriver {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.source-external {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.source-independent {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.source-other {
+  background-color: #f1f5f9;
+  color: #475569;
 }
 
 .cell-date {
@@ -560,6 +608,37 @@ input[type='time'].editable-input::-webkit-calendar-picker-indicator:hover {
 
 .status-badge.editable-cell .edit-icon {
   margin-left: 0.25rem;
+}
+
+/* Source badge editable state */
+.source-badge.editable-cell {
+  cursor: pointer;
+}
+
+.source-badge.editable-cell:hover {
+  outline: 1px dashed currentColor;
+}
+
+.source-badge.editable-cell .edit-icon {
+  margin-left: 0.25rem;
+}
+
+/* Driver and Vehicle editable cells */
+.cell-driver .editable-cell,
+.cell-vehicle .editable-cell {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cell-driver .editable-select,
+.cell-vehicle .editable-select {
+  min-width: 180px;
+  max-width: 220px;
+}
+
+.cell-source .editable-select {
+  min-width: 140px;
 }
 
 /* Income/Deduction editable cells */

@@ -7,7 +7,51 @@
         { "fieldPath": "is_primary", "order": "DESCENDING" },
         { "fieldPath": "created_at", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "vehicles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "is_primary", "order": "DESCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "vehicles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "owner_id", "order": "ASCENDING" },
+        { "fieldPath": "is_primary", "order": "DESCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "vehicles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "owner_id", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "is_primary", "order": "DESCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
     }
   ],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    {
+      "collectionGroup": "vehicles",
+      "fieldPath": "created_at",
+      "indexes": [
+        { "order": "DESCENDING", "queryScope": "COLLECTION" },
+        { "order": "DESCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    {
+      "collectionGroup": "driver_rides",
+      "fieldPath": "date",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    }
+  ]
 }
