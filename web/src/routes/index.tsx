@@ -12,6 +12,9 @@ import { HomePage } from '../pages/HomePage';
 import { ChatPage } from '../pages/ChatPage';
 import { ConversationsPage } from '../pages/ConversationsPage';
 import { InDriverImportPage } from '../pages/InDriverImportPage';
+import { ExternalRideFormPage } from '../pages/ExternalRideFormPage';
+import { UserManagementPage } from '../pages/UserManagementPage';
+import { VehicleFinancesPage } from '../pages/VehicleFinancesPage';
 
 export const router = createBrowserRouter([
   {
@@ -25,6 +28,11 @@ export const router = createBrowserRouter([
   {
     path: '/register',
     element: <RegisterPage />,
+  },
+  // Public form for external ride registration (no auth required)
+  {
+    path: '/registrar-viaje/:driverSlug',
+    element: <ExternalRideFormPage />,
   },
   {
     element: <ProtectedRoute />,
@@ -52,6 +60,14 @@ export const router = createBrowserRouter([
       {
         path: '/indriver-import',
         element: <InDriverImportPage />,
+      },
+      {
+        path: '/usuarios',
+        element: <UserManagementPage />,
+      },
+      {
+        path: '/finances',
+        element: <VehicleFinancesPage />,
       },
     ],
   },

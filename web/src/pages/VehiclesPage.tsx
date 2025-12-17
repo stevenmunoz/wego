@@ -1,5 +1,7 @@
 /**
  * Vehicles page - displays all driver vehicles
+ * Admin view: Shows all vehicles across all drivers with assignment options
+ * Driver view: Shows only the logged-in driver's vehicles
  */
 
 import { useState } from 'react';
@@ -8,60 +10,74 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { VehiclesTable } from '@/components/VehiclesTable';
 import { VehicleForm } from '@/components/VehicleForm';
 import { useDriverVehicles } from '@/hooks/useDriverVehicles';
+import { useAllVehicles, type VehicleWithDriver } from '@/hooks/useAllVehicles';
 import { uploadVehicleImage, compressImage, deleteVehicleImage } from '@/core/firebase';
-import type { FirestoreVehicle } from '@/core/firebase';
+import type { FirestoreVehicle, FirestoreDriver } from '@/core/firebase';
 import type { VehicleCreateInput } from '@/core/types';
 import './VehiclesPage.css';
 
 export const VehiclesPage = () => {
   const user = useAuthStore((state) => state.user);
+  const userRole = useAuthStore((state) => state.userRole);
+  const isAdmin = userRole === 'admin';
+
   const [showForm, setShowForm] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<FirestoreVehicle | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedDriverId, setSelectedDriverId] = useState<string>('');
 
-  const {
-    vehicles,
-    isLoading,
-    error,
-    refetch,
-    addVehicle,
-    updateVehicle,
-    deleteVehicle,
-    setPrimaryVehicle,
-  } = useDriverVehicles(user?.id);
+  // Use different hooks based on role
+  const driverVehiclesHook = useDriverVehicles(user?.id);
+  const allVehiclesHook = useAllVehicles();
+
+  // Select the appropriate data based on role
+  const vehicles: (FirestoreVehicle | VehicleWithDriver)[] = isAdmin
+    ? allVehiclesHook.vehicles
+    : driverVehiclesHook.vehicles;
+  const drivers: FirestoreDriver[] = isAdmin ? allVehiclesHook.drivers : [];
+  const isLoading = isAdmin ? allVehiclesHook.isLoading : driverVehiclesHook.isLoading;
+  const error = isAdmin ? allVehiclesHook.error : driverVehiclesHook.error;
+  const refetch = isAdmin ? allVehiclesHook.refetch : driverVehiclesHook.refetch;
 
   const handleAddVehicle = async (data: VehicleCreateInput) => {
-    if (!user?.id) return;
+    // For admin, use selected driver; for driver, use their own ID
+    const targetDriverId = isAdmin ? selectedDriverId : user?.id;
+    if (!targetDriverId) return;
 
     setIsSubmitting(true);
 
     try {
-      // Extract imageFile from data
       const { imageFile, ...vehicleData } = data;
 
-      // Create vehicle first
-      const result = await addVehicle(vehicleData);
+      // Create vehicle using the appropriate hook
+      const result = isAdmin
+        ? await allVehiclesHook.addVehicle(targetDriverId, vehicleData)
+        : await driverVehiclesHook.addVehicle(vehicleData);
 
       if (result.success && result.vehicleId) {
-        // If there's an image to upload
         if (imageFile) {
-          // Compress image before uploading
           const compressedImage = await compressImage(imageFile);
-
-          // Upload to Firebase Storage
           const uploadResult = await uploadVehicleImage(
-            user.id,
+            targetDriverId,
             result.vehicleId,
             compressedImage
           );
 
-          // Update vehicle with photo URL
           if (uploadResult.success && uploadResult.url) {
-            await updateVehicle(result.vehicleId, { photo_url: uploadResult.url });
+            if (isAdmin) {
+              await allVehiclesHook.updateVehicle(targetDriverId, result.vehicleId, {
+                photo_url: uploadResult.url,
+              });
+            } else {
+              await driverVehiclesHook.updateVehicle(result.vehicleId, {
+                photo_url: uploadResult.url,
+              });
+            }
           }
         }
 
         setShowForm(false);
+        setSelectedDriverId('');
         await refetch();
       }
     } catch (error) {
@@ -73,44 +89,63 @@ export const VehiclesPage = () => {
 
   const handleEditVehicle = (vehicle: FirestoreVehicle) => {
     setEditingVehicle(vehicle);
+    if (isAdmin) {
+      setSelectedDriverId(vehicle.driver_id);
+    }
     setShowForm(true);
   };
 
   const handleUpdateVehicle = async (data: VehicleCreateInput) => {
-    if (!user?.id || !editingVehicle) return;
+    if (!editingVehicle) return;
 
+    const originalDriverId = editingVehicle.driver_id;
+    const newDriverId = isAdmin ? selectedDriverId : originalDriverId;
     setIsSubmitting(true);
 
     try {
-      // Extract imageFile from data
       const { imageFile, ...vehicleData } = data;
 
-      // Update vehicle data first
-      await updateVehicle(editingVehicle.id, vehicleData);
+      // Check if driver changed (admin only)
+      if (isAdmin && newDriverId !== originalDriverId) {
+        // Reassign vehicle to new driver first
+        await allVehiclesHook.reassignVehicle(originalDriverId, newDriverId, editingVehicle.id);
+      }
 
-      // Handle image update if there's a new image
+      // Update vehicle using the appropriate hook
+      if (isAdmin) {
+        await allVehiclesHook.updateVehicle(newDriverId, editingVehicle.id, vehicleData);
+      } else {
+        await driverVehiclesHook.updateVehicle(editingVehicle.id, vehicleData);
+      }
+
       if (imageFile) {
-        // Delete old image if exists
         if (editingVehicle.photo_url) {
           await deleteVehicleImage(editingVehicle.photo_url);
         }
 
-        // Compress and upload new image
         const compressedImage = await compressImage(imageFile);
         const uploadResult = await uploadVehicleImage(
-          user.id,
+          newDriverId,
           editingVehicle.id,
           compressedImage
         );
 
-        // Update vehicle with new photo URL
         if (uploadResult.success && uploadResult.url) {
-          await updateVehicle(editingVehicle.id, { photo_url: uploadResult.url });
+          if (isAdmin) {
+            await allVehiclesHook.updateVehicle(newDriverId, editingVehicle.id, {
+              photo_url: uploadResult.url,
+            });
+          } else {
+            await driverVehiclesHook.updateVehicle(editingVehicle.id, {
+              photo_url: uploadResult.url,
+            });
+          }
         }
       }
 
       setShowForm(false);
       setEditingVehicle(null);
+      setSelectedDriverId('');
       await refetch();
     } catch (error) {
       console.error('[VehiclesPage] Error updating vehicle:', error);
@@ -119,9 +154,39 @@ export const VehiclesPage = () => {
     }
   };
 
+  const handleDeleteVehicle = async (vehicleId: string) => {
+    const vehicle = vehicles.find((v) => v.id === vehicleId);
+    if (!vehicle) return;
+
+    if (isAdmin) {
+      await allVehiclesHook.deleteVehicle(vehicle.driver_id, vehicleId);
+    } else {
+      await driverVehiclesHook.deleteVehicle(vehicleId);
+    }
+  };
+
+  const handleSetPrimary = async (vehicleId: string) => {
+    const vehicle = vehicles.find((v) => v.id === vehicleId);
+    if (!vehicle) return;
+
+    if (isAdmin) {
+      await allVehiclesHook.setPrimaryVehicle(vehicle.driver_id, vehicleId);
+    } else {
+      await driverVehiclesHook.setPrimaryVehicle(vehicleId);
+    }
+  };
+
+  const handleReassignVehicle = async (vehicleId: string, newDriverId: string) => {
+    const vehicle = vehicles.find((v) => v.id === vehicleId);
+    if (!vehicle || !isAdmin) return;
+
+    await allVehiclesHook.reassignVehicle(vehicle.driver_id, newDriverId, vehicleId);
+  };
+
   const handleCloseForm = () => {
     setShowForm(false);
     setEditingVehicle(null);
+    setSelectedDriverId('');
   };
 
   return (
@@ -129,8 +194,12 @@ export const VehiclesPage = () => {
       <div className="vehicles-page">
         <header className="page-header">
           <div className="page-header-content">
-            <h1 className="page-title">Mis Vehículos</h1>
-            <p className="page-subtitle">Administra los vehículos registrados para tus servicios</p>
+            <h1 className="page-title">{isAdmin ? 'Gestión de Vehículos' : 'Mis Vehículos'}</h1>
+            <p className="page-subtitle">
+              {isAdmin
+                ? 'Administra todos los vehículos de la flota'
+                : 'Administra los vehículos registrados para tus servicios'}
+            </p>
           </div>
           <div className="page-header-actions">
             <button type="button" className="btn btn-outline" onClick={refetch}>
@@ -155,20 +224,57 @@ export const VehiclesPage = () => {
         <VehiclesTable
           vehicles={vehicles}
           isLoading={isLoading}
+          isAdminView={isAdmin}
+          drivers={drivers}
           onAddClick={() => setShowForm(true)}
           onEditVehicle={handleEditVehicle}
-          onDeleteVehicle={deleteVehicle}
-          onSetPrimary={setPrimaryVehicle}
+          onDeleteVehicle={handleDeleteVehicle}
+          onSetPrimary={handleSetPrimary}
+          onReassignVehicle={isAdmin ? handleReassignVehicle : undefined}
         />
 
         {showForm && (
           <div className="modal-overlay" onClick={handleCloseForm}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              {/* Driver selector for admin (add or edit) */}
+              {isAdmin && (
+                <>
+                  <div className="driver-selector-header">
+                    <h2>{editingVehicle ? 'Editar Vehículo' : 'Agregar Vehículo'}</h2>
+                    <button
+                      type="button"
+                      className="btn-close"
+                      onClick={handleCloseForm}
+                      aria-label="Cerrar"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                  <div className="driver-selector-content">
+                    <label htmlFor="driver-select">
+                      {editingVehicle ? 'Conductor asignado:' : 'Asignar a conductor:'}
+                    </label>
+                    <select
+                      id="driver-select"
+                      value={selectedDriverId}
+                      onChange={(e) => setSelectedDriverId(e.target.value)}
+                      required
+                    >
+                      {!editingVehicle && <option value="">Seleccionar conductor...</option>}
+                      {drivers.map((driver) => (
+                        <option key={driver.id} value={driver.id}>
+                          {driver.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
               <VehicleForm
                 vehicle={editingVehicle || undefined}
                 onSubmit={editingVehicle ? handleUpdateVehicle : handleAddVehicle}
                 onCancel={handleCloseForm}
-                isSubmitting={isSubmitting}
+                isSubmitting={isSubmitting || (isAdmin && !editingVehicle && !selectedDriverId)}
               />
             </div>
           </div>

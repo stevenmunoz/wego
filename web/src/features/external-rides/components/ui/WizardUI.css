@@ -1,0 +1,241 @@
+/**
+ * Wizard UI Components Styles
+ *
+ * Mobile-first, touch-friendly styles for wizard inputs
+ */
+
+/* ============================================================================
+   BASE INPUT
+   ============================================================================ */
+
+.wizard-input {
+  width: 100%;
+  min-height: 56px;
+  padding: 1rem 1.25rem;
+  font-size: 1.125rem;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  color: var(--color-primary-800, #1e2a3a);
+  background-color: #ffffff;
+  border: 2px solid var(--color-neutral-200, #e2e8f0);
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.wizard-input::placeholder {
+  color: var(--color-neutral-400, #9ca3af);
+}
+
+.wizard-input:focus {
+  border-color: var(--color-accent-600, #f05365);
+  box-shadow: 0 0 0 4px rgba(240, 83, 101, 0.1);
+}
+
+.wizard-input:disabled {
+  background-color: var(--color-neutral-100, #f3f4f6);
+  color: var(--color-neutral-400, #9ca3af);
+  cursor: not-allowed;
+}
+
+/* Textarea variant */
+.wizard-textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   CURRENCY INPUT
+   ============================================================================ */
+
+.wizard-currency-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.wizard-currency-symbol {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-primary-800, #1e2a3a);
+}
+
+.wizard-currency-input {
+  flex: 1;
+  text-align: left;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.wizard-currency-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-neutral-500, #6b7280);
+}
+
+/* ============================================================================
+   RADIO GROUP
+   ============================================================================ */
+
+.wizard-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.wizard-radio-columns-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .wizard-radio-columns-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.wizard-radio-option {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 64px;
+  padding: 1rem 1.25rem;
+  background-color: #ffffff;
+  border: 2px solid var(--color-neutral-200, #e2e8f0);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.wizard-radio-option:hover:not(:disabled) {
+  border-color: var(--color-neutral-300, #d1d5db);
+  background-color: var(--color-neutral-50, #f9fafb);
+}
+
+.wizard-radio-option.selected {
+  border-color: var(--color-accent-600, #f05365);
+  background-color: rgba(240, 83, 101, 0.05);
+}
+
+.wizard-radio-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wizard-radio-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.wizard-radio-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.wizard-radio-label {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--color-primary-800, #1e2a3a);
+}
+
+.wizard-radio-description {
+  font-size: 0.875rem;
+  color: var(--color-neutral-500, #6b7280);
+}
+
+/* ============================================================================
+   YES/NO BUTTONS
+   ============================================================================ */
+
+.wizard-yesno-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+
+.wizard-yesno-btn {
+  min-height: 80px;
+  padding: 1.5rem 2rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 2px solid transparent;
+}
+
+.wizard-yesno-yes {
+  background-color: var(--color-success-100, #dcfce7);
+  color: var(--color-success-700, #15803d);
+  border-color: var(--color-success-200, #bbf7d0);
+}
+
+.wizard-yesno-yes:hover:not(:disabled) {
+  background-color: var(--color-success-200, #bbf7d0);
+}
+
+.wizard-yesno-yes.selected {
+  background-color: var(--color-success-600, #16a34a);
+  color: #ffffff;
+  border-color: var(--color-success-600, #16a34a);
+}
+
+.wizard-yesno-no {
+  background-color: var(--color-neutral-100, #f3f4f6);
+  color: var(--color-neutral-600, #4b5563);
+  border-color: var(--color-neutral-200, #e2e8f0);
+}
+
+.wizard-yesno-no:hover:not(:disabled) {
+  background-color: var(--color-neutral-200, #e2e8f0);
+}
+
+.wizard-yesno-no.selected {
+  background-color: var(--color-neutral-600, #4b5563);
+  color: #ffffff;
+  border-color: var(--color-neutral-600, #4b5563);
+}
+
+.wizard-yesno-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================================ */
+
+@media (min-width: 768px) {
+  .wizard-input {
+    font-size: 1.25rem;
+    min-height: 60px;
+  }
+
+  .wizard-currency-input {
+    font-size: 2rem;
+  }
+
+  .wizard-currency-symbol {
+    font-size: 2rem;
+  }
+
+  .wizard-radio-option {
+    min-height: 72px;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .wizard-yesno-btn {
+    min-height: 100px;
+    font-size: 1.5rem;
+  }
+}

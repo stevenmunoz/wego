@@ -5,8 +5,9 @@
  */
 
 import { type FC, useState, useMemo, useRef, useEffect } from 'react';
-import type { FirestoreInDriverRide } from '@/core/firebase';
+import type { FirestoreInDriverRide, FirestoreDriver, FirestoreVehicle } from '@/core/firebase';
 import type { StatusFilterOption } from '@/components/StatusFilter';
+import type { SourceFilterOption } from '@/components/SourceFilter';
 import './RidesTable.css';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
@@ -22,7 +23,10 @@ type EditableField =
   | 'service_commission'
   | 'service_tax'
   | 'net_earnings'
-  | 'status';
+  | 'status'
+  | 'driver'
+  | 'vehicle'
+  | 'source';
 
 interface EditingState {
   rideId: string;
@@ -30,11 +34,17 @@ interface EditingState {
 }
 
 interface RidesTableProps {
-  rides: FirestoreInDriverRide[];
+  rides: Array<FirestoreInDriverRide & { driver_name?: string; vehicle_plate?: string }>;
   isLoading: boolean;
   onImportClick?: () => void;
   onUpdateRide?: (id: string, updates: Partial<FirestoreInDriverRide>) => void;
   statusFilter?: StatusFilterOption;
+  sourceFilter?: SourceFilterOption;
+  showDriverColumn?: boolean;
+  showVehicleColumn?: boolean;
+  showSourceColumn?: boolean;
+  drivers?: FirestoreDriver[];
+  vehicles?: FirestoreVehicle[];
 }
 
 // Helper to convert Firestore Timestamp or string date to YYYY-MM-DD for HTML date input
@@ -316,7 +326,7 @@ const getDateTimestamp = (date: { toDate: () => Date } | string | null | undefin
   return date.toDate?.()?.getTime() ?? 0;
 };
 
-const sortRidesByDateAndTime = (rides: FirestoreInDriverRide[]): FirestoreInDriverRide[] => {
+const sortRidesByDateAndTime = <T extends FirestoreInDriverRide>(rides: T[]): T[] => {
   return [...rides].sort((a, b) => {
     // First compare by date
     const dateA = getDateTimestamp(a.date);
@@ -367,16 +377,77 @@ const calculateTotals = (rides: FirestoreInDriverRide[]): Totals => {
   );
 };
 
+// Helper to get source label
+const getSourceLabel = (category?: string): string => {
+  switch (category) {
+    case 'indriver':
+      return 'InDriver';
+    case 'external':
+      return 'Externo';
+    case 'independent':
+      return 'Independiente';
+    default:
+      return 'Otro';
+  }
+};
+
 export const RidesTable: FC<RidesTableProps> = ({
   rides,
   isLoading,
   onImportClick,
   onUpdateRide,
   statusFilter = 'all',
+  sourceFilter = 'all',
+  showDriverColumn = false,
+  showVehicleColumn = false,
+  showSourceColumn = false,
+  drivers = [],
+  vehicles = [],
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [editing, setEditing] = useState<EditingState | null>(null);
+
+  // Memoized dropdown options
+  const driverOptions = useMemo(
+    () =>
+      drivers.map((d) => ({
+        value: d.id,
+        label: d.name,
+      })),
+    [drivers]
+  );
+
+  const vehicleOptions = useMemo(
+    () =>
+      vehicles.map((v) => ({
+        value: v.id,
+        label: `${v.plate} - ${v.brand} ${v.model}`,
+        driver_id: v.driver_id,
+      })),
+    [vehicles]
+  );
+
+  const sourceOptions = useMemo(
+    () => [
+      { value: 'indriver', label: 'InDriver' },
+      { value: 'external', label: 'Externo' },
+    ],
+    []
+  );
+
+  // Map vehicle_id -> driver info for quick lookup
+  const vehicleDriverMap = useMemo(() => {
+    const map = new Map<string, { driver_id: string; driver_name: string }>();
+    vehicles.forEach((v) => {
+      const driver = drivers.find((d) => d.id === v.driver_id);
+      map.set(v.id, {
+        driver_id: v.driver_id,
+        driver_name: driver?.name || '',
+      });
+    });
+    return map;
+  }, [vehicles, drivers]);
 
   const startEditing = (rideId: string, field: EditableField) => {
     if (onUpdateRide) {
@@ -449,23 +520,55 @@ export const RidesTable: FC<RidesTableProps> = ({
       case 'status':
         updates.status = value as string;
         break;
+      case 'source':
+        updates.category = value as 'indriver' | 'independent' | 'external' | 'other';
+        break;
+      case 'vehicle': {
+        const newVehicleId = value as string;
+        updates.vehicle_id = newVehicleId;
+        // Get the vehicle's driver info
+        const vehicleInfo = vehicleDriverMap.get(newVehicleId);
+        if (vehicleInfo) {
+          // Also update driver_id to match vehicle owner
+          updates.driver_id = vehicleInfo.driver_id;
+        }
+        break;
+      }
+      case 'driver': {
+        const newDriverId = value as string;
+        updates.driver_id = newDriverId;
+        break;
+      }
     }
 
     onUpdateRide(ride.id, updates);
     stopEditing();
   };
 
-  // Filter rides by status
+  // Filter rides by status and source
   const filteredRides = useMemo(() => {
-    if (statusFilter === 'all') return rides;
-    if (statusFilter === 'completed') return rides.filter((r) => r.status === 'completed');
-    if (statusFilter === 'cancelled') return rides.filter((r) => r.status !== 'completed');
-    if (statusFilter === 'cancelled_by_passenger')
-      return rides.filter((r) => r.status === 'cancelled_by_passenger');
-    if (statusFilter === 'cancelled_by_driver')
-      return rides.filter((r) => r.status === 'cancelled_by_driver');
-    return rides;
-  }, [rides, statusFilter]);
+    let filtered = rides;
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'completed') {
+        filtered = filtered.filter((r) => r.status === 'completed');
+      } else if (statusFilter === 'cancelled') {
+        filtered = filtered.filter((r) => r.status !== 'completed');
+      } else if (statusFilter === 'cancelled_by_passenger') {
+        filtered = filtered.filter((r) => r.status === 'cancelled_by_passenger');
+      } else if (statusFilter === 'cancelled_by_driver') {
+        filtered = filtered.filter((r) => r.status === 'cancelled_by_driver');
+      }
+    }
+
+    // Filter by source
+    if (sourceFilter !== 'all') {
+      filtered = filtered.filter((r) => r.category === sourceFilter);
+    }
+
+    return filtered;
+  }, [rides, statusFilter, sourceFilter]);
 
   const sortedRides = useMemo(() => sortRidesByDateAndTime(filteredRides), [filteredRides]);
   const totals = useMemo(() => calculateTotals(sortedRides), [sortedRides]);
@@ -608,6 +711,9 @@ export const RidesTable: FC<RidesTableProps> = ({
           <thead>
             <tr>
               <th>#</th>
+              {showDriverColumn && <th>Conductor</th>}
+              {showVehicleColumn && <th>Vehículo</th>}
+              {showSourceColumn && <th>Fuente</th>}
               <th>Fecha</th>
               <th>Hora</th>
               <th>Duracion</th>
@@ -622,6 +728,52 @@ export const RidesTable: FC<RidesTableProps> = ({
             {paginatedRides.map((ride, index) => (
               <tr key={ride.id} className={ride.status !== 'completed' ? 'row-cancelled' : ''}>
                 <td className="cell-index">{startIndex + index + 1}</td>
+                {showDriverColumn && (
+                  <td className="cell-driver">
+                    <EditableCell
+                      value={ride.driver_id || ''}
+                      displayValue={ride.driver_name || '-'}
+                      isEditing={isEditingField(ride.id, 'driver')}
+                      type="select"
+                      options={driverOptions}
+                      onStartEdit={() => startEditing(ride.id, 'driver')}
+                      onSave={(value) => handleUpdateField(ride, 'driver', value)}
+                      onCancel={stopEditing}
+                      disabled={!onUpdateRide || drivers.length === 0}
+                    />
+                  </td>
+                )}
+                {showVehicleColumn && (
+                  <td className="cell-vehicle">
+                    <EditableCell
+                      value={ride.vehicle_id || ''}
+                      displayValue={ride.vehicle_plate || '-'}
+                      isEditing={isEditingField(ride.id, 'vehicle')}
+                      type="select"
+                      options={vehicleOptions}
+                      onStartEdit={() => startEditing(ride.id, 'vehicle')}
+                      onSave={(value) => handleUpdateField(ride, 'vehicle', value)}
+                      onCancel={stopEditing}
+                      disabled={!onUpdateRide || vehicles.length === 0}
+                    />
+                  </td>
+                )}
+                {showSourceColumn && (
+                  <td className="cell-source">
+                    <EditableCell
+                      value={ride.category || 'indriver'}
+                      displayValue={getSourceLabel(ride.category)}
+                      isEditing={isEditingField(ride.id, 'source')}
+                      type="select"
+                      options={sourceOptions}
+                      onStartEdit={() => startEditing(ride.id, 'source')}
+                      onSave={(value) => handleUpdateField(ride, 'source', value)}
+                      onCancel={stopEditing}
+                      className={`source-badge source-${ride.category || 'other'}`}
+                      disabled={!onUpdateRide}
+                    />
+                  </td>
+                )}
                 <td className="cell-date">
                   <EditableCell
                     value={toInputDateFormat(ride.date)}
@@ -763,7 +915,15 @@ export const RidesTable: FC<RidesTableProps> = ({
           </tbody>
           <tfoot>
             <tr className="totals-row">
-              <td colSpan={6} className="totals-label">
+              <td
+                colSpan={
+                  6 +
+                  (showDriverColumn ? 1 : 0) +
+                  (showVehicleColumn ? 1 : 0) +
+                  (showSourceColumn ? 1 : 0)
+                }
+                className="totals-label"
+              >
                 <strong>
                   Totales ({sortedRides.length} viajes: {totals.completedCount} completados
                   {totals.cancelledCount > 0 && `, ${totals.cancelledCount} cancelados`})
