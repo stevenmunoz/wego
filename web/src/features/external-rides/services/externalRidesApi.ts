@@ -112,11 +112,12 @@ export async function saveExternalRide(
     const netEarnings = input.total_received + tipAmount;
 
     // Create Firestore document
+    // Build base object without optional fields that may be undefined
     const firestoreRide: FirestoreExternalRide = {
       // Identification
       id: rideId,
       driver_id: driverId,
-      vehicle_id: vehicleId, // Track which vehicle was used
+      vehicle_id: vehicleId ?? null, // Track which vehicle was used (null if not provided)
 
       // Ride Details
       date: Timestamp.fromDate(rideDate),
