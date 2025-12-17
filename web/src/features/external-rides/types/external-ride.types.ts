@@ -68,7 +68,7 @@ export interface FirestoreExternalRide {
   // Identification
   id: string;
   driver_id: string;
-  vehicle_id?: string; // Optional for backward compatibility
+  vehicle_id: string | null; // Optional - null when not provided (Firestore doesn't accept undefined)
 
   // Ride Details
   date: Timestamp;
