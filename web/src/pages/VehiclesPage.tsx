@@ -11,7 +11,13 @@ import { VehiclesTable } from '@/components/VehiclesTable';
 import { VehicleForm } from '@/components/VehicleForm';
 import { useDriverVehicles } from '@/hooks/useDriverVehicles';
 import { useAllVehicles, type VehicleWithDriver } from '@/hooks/useAllVehicles';
-import { uploadVehicleImage, compressImage, deleteVehicleImage } from '@/core/firebase';
+import {
+  uploadVehicleImage,
+  compressImage,
+  deleteVehicleImage,
+  uploadVehicleDocument,
+  deleteVehicleDocument,
+} from '@/core/firebase';
 import type { FirestoreVehicle, DriverWithUser } from '@/core/firebase';
 import type { VehicleCreateInput } from '@/core/types';
 import './VehiclesPage.css';
@@ -47,7 +53,7 @@ export const VehiclesPage = () => {
     setIsSubmitting(true);
 
     try {
-      const { imageFile, ...vehicleData } = data;
+      const { imageFile, soatFile, tecnomecanicaFile, ...vehicleData } = data;
 
       // Create vehicle using the appropriate hook
       const result = isAdmin
@@ -55,6 +61,9 @@ export const VehiclesPage = () => {
         : await driverVehiclesHook.addVehicle(vehicleData);
 
       if (result.success && result.vehicleId) {
+        const updates: Record<string, string> = {};
+
+        // Upload vehicle image
         if (imageFile) {
           const compressedImage = await compressImage(imageFile);
           const uploadResult = await uploadVehicleImage(
@@ -62,17 +71,43 @@ export const VehiclesPage = () => {
             result.vehicleId,
             compressedImage
           );
-
           if (uploadResult.success && uploadResult.url) {
-            if (isAdmin) {
-              await allVehiclesHook.updateVehicle(targetDriverId, result.vehicleId, {
-                photo_url: uploadResult.url,
-              });
-            } else {
-              await driverVehiclesHook.updateVehicle(result.vehicleId, {
-                photo_url: uploadResult.url,
-              });
-            }
+            updates.photo_url = uploadResult.url;
+          }
+        }
+
+        // Upload SOAT document
+        if (soatFile) {
+          const soatResult = await uploadVehicleDocument(
+            targetDriverId,
+            result.vehicleId,
+            'soat',
+            soatFile
+          );
+          if (soatResult.success && soatResult.url) {
+            updates.soat_document_url = soatResult.url;
+          }
+        }
+
+        // Upload Tecnomecánica document
+        if (tecnomecanicaFile) {
+          const tecnoResult = await uploadVehicleDocument(
+            targetDriverId,
+            result.vehicleId,
+            'tecnomecanica',
+            tecnomecanicaFile
+          );
+          if (tecnoResult.success && tecnoResult.url) {
+            updates.tecnomecanica_document_url = tecnoResult.url;
+          }
+        }
+
+        // Update vehicle with uploaded file URLs
+        if (Object.keys(updates).length > 0) {
+          if (isAdmin) {
+            await allVehiclesHook.updateVehicle(targetDriverId, result.vehicleId, updates);
+          } else {
+            await driverVehiclesHook.updateVehicle(result.vehicleId, updates);
           }
         }
 
@@ -103,7 +138,7 @@ export const VehiclesPage = () => {
     setIsSubmitting(true);
 
     try {
-      const { imageFile, ...vehicleData } = data;
+      const { imageFile, soatFile, tecnomecanicaFile, ...vehicleData } = data;
 
       // Check if driver changed (admin only)
       if (isAdmin && newDriverId !== originalDriverId) {
@@ -118,6 +153,9 @@ export const VehiclesPage = () => {
         await driverVehiclesHook.updateVehicle(editingVehicle.id, vehicleData);
       }
 
+      const updates: Record<string, string> = {};
+
+      // Handle vehicle image upload
       if (imageFile) {
         if (editingVehicle.photo_url) {
           await deleteVehicleImage(editingVehicle.photo_url);
@@ -131,15 +169,52 @@ export const VehiclesPage = () => {
         );
 
         if (uploadResult.success && uploadResult.url) {
-          if (isAdmin) {
-            await allVehiclesHook.updateVehicle(newDriverId, editingVehicle.id, {
-              photo_url: uploadResult.url,
-            });
-          } else {
-            await driverVehiclesHook.updateVehicle(editingVehicle.id, {
-              photo_url: uploadResult.url,
-            });
-          }
+          updates.photo_url = uploadResult.url;
+        }
+      }
+
+      // Handle SOAT document upload
+      if (soatFile) {
+        if (editingVehicle.soat_document_url) {
+          await deleteVehicleDocument(editingVehicle.soat_document_url);
+        }
+
+        const soatResult = await uploadVehicleDocument(
+          newDriverId,
+          editingVehicle.id,
+          'soat',
+          soatFile
+        );
+
+        if (soatResult.success && soatResult.url) {
+          updates.soat_document_url = soatResult.url;
+        }
+      }
+
+      // Handle Tecnomecánica document upload
+      if (tecnomecanicaFile) {
+        if (editingVehicle.tecnomecanica_document_url) {
+          await deleteVehicleDocument(editingVehicle.tecnomecanica_document_url);
+        }
+
+        const tecnoResult = await uploadVehicleDocument(
+          newDriverId,
+          editingVehicle.id,
+          'tecnomecanica',
+          tecnomecanicaFile
+        );
+
+        if (tecnoResult.success && tecnoResult.url) {
+          updates.tecnomecanica_document_url = tecnoResult.url;
+        }
+      }
+
+      // Update vehicle with uploaded file URLs
+      if (Object.keys(updates).length > 0) {
+        if (isAdmin) {
+          await allVehiclesHook.updateVehicle(newDriverId, editingVehicle.id, updates);
+        } else {
+          await driverVehiclesHook.updateVehicle(editingVehicle.id, updates);
         }
       }
 
