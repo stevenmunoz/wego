@@ -11,7 +11,7 @@ import { useUsers } from '@/hooks/useUsers';
 import { type UserRole } from '@/core/firebase';
 import './UserManagementPage.css';
 
-type TabType = 'users' | 'drivers';
+type TabType = 'users' | 'drivers' | 'admins';
 
 interface NewUserForm {
   name: string;
@@ -52,6 +52,10 @@ export const UserManagementPage: FC = () => {
   };
 
   const { users, drivers, isLoading, error, refetch, registerNewUser, updateUser } = useUsers();
+
+  // Filter users by role for tabs
+  const admins = users.filter((u) => u.role === 'admin');
+  const regularUsers = users.filter((u) => u.role !== 'admin');
 
   // Redirect non-admins
   if (!isAdmin) {
@@ -171,7 +175,7 @@ export const UserManagementPage: FC = () => {
             className={`tab ${activeTab === 'users' ? 'tab-active' : ''}`}
             onClick={() => setActiveTab('users')}
           >
-            Usuarios ({users.length})
+            Usuarios ({regularUsers.length})
           </button>
           <button
             type="button"
@@ -179,6 +183,13 @@ export const UserManagementPage: FC = () => {
             onClick={() => setActiveTab('drivers')}
           >
             Conductores ({drivers.length})
+          </button>
+          <button
+            type="button"
+            className={`tab ${activeTab === 'admins' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('admins')}
+          >
+            Admins ({admins.length})
           </button>
         </div>
 
@@ -203,14 +214,14 @@ export const UserManagementPage: FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.length === 0 ? (
+                  {regularUsers.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="empty-state">
                         No hay usuarios registrados
                       </td>
                     </tr>
                   ) : (
-                    users.map((user) => (
+                    regularUsers.map((user) => (
                       <tr key={user.id}>
                         <td className="cell-name">{user.name}</td>
                         <td className="cell-email">{user.email}</td>
@@ -241,6 +252,53 @@ export const UserManagementPage: FC = () => {
                             onClick={() => handleToggleUserStatus(user.id, user.is_active)}
                           >
                             {user.is_active ? 'Desactivar' : 'Activar'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          ) : activeTab === 'admins' ? (
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Estado</th>
+                    <th>Creado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {admins.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="empty-state">
+                        No hay administradores registrados
+                      </td>
+                    </tr>
+                  ) : (
+                    admins.map((admin) => (
+                      <tr key={admin.id}>
+                        <td className="cell-name">{admin.name}</td>
+                        <td className="cell-email">{admin.email}</td>
+                        <td>
+                          <span
+                            className={`status-badge ${admin.is_active ? 'status-active' : 'status-inactive'}`}
+                          >
+                            {admin.is_active ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </td>
+                        <td className="cell-date">{formatDate(admin.created_at)}</td>
+                        <td className="cell-actions">
+                          <span
+                            className={`status-badge ${admin.is_active ? 'status-inactive' : 'status-active'}`}
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => handleToggleUserStatus(admin.id, admin.is_active)}
+                          >
+                            {admin.is_active ? 'Desactivar' : 'Activar'}
                           </span>
                         </td>
                       </tr>
