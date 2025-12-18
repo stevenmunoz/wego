@@ -2,16 +2,28 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Vehicle images: drivers can only manage their own vehicle images
-    match /vehicles/{driverId}/{allPaths=**} {
-      // Allow read if user is authenticated and owns the path
-      allow read: if request.auth != null && request.auth.uid == driverId;
+    // Vehicle files: images and documents
+    // Authenticated users can read/write (admin check done in app code)
+    match /vehicles/{driverId}/{vehicleId}/{fileName} {
+      // Allow read if user is authenticated
+      allow read: if request.auth != null;
 
-      // Allow write if user is authenticated, owns the path, and file is valid
+      // Allow write for vehicle images (max 5MB)
       allow write: if request.auth != null
-                   && request.auth.uid == driverId
-                   && request.resource.size < 5 * 1024 * 1024 // Max 5MB
-                   && request.resource.contentType.matches('image/.*'); // Only images
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Vehicle documents subfolder (SOAT, Tecnomecánica PDFs)
+    match /vehicles/{driverId}/{vehicleId}/documents/{fileName} {
+      // Allow read if user is authenticated
+      allow read: if request.auth != null;
+
+      // Allow write for documents (images or PDF, max 10MB)
+      allow write: if request.auth != null
+                   && request.resource.size < 10 * 1024 * 1024
+                   && (request.resource.contentType.matches('image/.*')
+                       || request.resource.contentType == 'application/pdf');
     }
 
     // Default deny all other paths
