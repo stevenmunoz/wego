@@ -61,21 +61,25 @@ export const DashboardPage = () => {
     <DashboardLayout>
       <div className="dashboard-page">
         <header className="page-header">
-          <div className="page-header-content">
-            <h1 className="page-title">{pageTitle}</h1>
-            <p className="page-subtitle">{pageSubtitle}</p>
-            {isAdmin && <span className="admin-badge">Admin</span>}
+          <div className="page-header-top">
+            <div className="page-header-title">
+              <h1 className="page-title">
+                {pageTitle}
+                {isAdmin && <span className="admin-badge">Admin</span>}
+              </h1>
+              <p className="page-subtitle">{pageSubtitle}</p>
+            </div>
+            <button type="button" className="btn btn-outline" onClick={refetch}>
+              <span>🔄</span> Actualizar
+            </button>
           </div>
-          <div className="page-header-actions">
+          <div className="page-header-filters">
             <DateFilter value={dateFilter} onChange={handleDateFilterChange} />
             <StatusFilter value={statusFilter} onChange={setStatusFilter} />
             <SourceFilter value={sourceFilter} onChange={setSourceFilter} />
             {isAdmin && (
               <DriverFilter drivers={drivers} value={driverFilter} onChange={setDriverFilter} />
             )}
-            <button type="button" className="btn btn-outline" onClick={refetch}>
-              <span>🔄</span> Actualizar
-            </button>
           </div>
         </header>
 
