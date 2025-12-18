@@ -23,7 +23,7 @@ const allNavItems: NavItem[] = [
   { path: '/vehicles', label: 'Mis Vehículos', icon: '🚙' },
   { path: '/finances', label: 'Finanzas', icon: '💰' },
   { path: '/indriver-import', label: 'Importar Viajes', icon: '📸' },
-  { path: '/usuarios', label: 'Usuarios', icon: '👥', adminOnly: true },
+  { path: '/users', label: 'Usuarios', icon: '👥', adminOnly: true },
 ];
 
 // Environment indicator

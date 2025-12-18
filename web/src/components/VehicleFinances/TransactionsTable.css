@@ -265,6 +265,16 @@
   border-color: var(--color-accent-600, #f05365);
 }
 
+.btn-receipt {
+  color: #0ea5e9;
+  text-decoration: none;
+}
+
+.btn-receipt:hover {
+  background: #e0f2fe;
+  border-color: #0ea5e9;
+}
+
 /* No Results */
 .no-results {
   padding: 2rem;
