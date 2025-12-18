@@ -186,7 +186,7 @@ export const ExpenseForm: FC<ExpenseFormProps> = ({
                 id="amount"
                 type="number"
                 min="0"
-                step="1000"
+                step="1"
                 placeholder="50000"
                 {...register('amount')}
                 className={errors.amount ? 'error' : ''}

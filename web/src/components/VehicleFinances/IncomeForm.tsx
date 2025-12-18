@@ -127,7 +127,7 @@ export const IncomeForm: FC<IncomeFormProps> = ({
                 id="amount"
                 type="number"
                 min="0"
-                step="1000"
+                step="1"
                 placeholder="350000"
                 {...register('amount')}
                 className={errors.amount ? 'error' : ''}
