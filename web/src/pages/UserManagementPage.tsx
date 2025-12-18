@@ -144,17 +144,19 @@ export const UserManagementPage: FC = () => {
     <DashboardLayout>
       <div className="user-management-page">
         <header className="page-header">
-          <div className="page-header-content">
-            <h1 className="page-title">Gestión de Usuarios</h1>
-            <p className="page-subtitle">Administra usuarios y conductores del sistema</p>
-          </div>
-          <div className="page-header-actions">
-            <button type="button" className="btn btn-primary" onClick={handleOpenModal}>
-              <span>+</span> Agregar Usuario
-            </button>
-            <button type="button" className="btn btn-outline" onClick={refetch}>
-              <span>🔄</span> Actualizar
-            </button>
+          <div className="page-header-top">
+            <div className="page-header-title">
+              <h1 className="page-title">Gestión de Usuarios</h1>
+              <p className="page-subtitle">Administra usuarios y conductores del sistema</p>
+            </div>
+            <div className="page-header-actions">
+              <button type="button" className="btn btn-primary" onClick={handleOpenModal}>
+                <span>+</span> Agregar Usuario
+              </button>
+              <button type="button" className="btn btn-outline" onClick={refetch}>
+                <span>🔄</span> Actualizar
+              </button>
+            </div>
           </div>
         </header>
 
