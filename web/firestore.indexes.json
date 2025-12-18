@@ -40,6 +40,13 @@
   "fieldOverrides": [
     {
       "collectionGroup": "vehicles",
+      "fieldPath": "id",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    {
+      "collectionGroup": "vehicles",
       "fieldPath": "created_at",
       "indexes": [
         { "order": "DESCENDING", "queryScope": "COLLECTION" },
