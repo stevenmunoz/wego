@@ -38,17 +38,50 @@ export interface FirestoreUser {
   updated_at: Timestamp;
 }
 
+/**
+ * Driver profile in Firestore - stores only driver-specific data
+ * User data (name, email, is_active) is stored in /users collection
+ */
 export interface FirestoreDriver {
   id: string;
-  name: string;
-  email: string;
+  user_id: string; // Reference to /users/{userId} - SAME as id
   phone: string;
   unique_slug: string;
+}
+
+/**
+ * Combined driver data for UI display (joined from /users + /drivers)
+ */
+export interface DriverWithUser {
+  id: string;
+  user_id: string;
+  // From /users collection
+  email: string;
+  name: string;
   is_active: boolean;
-  role?: UserRole;
-  // Other driver fields...
-  created_at?: Timestamp;
-  updated_at?: Timestamp;
+  created_at: Timestamp;
+  // From /drivers collection
+  phone: string;
+  unique_slug: string;
+}
+
+/**
+ * Generate a URL-safe slug from a name
+ * Example: "Juan Pérez" -> "juan-perez-x7k2"
+ */
+export function generateSlugFromName(name: string): string {
+  const slug = name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove accents (á→a, ñ→n)
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+    .replace(/\s+/g, '-') // Spaces → hyphens
+    .replace(/-+/g, '-') // Multiple hyphens → single
+    .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+    .trim();
+
+  const suffix = Math.random().toString(36).substring(2, 6);
+  return `${slug}-${suffix}`;
 }
 
 /**
@@ -140,28 +173,23 @@ export async function updateUserProfile(
 
 /**
  * Create a new driver in Firestore
+ * Only stores driver-specific data (phone, slug)
+ * User data (name, email, is_active) is stored in /users collection
  */
 export async function createDriverProfile(
   driverId: string,
   data: {
-    email: string;
-    name: string;
     phone: string;
     unique_slug: string;
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const driverDocRef = doc(db, 'drivers', driverId);
-    const now = Timestamp.now();
 
     await setDoc(driverDocRef, {
-      email: data.email,
-      name: data.name,
+      user_id: driverId, // Reference back to /users/{driverId}
       phone: data.phone,
       unique_slug: data.unique_slug,
-      is_active: true,
-      created_at: now,
-      updated_at: now,
     });
 
     return { success: true };
@@ -174,17 +202,16 @@ export async function createDriverProfile(
 
 /**
  * Update a driver profile in Firestore
+ * Only allows updating driver-specific fields (phone, unique_slug)
+ * To update name/email/is_active, use updateUserProfile instead
  */
 export async function updateDriverProfile(
   driverId: string,
-  updates: Partial<Pick<FirestoreDriver, 'name' | 'phone' | 'unique_slug' | 'is_active'>>
+  updates: Partial<Pick<FirestoreDriver, 'phone' | 'unique_slug'>>
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const driverDocRef = doc(db, 'drivers', driverId);
-    await updateDoc(driverDocRef, {
-      ...updates,
-      updated_at: Timestamp.now(),
-    });
+    await updateDoc(driverDocRef, updates);
     return { success: true };
   } catch (error) {
     console.error('[Firestore] Error updating driver profile:', error);
@@ -194,7 +221,7 @@ export async function updateDriverProfile(
 }
 
 /**
- * Get driver profile from Firestore drivers collection
+ * Get driver profile from Firestore drivers collection (raw, no user join)
  */
 export async function getDriverProfile(driverId: string): Promise<FirestoreDriver | null> {
   try {
@@ -212,13 +239,76 @@ export async function getDriverProfile(driverId: string): Promise<FirestoreDrive
 }
 
 /**
- * Get all drivers (admin only)
+ * Get driver with user data joined (for UI display)
  */
-export async function getAllDrivers(): Promise<FirestoreDriver[]> {
+export async function getDriverWithUser(driverId: string): Promise<DriverWithUser | null> {
   try {
+    const [driver, user] = await Promise.all([
+      getDriverProfile(driverId),
+      getUserProfile(driverId),
+    ]);
+
+    if (!driver || !user) {
+      return null;
+    }
+
+    return {
+      id: driver.id,
+      user_id: driver.user_id,
+      email: user.email,
+      name: user.name,
+      is_active: user.is_active,
+      created_at: user.created_at,
+      phone: driver.phone,
+      unique_slug: driver.unique_slug,
+    };
+  } catch (error) {
+    console.error('[Firestore] Error fetching driver with user:', error);
+    return null;
+  }
+}
+
+/**
+ * Get all drivers with user data joined (admin only)
+ * Returns combined DriverWithUser[] for UI display
+ */
+export async function getAllDrivers(): Promise<DriverWithUser[]> {
+  try {
+    // Get all driver documents
     const driversCollection = collection(db, 'drivers');
     const snapshot = await getDocs(driversCollection);
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as FirestoreDriver);
+    const drivers = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as FirestoreDriver);
+
+    if (drivers.length === 0) {
+      return [];
+    }
+
+    // Get all users to join
+    const users = await getAllUsers();
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    // Join drivers with users
+    const driversWithUsers: DriverWithUser[] = [];
+    for (const driver of drivers) {
+      const user = userMap.get(driver.user_id);
+      if (user) {
+        driversWithUsers.push({
+          id: driver.id,
+          user_id: driver.user_id,
+          email: user.email,
+          name: user.name,
+          is_active: user.is_active,
+          created_at: user.created_at,
+          phone: driver.phone,
+          unique_slug: driver.unique_slug,
+        });
+      } else {
+        // Legacy driver without user link - skip or handle gracefully
+        console.warn(`[Firestore] Driver ${driver.id} has no matching user`);
+      }
+    }
+
+    return driversWithUsers;
   } catch (error) {
     console.error('[Firestore] Error fetching all drivers:', error);
     return [];

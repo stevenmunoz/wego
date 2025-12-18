@@ -12,7 +12,7 @@ import { VehicleForm } from '@/components/VehicleForm';
 import { useDriverVehicles } from '@/hooks/useDriverVehicles';
 import { useAllVehicles, type VehicleWithDriver } from '@/hooks/useAllVehicles';
 import { uploadVehicleImage, compressImage, deleteVehicleImage } from '@/core/firebase';
-import type { FirestoreVehicle, FirestoreDriver } from '@/core/firebase';
+import type { FirestoreVehicle, DriverWithUser } from '@/core/firebase';
 import type { VehicleCreateInput } from '@/core/types';
 import './VehiclesPage.css';
 
@@ -34,7 +34,7 @@ export const VehiclesPage = () => {
   const vehicles: (FirestoreVehicle | VehicleWithDriver)[] = isAdmin
     ? allVehiclesHook.vehicles
     : driverVehiclesHook.vehicles;
-  const drivers: FirestoreDriver[] = isAdmin ? allVehiclesHook.drivers : [];
+  const drivers: DriverWithUser[] = isAdmin ? allVehiclesHook.drivers : [];
   const isLoading = isAdmin ? allVehiclesHook.isLoading : driverVehiclesHook.isLoading;
   const error = isAdmin ? allVehiclesHook.error : driverVehiclesHook.error;
   const refetch = isAdmin ? allVehiclesHook.refetch : driverVehiclesHook.refetch;

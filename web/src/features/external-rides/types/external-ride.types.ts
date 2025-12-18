@@ -21,20 +21,30 @@ export type SourceType = 'ocr_import' | 'public_form' | 'manual';
 // DRIVER TYPES
 // ============================================================================
 
-export interface Driver {
-  id: string;
-  name: string;
+/**
+ * Raw driver document from Firestore /drivers collection
+ * Contains only driver-specific data (phone, slug)
+ */
+export interface FirestoreDriver {
+  user_id: string;
   phone: string;
-  email?: string;
   unique_slug: string;
-  photo_url?: string;
-  is_active: boolean;
-  created_at: Timestamp;
-  updated_at: Timestamp;
 }
 
-export interface FirestoreDriver extends Omit<Driver, 'id'> {
-  // Firestore document structure (id comes from doc.id)
+/**
+ * Combined driver data for UI display (joined from /users + /drivers)
+ */
+export interface Driver {
+  id: string;
+  user_id: string;
+  // From /users collection
+  name: string;
+  email: string;
+  is_active: boolean;
+  created_at: Timestamp;
+  // From /drivers collection
+  phone: string;
+  unique_slug: string;
 }
 
 // ============================================================================

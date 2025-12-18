@@ -27,11 +27,14 @@ export {
   updateUserProfile,
   getAllDrivers,
   getDriverProfile,
+  getDriverWithUser,
   createDriverProfile,
   updateDriverProfile,
+  generateSlugFromName,
   type FirestoreInDriverRide,
   type FirestoreUser,
   type FirestoreDriver,
+  type DriverWithUser,
   type UserRole,
 } from './firestore';
 export {
