@@ -217,30 +217,32 @@ export const VehicleFinancesPage = () => {
     <DashboardLayout>
       <div className="finances-page">
         <header className="page-header">
-          <div className="page-header-content">
-            <h1 className="page-title">Finanzas del Vehículo</h1>
-            <p className="page-subtitle">Control de ingresos y gastos por vehículo</p>
-          </div>
-          <div className="page-header-actions">
-            <button type="button" className="btn btn-outline" onClick={refetch}>
-              <span>🔄</span> Actualizar
-            </button>
-            <button
-              type="button"
-              className="btn btn-success"
-              onClick={() => setShowForm('income')}
-              disabled={!effectiveVehicleId}
-            >
-              <span>+</span> Agregar Ingreso
-            </button>
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={() => setShowForm('expense')}
-              disabled={!effectiveVehicleId}
-            >
-              <span>+</span> Agregar Gasto
-            </button>
+          <div className="page-header-top">
+            <div className="page-header-title">
+              <h1 className="page-title">Finanzas del Vehículo</h1>
+              <p className="page-subtitle">Control de ingresos y gastos por vehículo</p>
+            </div>
+            <div className="page-header-actions">
+              <button type="button" className="btn btn-outline" onClick={refetch}>
+                <span>🔄</span> Actualizar
+              </button>
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={() => setShowForm('income')}
+                disabled={!effectiveVehicleId}
+              >
+                <span>+</span> Agregar Ingreso
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={() => setShowForm('expense')}
+                disabled={!effectiveVehicleId}
+              >
+                <span>+</span> Agregar Gasto
+              </button>
+            </div>
           </div>
         </header>
 

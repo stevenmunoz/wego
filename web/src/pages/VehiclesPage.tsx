@@ -268,21 +268,25 @@ export const VehiclesPage = () => {
     <DashboardLayout>
       <div className="vehicles-page">
         <header className="page-header">
-          <div className="page-header-content">
-            <h1 className="page-title">{isAdmin ? 'Gestión de Vehículos' : 'Mis Vehículos'}</h1>
-            <p className="page-subtitle">
-              {isAdmin
-                ? 'Administra todos los vehículos de la flota'
-                : 'Administra los vehículos registrados para tus servicios'}
-            </p>
-          </div>
-          <div className="page-header-actions">
-            <button type="button" className="btn btn-outline" onClick={refetch}>
-              <span>🔄</span> Actualizar
-            </button>
-            <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>
-              <span>+</span> Agregar Vehículo
-            </button>
+          <div className="page-header-top">
+            <div className="page-header-title">
+              <h1 className="page-title">
+                {isAdmin ? 'Gestión de Vehículos' : 'Mis Vehículos'}
+              </h1>
+              <p className="page-subtitle">
+                {isAdmin
+                  ? 'Administra todos los vehículos de la flota'
+                  : 'Administra los vehículos registrados para tus servicios'}
+              </p>
+            </div>
+            <div className="page-header-actions">
+              <button type="button" className="btn btn-outline" onClick={refetch}>
+                <span>🔄</span> Actualizar
+              </button>
+              <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>
+                <span>+</span> Agregar Vehículo
+              </button>
+            </div>
           </div>
         </header>
 
