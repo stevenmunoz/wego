@@ -17,8 +17,6 @@ interface TransactionsTableProps {
   onDeleteIncome?: (id: string) => void;
   onEditExpense?: (expense: VehicleExpense) => void;
   onDeleteExpense?: (id: string) => void;
-  onAddIncome?: () => void;
-  onAddExpense?: () => void;
 }
 
 type TransactionType = 'all' | 'income' | 'expense';
@@ -61,8 +59,6 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
   onDeleteIncome,
   onEditExpense,
   onDeleteExpense,
-  onAddIncome,
-  onAddExpense,
 }) => {
   const [filter, setFilter] = useState<TransactionType>('all');
 
@@ -133,19 +129,7 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
       <div className="transactions-table-empty">
         <div className="empty-icon">💰</div>
         <h3>No hay transacciones registradas</h3>
-        <p>Comienza agregando un ingreso o gasto para este vehículo</p>
-        <div className="empty-actions">
-          {onAddIncome && (
-            <button type="button" className="btn btn-success" onClick={onAddIncome}>
-              Agregar Ingreso
-            </button>
-          )}
-          {onAddExpense && (
-            <button type="button" className="btn btn-danger" onClick={onAddExpense}>
-              Agregar Gasto
-            </button>
-          )}
-        </div>
+        <p>Usa los botones de arriba para agregar un ingreso o gasto</p>
       </div>
     );
   }
