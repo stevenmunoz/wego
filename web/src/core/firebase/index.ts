@@ -54,6 +54,7 @@ export {
   compressImage,
   uploadVehicleDocument,
   deleteVehicleDocument,
+  uploadExpenseReceipt,
   type DocumentType,
 } from './storage';
 export {

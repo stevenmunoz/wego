@@ -275,3 +275,51 @@ export async function deleteVehicleDocument(
     return { success: false, error: errorMsg };
   }
 }
+
+/**
+ * Upload an expense receipt to Firebase Storage
+ * Path: expenses/{ownerId}/{vehicleId}/receipts/{timestamp}.{ext}
+ */
+export async function uploadExpenseReceipt(
+  ownerId: string,
+  vehicleId: string,
+  file: File
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    // Validate file
+    const validation = validateDocumentFile(file);
+    if (!validation.valid) {
+      return { success: false, error: validation.error };
+    }
+
+    // Generate unique filename with timestamp
+    const timestamp = Date.now();
+    const extension = file.name.split('.').pop() || 'pdf';
+    const filename = `receipt_${timestamp}.${extension}`;
+
+    // Create storage reference
+    const storageRef = ref(
+      firebaseStorage,
+      `expenses/${ownerId}/${vehicleId}/receipts/${filename}`
+    );
+
+    // Upload file
+    const snapshot = await uploadBytes(storageRef, file, {
+      contentType: file.type,
+      customMetadata: {
+        uploadedBy: ownerId,
+        vehicleId: vehicleId,
+        type: 'expense_receipt',
+      },
+    });
+
+    // Get download URL
+    const url = await getDownloadURL(snapshot.ref);
+
+    return { success: true, url };
+  } catch (error) {
+    console.error('[Storage] Error uploading expense receipt:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Error al subir recibo';
+    return { success: false, error: errorMsg };
+  }
+}
