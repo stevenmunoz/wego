@@ -345,8 +345,6 @@ export const VehicleFinancesPage = () => {
           onDeleteIncome={handleDeleteIncome}
           onEditExpense={handleEditExpense}
           onDeleteExpense={handleDeleteExpense}
-          onAddIncome={() => setShowForm('income')}
-          onAddExpense={() => setShowForm('expense')}
         />
 
         {/* Income Form Modal */}
