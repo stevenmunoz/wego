@@ -177,7 +177,7 @@ export const UserManagementPage: FC = () => {
             className={`tab ${activeTab === 'users' ? 'tab-active' : ''}`}
             onClick={() => setActiveTab('users')}
           >
-            Usuarios ({regularUsers.length})
+            Usuarios ({users.length})
           </button>
           <button
             type="button"
