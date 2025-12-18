@@ -8,6 +8,7 @@ import { type FC, useState, useMemo, useRef, useEffect } from 'react';
 import type { FirestoreInDriverRide, FirestoreDriver, FirestoreVehicle } from '@/core/firebase';
 import type { StatusFilterOption } from '@/components/StatusFilter';
 import type { SourceFilterOption } from '@/components/SourceFilter';
+import { RideDetailModal } from './RideDetailModal';
 import './RidesTable.css';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
@@ -407,6 +408,9 @@ export const RidesTable: FC<RidesTableProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [editing, setEditing] = useState<EditingState | null>(null);
+  const [selectedRide, setSelectedRide] = useState<
+    (FirestoreInDriverRide & { driver_name?: string; vehicle_plate?: string }) | null
+  >(null);
 
   // Memoized dropdown options
   const driverOptions = useMemo(
@@ -722,6 +726,7 @@ export const RidesTable: FC<RidesTableProps> = ({
               <th>Recibido</th>
               <th>Pagado</th>
               <th>Neto</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -910,6 +915,29 @@ export const RidesTable: FC<RidesTableProps> = ({
                     disabled={!onUpdateRide}
                   />
                 </td>
+                <td className="cell-actions">
+                  <button
+                    type="button"
+                    className="action-btn action-btn-view"
+                    onClick={() => setSelectedRide(ride)}
+                    title="Ver detalles"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    <span className="action-btn-label">Ver</span>
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -938,6 +966,7 @@ export const RidesTable: FC<RidesTableProps> = ({
               <td className="cell-net">
                 <strong>{formatCurrency(totals.totalEarnings)}</strong>
               </td>
+              <td className="cell-actions"></td>
             </tr>
           </tfoot>
         </table>
@@ -1005,6 +1034,13 @@ export const RidesTable: FC<RidesTableProps> = ({
           </div>
         </div>
       )}
+
+      {/* Ride Detail Modal */}
+      <RideDetailModal
+        ride={selectedRide}
+        isOpen={selectedRide !== null}
+        onClose={() => setSelectedRide(null)}
+      />
     </div>
   );
 };
