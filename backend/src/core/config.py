@@ -36,9 +36,13 @@ class Settings(BaseSettings):
         # Firebase Hosting - DEV
         "https://wego-dev-a5a13.web.app",
         "https://wego-dev-a5a13.firebaseapp.com",
+        # Custom domain - DEV
+        "https://dev.wegocol.com",
         # Firebase Hosting - PROD
         "https://wego-bac88.web.app",
         "https://wego-bac88.firebaseapp.com",
+        # Custom domain - PROD
+        "https://app.wegocol.com",
     ]
 
     @field_validator("CORS_ORIGINS", mode="before")
