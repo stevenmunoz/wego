@@ -18,6 +18,7 @@ interface NewUserForm {
   email: string;
   password: string;
   role: UserRole;
+  phone: string; // Required when role === 'driver'
 }
 
 const initialFormState: NewUserForm = {
@@ -25,6 +26,7 @@ const initialFormState: NewUserForm = {
   email: '',
   password: '',
   role: 'driver',
+  phone: '',
 };
 
 export const UserManagementPage: FC = () => {
@@ -49,8 +51,7 @@ export const UserManagementPage: FC = () => {
     }
   };
 
-  const { users, drivers, isLoading, error, refetch, registerNewUser, updateUser, updateDriver } =
-    useUsers();
+  const { users, drivers, isLoading, error, refetch, registerNewUser, updateUser } = useUsers();
 
   // Redirect non-admins
   if (!isAdmin) {
@@ -61,8 +62,9 @@ export const UserManagementPage: FC = () => {
     await updateUser(userId, { is_active: !currentStatus });
   };
 
+  // Driver status is controlled by user's is_active (driver.id === user.id)
   const handleToggleDriverStatus = async (driverId: string, currentStatus: boolean) => {
-    await updateDriver(driverId, { is_active: !currentStatus });
+    await updateUser(driverId, { is_active: !currentStatus });
   };
 
   const handleChangeUserRole = async (userId: string, newRole: UserRole) => {
@@ -98,6 +100,11 @@ export const UserManagementPage: FC = () => {
       setFormError('La contraseña debe tener al menos 6 caracteres');
       return;
     }
+    // Phone is required for drivers
+    if (formData.role === 'driver' && !formData.phone.trim()) {
+      setFormError('El teléfono es requerido para conductores');
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -106,6 +113,7 @@ export const UserManagementPage: FC = () => {
       email: formData.email.trim().toLowerCase(),
       password: formData.password,
       role: formData.role,
+      phone: formData.role === 'driver' ? formData.phone.trim() : undefined,
     });
 
     setIsSubmitting(false);
@@ -359,13 +367,31 @@ export const UserManagementPage: FC = () => {
                       id="role"
                       value={formData.role}
                       onChange={(e) =>
-                        setFormData({ ...formData, role: e.target.value as UserRole })
+                        setFormData({ ...formData, role: e.target.value as UserRole, phone: '' })
                       }
                     >
                       <option value="driver">Conductor</option>
                       <option value="admin">Administrador</option>
                     </select>
                   </div>
+
+                  {/* Phone field - only shown for drivers */}
+                  {formData.role === 'driver' && (
+                    <div className="form-group">
+                      <label htmlFor="phone">Teléfono *</label>
+                      <input
+                        type="tel"
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="Ej: +57 300 123 4567"
+                        autoComplete="off"
+                      />
+                      <span className="form-hint">
+                        Se generará automáticamente un enlace público para registrar viajes
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="modal-footer">

@@ -5,7 +5,7 @@
  */
 
 import { type FC, useState, useMemo, useRef, useEffect } from 'react';
-import type { FirestoreInDriverRide, FirestoreDriver, FirestoreVehicle } from '@/core/firebase';
+import type { FirestoreInDriverRide, DriverWithUser, FirestoreVehicle } from '@/core/firebase';
 import type { StatusFilterOption } from '@/components/StatusFilter';
 import type { SourceFilterOption } from '@/components/SourceFilter';
 import './RidesTable.css';
@@ -43,7 +43,7 @@ interface RidesTableProps {
   showDriverColumn?: boolean;
   showVehicleColumn?: boolean;
   showSourceColumn?: boolean;
-  drivers?: FirestoreDriver[];
+  drivers?: DriverWithUser[];
   vehicles?: FirestoreVehicle[];
 }
 

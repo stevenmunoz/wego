@@ -12,7 +12,7 @@ import {
   setVehicleAsPrimary,
   reassignVehicle,
   type FirestoreVehicle,
-  type FirestoreDriver,
+  type DriverWithUser,
 } from '@/core/firebase';
 import type { VehicleCreateInput, VehicleUpdateInput } from '@/core/types';
 
@@ -22,7 +22,7 @@ export interface VehicleWithDriver extends FirestoreVehicle {
 
 interface UseAllVehiclesReturn {
   vehicles: VehicleWithDriver[];
-  drivers: FirestoreDriver[];
+  drivers: DriverWithUser[];
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -52,7 +52,7 @@ interface UseAllVehiclesReturn {
 
 export const useAllVehicles = (): UseAllVehiclesReturn => {
   const [vehicles, setVehicles] = useState<VehicleWithDriver[]>([]);
-  const [drivers, setDrivers] = useState<FirestoreDriver[]>([]);
+  const [drivers, setDrivers] = useState<DriverWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

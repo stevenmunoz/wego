@@ -24,11 +24,13 @@ import { PAYMENT_METHOD_LABELS } from '../constants';
 
 /**
  * Get driver by unique slug (for public form validation)
+ * Joins driver data with user data for complete profile
  */
 export async function getDriverBySlug(slug: string): Promise<Driver | null> {
   try {
+    // Step 1: Query /drivers by unique_slug
     const driversRef = collection(db, 'drivers');
-    const q = query(driversRef, where('unique_slug', '==', slug), where('is_active', '==', true));
+    const q = query(driversRef, where('unique_slug', '==', slug));
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
@@ -36,11 +38,35 @@ export async function getDriverBySlug(slug: string): Promise<Driver | null> {
     }
 
     const docSnap = snapshot.docs[0];
-    const data = docSnap.data() as FirestoreDriver;
+    const driverData = docSnap.data() as FirestoreDriver;
+    const driverId = docSnap.id;
 
+    // Step 2: Get user data (is_active, name, email come from /users)
+    const userDocRef = doc(db, 'users', driverData.user_id);
+    const userSnapshot = await getDoc(userDocRef);
+
+    if (!userSnapshot.exists()) {
+      console.warn(`[externalRidesApi] Driver ${driverId} has no matching user`);
+      return null;
+    }
+
+    const userData = userSnapshot.data();
+
+    // Step 3: Check if user is active
+    if (!userData.is_active) {
+      return null; // Driver is inactive
+    }
+
+    // Step 4: Return combined data
     return {
-      id: docSnap.id,
-      ...data,
+      id: driverId,
+      user_id: driverData.user_id,
+      name: userData.name,
+      email: userData.email,
+      is_active: userData.is_active,
+      created_at: userData.created_at,
+      phone: driverData.phone,
+      unique_slug: driverData.unique_slug,
     };
   } catch (error) {
     console.error('[externalRidesApi] Error fetching driver by slug:', error);
@@ -49,21 +75,41 @@ export async function getDriverBySlug(slug: string): Promise<Driver | null> {
 }
 
 /**
- * Get driver by ID
+ * Get driver by ID (joins with user data)
  */
 export async function getDriverById(driverId: string): Promise<Driver | null> {
   try {
+    // Step 1: Get driver document
     const driverDocRef = doc(db, 'drivers', driverId);
-    const docSnap = await getDoc(driverDocRef);
+    const driverSnapshot = await getDoc(driverDocRef);
 
-    if (!docSnap.exists()) {
+    if (!driverSnapshot.exists()) {
       return null;
     }
 
-    const data = docSnap.data() as FirestoreDriver;
+    const driverData = driverSnapshot.data() as FirestoreDriver;
+
+    // Step 2: Get user data
+    const userDocRef = doc(db, 'users', driverData.user_id);
+    const userSnapshot = await getDoc(userDocRef);
+
+    if (!userSnapshot.exists()) {
+      console.warn(`[externalRidesApi] Driver ${driverId} has no matching user`);
+      return null;
+    }
+
+    const userData = userSnapshot.data();
+
+    // Step 3: Return combined data
     return {
-      id: docSnap.id,
-      ...data,
+      id: driverId,
+      user_id: driverData.user_id,
+      name: userData.name,
+      email: userData.email,
+      is_active: userData.is_active,
+      created_at: userData.created_at,
+      phone: driverData.phone,
+      unique_slug: driverData.unique_slug,
     };
   } catch (error) {
     console.error('[externalRidesApi] Error fetching driver by ID:', error);

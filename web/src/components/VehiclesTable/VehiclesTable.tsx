@@ -6,7 +6,7 @@
  */
 
 import { type FC } from 'react';
-import type { FirestoreVehicle, FirestoreDriver } from '@/core/firebase';
+import type { FirestoreVehicle, DriverWithUser } from '@/core/firebase';
 import type { VehicleStatus } from '@/core/types';
 import './VehiclesTable.css';
 
@@ -18,7 +18,7 @@ interface VehiclesTableProps {
   vehicles: (FirestoreVehicle | VehicleWithDriver)[];
   isLoading: boolean;
   isAdminView?: boolean;
-  drivers?: FirestoreDriver[];
+  drivers?: DriverWithUser[];
   onAddClick?: () => void;
   onEditVehicle?: (vehicle: FirestoreVehicle) => void;
   onDeleteVehicle?: (id: string) => void;
