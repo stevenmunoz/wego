@@ -5,11 +5,20 @@
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { firebaseStorage } from './config';
 
-// Max file size: 5MB
+// Max file size: 5MB for images, 10MB for documents
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024;
 
 // Allowed image types
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+// Allowed document types (PDF and images)
+const ALLOWED_DOCUMENT_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+];
 
 /**
  * Validate image file before upload
@@ -159,4 +168,158 @@ export async function compressImage(
     img.onerror = () => reject(new Error('Failed to load image'));
     img.src = URL.createObjectURL(file);
   });
+}
+
+/**
+ * Validate document file before upload (PDF or image)
+ */
+function validateDocumentFile(file: File): { valid: boolean; error?: string } {
+  if (!ALLOWED_DOCUMENT_TYPES.includes(file.type)) {
+    return {
+      valid: false,
+      error: 'Tipo de archivo no permitido. Use PDF, JPG, PNG o WebP.',
+    };
+  }
+
+  if (file.size > MAX_DOCUMENT_SIZE) {
+    return {
+      valid: false,
+      error: 'El archivo es muy grande. Máximo 10MB.',
+    };
+  }
+
+  return { valid: true };
+}
+
+export type DocumentType = 'soat' | 'tecnomecanica';
+
+/**
+ * Upload a vehicle document (SOAT or Tecnomecánica) to Firebase Storage
+ * Path: vehicles/{driverId}/{vehicleId}/documents/{documentType}_{timestamp}.{ext}
+ */
+export async function uploadVehicleDocument(
+  driverId: string,
+  vehicleId: string,
+  documentType: DocumentType,
+  file: File
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    // Validate file
+    const validation = validateDocumentFile(file);
+    if (!validation.valid) {
+      return { success: false, error: validation.error };
+    }
+
+    // Generate unique filename with timestamp
+    const timestamp = Date.now();
+    const extension = file.name.split('.').pop() || 'pdf';
+    const filename = `${documentType}_${timestamp}.${extension}`;
+
+    // Create storage reference
+    const storageRef = ref(
+      firebaseStorage,
+      `vehicles/${driverId}/${vehicleId}/documents/${filename}`
+    );
+
+    // Upload file
+    const snapshot = await uploadBytes(storageRef, file, {
+      contentType: file.type,
+      customMetadata: {
+        uploadedBy: driverId,
+        vehicleId: vehicleId,
+        documentType: documentType,
+      },
+    });
+
+    // Get download URL
+    const url = await getDownloadURL(snapshot.ref);
+
+    return { success: true, url };
+  } catch (error) {
+    console.error('[Storage] Error uploading vehicle document:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Error al subir documento';
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Delete a vehicle document from Firebase Storage
+ */
+export async function deleteVehicleDocument(
+  documentUrl: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Extract path from URL
+    const urlObj = new URL(documentUrl);
+    const pathMatch = urlObj.pathname.match(/\/o\/(.+)$/);
+
+    if (!pathMatch) {
+      return { success: false, error: 'URL de documento inválida' };
+    }
+
+    const encodedPath = pathMatch[1];
+    const path = decodeURIComponent(encodedPath);
+
+    // Create reference and delete
+    const storageRef = ref(firebaseStorage, path);
+    await deleteObject(storageRef);
+
+    return { success: true };
+  } catch (error) {
+    console.error('[Storage] Error deleting vehicle document:', error);
+    // If file doesn't exist, consider it a success
+    if (error instanceof Error && error.message.includes('object-not-found')) {
+      return { success: true };
+    }
+    const errorMsg = error instanceof Error ? error.message : 'Error al eliminar documento';
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Upload an expense receipt to Firebase Storage
+ * Path: expenses/{ownerId}/{vehicleId}/receipts/{timestamp}.{ext}
+ */
+export async function uploadExpenseReceipt(
+  ownerId: string,
+  vehicleId: string,
+  file: File
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    // Validate file
+    const validation = validateDocumentFile(file);
+    if (!validation.valid) {
+      return { success: false, error: validation.error };
+    }
+
+    // Generate unique filename with timestamp
+    const timestamp = Date.now();
+    const extension = file.name.split('.').pop() || 'pdf';
+    const filename = `receipt_${timestamp}.${extension}`;
+
+    // Create storage reference
+    const storageRef = ref(
+      firebaseStorage,
+      `expenses/${ownerId}/${vehicleId}/receipts/${filename}`
+    );
+
+    // Upload file
+    const snapshot = await uploadBytes(storageRef, file, {
+      contentType: file.type,
+      customMetadata: {
+        uploadedBy: ownerId,
+        vehicleId: vehicleId,
+        type: 'expense_receipt',
+      },
+    });
+
+    // Get download URL
+    const url = await getDownloadURL(snapshot.ref);
+
+    return { success: true, url };
+  } catch (error) {
+    console.error('[Storage] Error uploading expense receipt:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Error al subir recibo';
+    return { success: false, error: errorMsg };
+  }
 }

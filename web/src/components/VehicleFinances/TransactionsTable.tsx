@@ -17,8 +17,6 @@ interface TransactionsTableProps {
   onDeleteIncome?: (id: string) => void;
   onEditExpense?: (expense: VehicleExpense) => void;
   onDeleteExpense?: (id: string) => void;
-  onAddIncome?: () => void;
-  onAddExpense?: () => void;
 }
 
 type TransactionType = 'all' | 'income' | 'expense';
@@ -31,6 +29,7 @@ interface Transaction {
   description: string;
   amount: number;
   isRecurring: boolean;
+  receiptUrl?: string;
   original: VehicleIncome | VehicleExpense;
 }
 
@@ -61,8 +60,6 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
   onDeleteIncome,
   onEditExpense,
   onDeleteExpense,
-  onAddIncome,
-  onAddExpense,
 }) => {
   const [filter, setFilter] = useState<TransactionType>('all');
 
@@ -87,6 +84,7 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
       description: e.description,
       amount: e.amount,
       isRecurring: e.is_recurring,
+      receiptUrl: e.receipt_url,
       original: e,
     }));
 
@@ -133,19 +131,7 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
       <div className="transactions-table-empty">
         <div className="empty-icon">💰</div>
         <h3>No hay transacciones registradas</h3>
-        <p>Comienza agregando un ingreso o gasto para este vehículo</p>
-        <div className="empty-actions">
-          {onAddIncome && (
-            <button type="button" className="btn btn-success" onClick={onAddIncome}>
-              Agregar Ingreso
-            </button>
-          )}
-          {onAddExpense && (
-            <button type="button" className="btn btn-danger" onClick={onAddExpense}>
-              Agregar Gasto
-            </button>
-          )}
-        </div>
+        <p>Usa los botones de arriba para agregar un ingreso o gasto</p>
       </div>
     );
   }
@@ -215,6 +201,17 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
                   {formatCurrency(transaction.amount)}
                 </td>
                 <td className="cell-actions">
+                  {transaction.receiptUrl && (
+                    <a
+                      href={transaction.receiptUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-action btn-receipt"
+                      title="Ver comprobante"
+                    >
+                      📄
+                    </a>
+                  )}
                   <button
                     type="button"
                     className="btn-action btn-edit"

@@ -11,13 +11,14 @@ import { useUsers } from '@/hooks/useUsers';
 import { type UserRole } from '@/core/firebase';
 import './UserManagementPage.css';
 
-type TabType = 'users' | 'drivers';
+type TabType = 'users' | 'drivers' | 'admins';
 
 interface NewUserForm {
   name: string;
   email: string;
   password: string;
   role: UserRole;
+  phone: string; // Required when role === 'driver'
 }
 
 const initialFormState: NewUserForm = {
@@ -25,6 +26,7 @@ const initialFormState: NewUserForm = {
   email: '',
   password: '',
   role: 'driver',
+  phone: '',
 };
 
 export const UserManagementPage: FC = () => {
@@ -49,8 +51,11 @@ export const UserManagementPage: FC = () => {
     }
   };
 
-  const { users, drivers, isLoading, error, refetch, registerNewUser, updateUser, updateDriver } =
-    useUsers();
+  const { users, drivers, isLoading, error, refetch, registerNewUser, updateUser } = useUsers();
+
+  // Filter users by role for tabs
+  const admins = users.filter((u) => u.role === 'admin');
+  const regularUsers = users.filter((u) => u.role !== 'admin');
 
   // Redirect non-admins
   if (!isAdmin) {
@@ -61,8 +66,9 @@ export const UserManagementPage: FC = () => {
     await updateUser(userId, { is_active: !currentStatus });
   };
 
+  // Driver status is controlled by user's is_active (driver.id === user.id)
   const handleToggleDriverStatus = async (driverId: string, currentStatus: boolean) => {
-    await updateDriver(driverId, { is_active: !currentStatus });
+    await updateUser(driverId, { is_active: !currentStatus });
   };
 
   const handleChangeUserRole = async (userId: string, newRole: UserRole) => {
@@ -98,6 +104,11 @@ export const UserManagementPage: FC = () => {
       setFormError('La contraseña debe tener al menos 6 caracteres');
       return;
     }
+    // Phone is required for drivers
+    if (formData.role === 'driver' && !formData.phone.trim()) {
+      setFormError('El teléfono es requerido para conductores');
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -106,6 +117,7 @@ export const UserManagementPage: FC = () => {
       email: formData.email.trim().toLowerCase(),
       password: formData.password,
       role: formData.role,
+      phone: formData.role === 'driver' ? formData.phone.trim() : undefined,
     });
 
     setIsSubmitting(false);
@@ -132,17 +144,19 @@ export const UserManagementPage: FC = () => {
     <DashboardLayout>
       <div className="user-management-page">
         <header className="page-header">
-          <div className="page-header-content">
-            <h1 className="page-title">Gestión de Usuarios</h1>
-            <p className="page-subtitle">Administra usuarios y conductores del sistema</p>
-          </div>
-          <div className="page-header-actions">
-            <button type="button" className="btn btn-primary" onClick={handleOpenModal}>
-              <span>+</span> Agregar Usuario
-            </button>
-            <button type="button" className="btn btn-outline" onClick={refetch}>
-              <span>🔄</span> Actualizar
-            </button>
+          <div className="page-header-top">
+            <div className="page-header-title">
+              <h1 className="page-title">Gestión de Usuarios</h1>
+              <p className="page-subtitle">Administra usuarios y conductores del sistema</p>
+            </div>
+            <div className="page-header-actions">
+              <button type="button" className="btn btn-primary" onClick={handleOpenModal}>
+                <span>+</span> Agregar Usuario
+              </button>
+              <button type="button" className="btn btn-outline" onClick={refetch}>
+                <span>🔄</span> Actualizar
+              </button>
+            </div>
           </div>
         </header>
 
@@ -172,6 +186,13 @@ export const UserManagementPage: FC = () => {
           >
             Conductores ({drivers.length})
           </button>
+          <button
+            type="button"
+            className={`tab ${activeTab === 'admins' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('admins')}
+          >
+            Admins ({admins.length})
+          </button>
         </div>
 
         {/* Content */}
@@ -195,14 +216,14 @@ export const UserManagementPage: FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.length === 0 ? (
+                  {regularUsers.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="empty-state">
                         No hay usuarios registrados
                       </td>
                     </tr>
                   ) : (
-                    users.map((user) => (
+                    regularUsers.map((user) => (
                       <tr key={user.id}>
                         <td className="cell-name">{user.name}</td>
                         <td className="cell-email">{user.email}</td>
@@ -233,6 +254,53 @@ export const UserManagementPage: FC = () => {
                             onClick={() => handleToggleUserStatus(user.id, user.is_active)}
                           >
                             {user.is_active ? 'Desactivar' : 'Activar'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          ) : activeTab === 'admins' ? (
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Estado</th>
+                    <th>Creado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {admins.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="empty-state">
+                        No hay administradores registrados
+                      </td>
+                    </tr>
+                  ) : (
+                    admins.map((admin) => (
+                      <tr key={admin.id}>
+                        <td className="cell-name">{admin.name}</td>
+                        <td className="cell-email">{admin.email}</td>
+                        <td>
+                          <span
+                            className={`status-badge ${admin.is_active ? 'status-active' : 'status-inactive'}`}
+                          >
+                            {admin.is_active ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </td>
+                        <td className="cell-date">{formatDate(admin.created_at)}</td>
+                        <td className="cell-actions">
+                          <span
+                            className={`status-badge ${admin.is_active ? 'status-inactive' : 'status-active'}`}
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => handleToggleUserStatus(admin.id, admin.is_active)}
+                          >
+                            {admin.is_active ? 'Desactivar' : 'Activar'}
                           </span>
                         </td>
                       </tr>
@@ -359,13 +427,31 @@ export const UserManagementPage: FC = () => {
                       id="role"
                       value={formData.role}
                       onChange={(e) =>
-                        setFormData({ ...formData, role: e.target.value as UserRole })
+                        setFormData({ ...formData, role: e.target.value as UserRole, phone: '' })
                       }
                     >
                       <option value="driver">Conductor</option>
                       <option value="admin">Administrador</option>
                     </select>
                   </div>
+
+                  {/* Phone field - only shown for drivers */}
+                  {formData.role === 'driver' && (
+                    <div className="form-group">
+                      <label htmlFor="phone">Teléfono *</label>
+                      <input
+                        type="tel"
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="Ej: +57 300 123 4567"
+                        autoComplete="off"
+                      />
+                      <span className="form-hint">
+                        Se generará automáticamente un enlace público para registrar viajes
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="modal-footer">

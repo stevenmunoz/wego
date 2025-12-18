@@ -13,7 +13,9 @@ import type { FirestoreVehicle } from '@/core/firebase';
 import './VehicleForm.css';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ALLOWED_DOCUMENT_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
 const currentYear = new Date().getFullYear();
 
@@ -72,6 +74,21 @@ export const VehicleForm: FC<VehicleFormProps> = ({
   const [imagePreview, setImagePreview] = useState<string | null>(vehicle?.photo_url || null);
   const [imageError, setImageError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Document state
+  const [soatFile, setSoatFile] = useState<File | null>(null);
+  const [soatFileName, setSoatFileName] = useState<string | null>(
+    vehicle?.soat_document_url ? 'Documento cargado' : null
+  );
+  const [soatError, setSoatError] = useState<string | null>(null);
+  const soatInputRef = useRef<HTMLInputElement>(null);
+
+  const [tecnomecanicaFile, setTecnomecanicaFile] = useState<File | null>(null);
+  const [tecnomecanicaFileName, setTecnomecanicaFileName] = useState<string | null>(
+    vehicle?.tecnomecanica_document_url ? 'Documento cargado' : null
+  );
+  const [tecnomecanicaError, setTecnomecanicaError] = useState<string | null>(null);
+  const tecnomecanicaInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -151,10 +168,62 @@ export const VehicleForm: FC<VehicleFormProps> = ({
     }
   };
 
+  // Document upload handlers
+  const handleDocumentSelect = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: 'soat' | 'tecnomecanica'
+  ) => {
+    const file = e.target.files?.[0];
+    const setFile = type === 'soat' ? setSoatFile : setTecnomecanicaFile;
+    const setFileName = type === 'soat' ? setSoatFileName : setTecnomecanicaFileName;
+    const setError = type === 'soat' ? setSoatError : setTecnomecanicaError;
+
+    setError(null);
+
+    if (!file) {
+      return;
+    }
+
+    // Validate file type
+    if (!ALLOWED_DOCUMENT_TYPES.includes(file.type)) {
+      setError('Tipo de archivo no permitido. Use PDF, JPG, PNG o WebP.');
+      return;
+    }
+
+    // Validate file size
+    if (file.size > MAX_DOCUMENT_SIZE) {
+      setError('El archivo es muy grande. Máximo 10MB.');
+      return;
+    }
+
+    setFile(file);
+    setFileName(file.name);
+  };
+
+  const handleRemoveDocument = (type: 'soat' | 'tecnomecanica') => {
+    if (type === 'soat') {
+      setSoatFile(null);
+      setSoatFileName(vehicle?.soat_document_url ? 'Documento cargado' : null);
+      setSoatError(null);
+      if (soatInputRef.current) {
+        soatInputRef.current.value = '';
+      }
+    } else {
+      setTecnomecanicaFile(null);
+      setTecnomecanicaFileName(vehicle?.tecnomecanica_document_url ? 'Documento cargado' : null);
+      setTecnomecanicaError(null);
+      if (tecnomecanicaInputRef.current) {
+        tecnomecanicaInputRef.current.value = '';
+      }
+    }
+  };
+
   const handleFormSubmit = async (data: VehicleFormData) => {
     const submitData: VehicleCreateInput = {
       ...data,
       imageFile: imageFile || undefined,
+      soatFile: soatFile || undefined,
+      tecnomecanicaFile: tecnomecanicaFile || undefined,
     };
     await onSubmit(submitData);
   };
@@ -385,17 +454,127 @@ export const VehicleForm: FC<VehicleFormProps> = ({
         <fieldset className="form-section">
           <legend>Documentos</legend>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="soat_expiry">Vencimiento SOAT</label>
-              <input id="soat_expiry" type="date" {...register('soat_expiry')} />
+          {/* SOAT */}
+          <div className="document-group">
+            <div className="document-header">
+              <span className="document-title">SOAT</span>
             </div>
-
-            <div className="form-group">
-              <label htmlFor="tecnomecanica_expiry">Vencimiento Tecnomecánica</label>
-              <input id="tecnomecanica_expiry" type="date" {...register('tecnomecanica_expiry')} />
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="soat_expiry">Vencimiento</label>
+                <input id="soat_expiry" type="date" {...register('soat_expiry')} />
+              </div>
+              <div className="form-group">
+                <label>Documento</label>
+                <div className="document-upload">
+                  {soatFileName ? (
+                    <div className="document-file-info">
+                      <span className="document-file-name" title={soatFileName}>
+                        {soatFile ? '📄' : '✓'} {soatFileName}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn-remove-doc"
+                        onClick={() => handleRemoveDocument('soat')}
+                        title="Eliminar"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-upload-doc"
+                      onClick={() => soatInputRef.current?.click()}
+                    >
+                      📎 Subir archivo
+                    </button>
+                  )}
+                  <input
+                    ref={soatInputRef}
+                    type="file"
+                    accept=".pdf,image/jpeg,image/png,image/webp"
+                    onChange={(e) => handleDocumentSelect(e, 'soat')}
+                    className="document-input"
+                    aria-label="Subir SOAT"
+                  />
+                  {vehicle?.soat_document_url && !soatFile && (
+                    <a
+                      href={vehicle.soat_document_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-view-doc"
+                    >
+                      Ver actual
+                    </a>
+                  )}
+                </div>
+                {soatError && <span className="error-message">{soatError}</span>}
+              </div>
             </div>
           </div>
+
+          {/* Tecnomecánica */}
+          <div className="document-group">
+            <div className="document-header">
+              <span className="document-title">Tecnomecánica</span>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="tecnomecanica_expiry">Vencimiento</label>
+                <input id="tecnomecanica_expiry" type="date" {...register('tecnomecanica_expiry')} />
+              </div>
+              <div className="form-group">
+                <label>Documento</label>
+                <div className="document-upload">
+                  {tecnomecanicaFileName ? (
+                    <div className="document-file-info">
+                      <span className="document-file-name" title={tecnomecanicaFileName}>
+                        {tecnomecanicaFile ? '📄' : '✓'} {tecnomecanicaFileName}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn-remove-doc"
+                        onClick={() => handleRemoveDocument('tecnomecanica')}
+                        title="Eliminar"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-upload-doc"
+                      onClick={() => tecnomecanicaInputRef.current?.click()}
+                    >
+                      📎 Subir archivo
+                    </button>
+                  )}
+                  <input
+                    ref={tecnomecanicaInputRef}
+                    type="file"
+                    accept=".pdf,image/jpeg,image/png,image/webp"
+                    onChange={(e) => handleDocumentSelect(e, 'tecnomecanica')}
+                    className="document-input"
+                    aria-label="Subir Tecnomecánica"
+                  />
+                  {vehicle?.tecnomecanica_document_url && !tecnomecanicaFile && (
+                    <a
+                      href={vehicle.tecnomecanica_document_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-view-doc"
+                    >
+                      Ver actual
+                    </a>
+                  )}
+                </div>
+                {tecnomecanicaError && <span className="error-message">{tecnomecanicaError}</span>}
+              </div>
+            </div>
+          </div>
+
+          <p className="document-hint">PDF, JPG, PNG o WebP (máx. 10MB)</p>
         </fieldset>
 
         {/* Notes */}

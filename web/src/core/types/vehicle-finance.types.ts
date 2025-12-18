@@ -120,6 +120,7 @@ export interface VehicleExpenseCreateInput {
   };
   vendor?: string;
   receipt_file?: File;
+  receipt_url?: string;
   notes?: string;
 }
 
