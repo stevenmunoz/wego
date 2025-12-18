@@ -29,6 +29,7 @@ interface Transaction {
   description: string;
   amount: number;
   isRecurring: boolean;
+  receiptUrl?: string;
   original: VehicleIncome | VehicleExpense;
 }
 
@@ -83,6 +84,7 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
       description: e.description,
       amount: e.amount,
       isRecurring: e.is_recurring,
+      receiptUrl: e.receipt_url,
       original: e,
     }));
 
@@ -199,6 +201,17 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
                   {formatCurrency(transaction.amount)}
                 </td>
                 <td className="cell-actions">
+                  {transaction.receiptUrl && (
+                    <a
+                      href={transaction.receiptUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-action btn-receipt"
+                      title="Ver comprobante"
+                    >
+                      📄
+                    </a>
+                  )}
                   <button
                     type="button"
                     className="btn-action btn-edit"

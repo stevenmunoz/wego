@@ -13,6 +13,7 @@ import { ExpenseForm } from '@/components/VehicleFinances/ExpenseForm';
 import { useDriverVehicles } from '@/hooks/useDriverVehicles';
 import { useAllVehicles } from '@/hooks/useAllVehicles';
 import { useVehicleFinances } from '@/hooks/useVehicleFinances';
+import { uploadExpenseReceipt } from '@/core/firebase';
 import type {
   VehicleIncomeCreateInput,
   VehicleExpenseCreateInput,
@@ -160,11 +161,39 @@ export const VehicleFinancesPage = () => {
 
   // Expense handlers
   const handleAddExpense = async (data: VehicleExpenseCreateInput) => {
+    if (!effectiveOwnerId || !effectiveVehicleId) return;
     setIsSubmitting(true);
     setFormError(null);
     try {
-      console.log('[VehicleFinancesPage] Adding expense:', { data, effectiveOwnerId, effectiveVehicleId });
-      const result = await addExpense(data);
+      // Extract receipt file from data
+      const { receipt_file, ...expenseData } = data;
+
+      // Upload receipt if provided
+      let receiptUrl: string | undefined;
+      if (receipt_file) {
+        console.log('[VehicleFinancesPage] Uploading receipt...');
+        const uploadResult = await uploadExpenseReceipt(
+          effectiveOwnerId,
+          effectiveVehicleId,
+          receipt_file
+        );
+        if (uploadResult.success && uploadResult.url) {
+          receiptUrl = uploadResult.url;
+          console.log('[VehicleFinancesPage] Receipt uploaded:', receiptUrl);
+        } else {
+          console.error('[VehicleFinancesPage] Receipt upload failed:', uploadResult.error);
+          // Continue without receipt if upload fails
+        }
+      }
+
+      // Create expense with receipt URL if available
+      const finalExpenseData = {
+        ...expenseData,
+        ...(receiptUrl && { receipt_url: receiptUrl }),
+      };
+
+      console.log('[VehicleFinancesPage] Adding expense:', { finalExpenseData, effectiveOwnerId, effectiveVehicleId });
+      const result = await addExpense(finalExpenseData);
       console.log('[VehicleFinancesPage] Add expense result:', result);
       if (result.success) {
         setShowForm(null);
@@ -186,12 +215,40 @@ export const VehicleFinancesPage = () => {
   };
 
   const handleUpdateExpense = async (data: VehicleExpenseCreateInput) => {
-    if (!editingExpense) return;
+    if (!editingExpense || !effectiveOwnerId || !effectiveVehicleId) return;
     setIsSubmitting(true);
+    setFormError(null);
     try {
-      await updateExpense(editingExpense.id, data);
+      // Extract receipt file from data
+      const { receipt_file, ...expenseData } = data;
+
+      // Upload receipt if new file provided
+      let receiptUrl: string | undefined;
+      if (receipt_file) {
+        console.log('[VehicleFinancesPage] Uploading receipt...');
+        const uploadResult = await uploadExpenseReceipt(
+          effectiveOwnerId,
+          effectiveVehicleId,
+          receipt_file
+        );
+        if (uploadResult.success && uploadResult.url) {
+          receiptUrl = uploadResult.url;
+          console.log('[VehicleFinancesPage] Receipt uploaded:', receiptUrl);
+        }
+      }
+
+      // Update expense with receipt URL if available
+      const finalExpenseData = {
+        ...expenseData,
+        ...(receiptUrl && { receipt_url: receiptUrl }),
+      };
+
+      await updateExpense(editingExpense.id, finalExpenseData);
       setShowForm(null);
       setEditingExpense(null);
+    } catch (err) {
+      console.error('[VehicleFinancesPage] Error updating expense:', err);
+      setFormError(err instanceof Error ? err.message : 'Error inesperado');
     } finally {
       setIsSubmitting(false);
     }
