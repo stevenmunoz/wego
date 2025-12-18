@@ -27,11 +27,14 @@ export {
   updateUserProfile,
   getAllDrivers,
   getDriverProfile,
+  getDriverWithUser,
   createDriverProfile,
   updateDriverProfile,
+  generateSlugFromName,
   type FirestoreInDriverRide,
   type FirestoreUser,
   type FirestoreDriver,
+  type DriverWithUser,
   type UserRole,
 } from './firestore';
 export {
@@ -45,7 +48,15 @@ export {
   reassignVehicle,
   type FirestoreVehicle,
 } from './vehicles';
-export { uploadVehicleImage, deleteVehicleImage, compressImage } from './storage';
+export {
+  uploadVehicleImage,
+  deleteVehicleImage,
+  compressImage,
+  uploadVehicleDocument,
+  deleteVehicleDocument,
+  uploadExpenseReceipt,
+  type DocumentType,
+} from './storage';
 export {
   getVehicleIncome,
   createVehicleIncome,

@@ -6,7 +6,7 @@
  */
 
 import { type FC } from 'react';
-import type { FirestoreVehicle, FirestoreDriver } from '@/core/firebase';
+import type { FirestoreVehicle, DriverWithUser } from '@/core/firebase';
 import type { VehicleStatus } from '@/core/types';
 import './VehiclesTable.css';
 
@@ -18,7 +18,7 @@ interface VehiclesTableProps {
   vehicles: (FirestoreVehicle | VehicleWithDriver)[];
   isLoading: boolean;
   isAdminView?: boolean;
-  drivers?: FirestoreDriver[];
+  drivers?: DriverWithUser[];
   onAddClick?: () => void;
   onEditVehicle?: (vehicle: FirestoreVehicle) => void;
   onDeleteVehicle?: (id: string) => void;
@@ -232,18 +232,44 @@ export const VehiclesTable: FC<VehiclesTableProps> = ({
                   <td className="cell-color">{vehicle.color}</td>
                   <td className="cell-capacity">{vehicle.passenger_capacity} pasajeros</td>
                   <td className={`cell-document expiry-${soatStatus}`}>
-                    {formatDate(vehicle.soat_expiry)}
-                    {soatStatus === 'expired' && <span className="expiry-tag">Vencido</span>}
-                    {soatStatus === 'warning' && (
-                      <span className="expiry-tag warning">Por vencer</span>
-                    )}
+                    <div className="document-cell">
+                      <span className="document-date">{formatDate(vehicle.soat_expiry)}</span>
+                      {soatStatus === 'expired' && <span className="expiry-tag">Vencido</span>}
+                      {soatStatus === 'warning' && (
+                        <span className="expiry-tag warning">Por vencer</span>
+                      )}
+                      {vehicle.soat_document_url && (
+                        <a
+                          href={vehicle.soat_document_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="document-link"
+                          title="Ver documento SOAT"
+                        >
+                          📄
+                        </a>
+                      )}
+                    </div>
                   </td>
                   <td className={`cell-document expiry-${tecnoStatus}`}>
-                    {formatDate(vehicle.tecnomecanica_expiry)}
-                    {tecnoStatus === 'expired' && <span className="expiry-tag">Vencido</span>}
-                    {tecnoStatus === 'warning' && (
-                      <span className="expiry-tag warning">Por vencer</span>
-                    )}
+                    <div className="document-cell">
+                      <span className="document-date">{formatDate(vehicle.tecnomecanica_expiry)}</span>
+                      {tecnoStatus === 'expired' && <span className="expiry-tag">Vencido</span>}
+                      {tecnoStatus === 'warning' && (
+                        <span className="expiry-tag warning">Por vencer</span>
+                      )}
+                      {vehicle.tecnomecanica_document_url && (
+                        <a
+                          href={vehicle.tecnomecanica_document_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="document-link"
+                          title="Ver documento Tecnomecánica"
+                        >
+                          📄
+                        </a>
+                      )}
+                    </div>
                   </td>
                   <td className="cell-status">
                     <span className={`status-badge status-${getStatusColor(vehicle.status)}`}>

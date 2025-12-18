@@ -11,14 +11,16 @@ import {
   createDriverProfile,
   updateDriverProfile,
   createUserAsAdmin,
+  generateSlugFromName,
   type FirestoreUser,
   type FirestoreDriver,
+  type DriverWithUser,
   type UserRole,
 } from '@/core/firebase';
 
 interface UseUsersReturn {
   users: FirestoreUser[];
-  drivers: FirestoreDriver[];
+  drivers: DriverWithUser[];
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -27,6 +29,7 @@ interface UseUsersReturn {
     name: string;
     password: string;
     role: UserRole;
+    phone?: string; // Required when role === 'driver'
   }) => Promise<boolean>;
   createUser: (
     userId: string,
@@ -38,17 +41,17 @@ interface UseUsersReturn {
   ) => Promise<boolean>;
   createDriver: (
     driverId: string,
-    data: { email: string; name: string; phone: string; unique_slug: string }
+    data: { phone: string; unique_slug: string }
   ) => Promise<boolean>;
   updateDriver: (
     driverId: string,
-    updates: Partial<Pick<FirestoreDriver, 'name' | 'phone' | 'unique_slug' | 'is_active'>>
+    updates: Partial<Pick<FirestoreDriver, 'phone' | 'unique_slug'>>
   ) => Promise<boolean>;
 }
 
 export const useUsers = (): UseUsersReturn => {
   const [users, setUsers] = useState<FirestoreUser[]>([]);
-  const [drivers, setDrivers] = useState<FirestoreDriver[]>([]);
+  const [drivers, setDrivers] = useState<DriverWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,8 +79,16 @@ export const useUsers = (): UseUsersReturn => {
       name: string;
       password: string;
       role: UserRole;
+      phone?: string; // Required when role === 'driver'
     }): Promise<boolean> => {
       setError(null);
+
+      // Validate phone is provided for drivers
+      if (data.role === 'driver' && !data.phone?.trim()) {
+        setError('El teléfono es requerido para conductores');
+        return false;
+      }
+
       try {
         // Step 1: Create Firebase Auth user
         const authResult = await createUserAsAdmin(data.email, data.password, data.name);
@@ -96,6 +107,20 @@ export const useUsers = (): UseUsersReturn => {
         if (!profileResult.success) {
           setError(profileResult.error || 'Error al crear el perfil del usuario');
           return false;
+        }
+
+        // Step 3: If role is 'driver', also create driver profile
+        if (data.role === 'driver' && data.phone) {
+          const slug = generateSlugFromName(data.name);
+          const driverResult = await createDriverProfile(authResult.uid, {
+            phone: data.phone.trim(),
+            unique_slug: slug,
+          });
+
+          if (!driverResult.success) {
+            // Log error but don't fail - user is created, driver can be added later
+            console.error('[useUsers] Error creating driver profile:', driverResult.error);
+          }
         }
 
         // Refresh data
@@ -162,7 +187,7 @@ export const useUsers = (): UseUsersReturn => {
   const createDriver = useCallback(
     async (
       driverId: string,
-      data: { email: string; name: string; phone: string; unique_slug: string }
+      data: { phone: string; unique_slug: string }
     ): Promise<boolean> => {
       setError(null);
       try {
@@ -186,7 +211,7 @@ export const useUsers = (): UseUsersReturn => {
   const updateDriver = useCallback(
     async (
       driverId: string,
-      updates: Partial<Pick<FirestoreDriver, 'name' | 'phone' | 'unique_slug' | 'is_active'>>
+      updates: Partial<Pick<FirestoreDriver, 'phone' | 'unique_slug'>>
     ): Promise<boolean> => {
       setError(null);
       try {

@@ -1,15 +1,20 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Driver data
+    // Driver data - linked to /users collection
+    // Driver documents store driver-specific data (phone, unique_slug)
+    // User data (name, email, is_active) is in /users collection
     match /drivers/{driverId} {
       // Public read: Allow anyone to read driver data (for slug validation in public form)
-      // Only active drivers are exposed via the API query filter
+      // Active status is checked via /users/{user_id}.is_active in application code
       allow read: if true;
 
-      // Write: Only authenticated users can modify their own driver document
-      // Admins can also modify any driver document
-      allow write: if request.auth != null && (request.auth.uid == driverId || isAdmin());
+      // Create: Admin can create driver profiles, or user can create their own if they have driver role
+      allow create: if request.auth != null
+        && (isAdmin() || (request.auth.uid == driverId && isDriver(request.auth.uid)));
+
+      // Update: Owner or admin can update driver-specific fields
+      allow update: if request.auth != null && (request.auth.uid == driverId || isAdmin());
 
       // Driver rides subcollection (supports multiple sources: InDriver, external, etc.)
       match /driver_rides/{rideId} {
@@ -99,6 +104,12 @@ service cloud.firestore {
       return request.auth != null
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Check if the user has driver role
+    function isDriver(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId))
+        && get(/databases/$(database)/documents/users/$(userId)).data.role == 'driver';
     }
 
     // Check vehicle ownership - tries to get vehicle from top-level collection
