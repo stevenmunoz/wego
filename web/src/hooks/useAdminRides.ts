@@ -8,7 +8,7 @@ import {
   updateInDriverRide,
   getAllVehicles,
   type FirestoreInDriverRide,
-  type FirestoreDriver,
+  type DriverWithUser,
   type FirestoreVehicle,
 } from '@/core/firebase';
 import { getAllDriversRides } from '@/core/firebase/firestore';
@@ -26,7 +26,7 @@ export type RideWithDriver = FirestoreInDriverRide & {
 
 interface UseAdminRidesReturn {
   rides: RideWithDriver[];
-  drivers: FirestoreDriver[];
+  drivers: DriverWithUser[];
   vehicles: FirestoreVehicle[];
   isLoading: boolean;
   error: string | null;
@@ -36,7 +36,7 @@ interface UseAdminRidesReturn {
 
 export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesReturn => {
   const [rides, setRides] = useState<RideWithDriver[]>([]);
-  const [drivers, setDrivers] = useState<FirestoreDriver[]>([]);
+  const [drivers, setDrivers] = useState<DriverWithUser[]>([]);
   const [vehicles, setVehicles] = useState<FirestoreVehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +69,7 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
 
       // driver_id -> name
       const driverNameMap = new Map<string, string>();
-      fetchedDrivers.forEach((driver: FirestoreDriver) => {
+      fetchedDrivers.forEach((driver: DriverWithUser) => {
         driverNameMap.set(driver.id, driver.name);
       });
 

@@ -11,6 +11,7 @@ import { RidesTable } from '@/components/RidesTable';
 import { DateFilter, type DateFilterOption } from '@/components/DateFilter';
 import { StatusFilter, type StatusFilterOption } from '@/components/StatusFilter';
 import { SourceFilter, type SourceFilterOption } from '@/components/SourceFilter';
+import { DriverFilter } from '@/components/DriverFilter';
 import { useDriverRides } from '@/hooks/useDriverRides';
 import { useAdminRides } from '@/hooks/useAdminRides';
 import './DashboardPage.css';
@@ -24,6 +25,7 @@ export const DashboardPage = () => {
   const [dateRange, setDateRange] = useState<{ startDate?: Date; endDate?: Date }>({});
   const [statusFilter, setStatusFilter] = useState<StatusFilterOption>('all');
   const [sourceFilter, setSourceFilter] = useState<SourceFilterOption>('all');
+  const [driverFilter, setDriverFilter] = useState<string>('all');
 
   const options = useMemo(
     () => ({
@@ -59,18 +61,25 @@ export const DashboardPage = () => {
     <DashboardLayout>
       <div className="dashboard-page">
         <header className="page-header">
-          <div className="page-header-content">
-            <h1 className="page-title">{pageTitle}</h1>
-            <p className="page-subtitle">{pageSubtitle}</p>
-            {isAdmin && <span className="admin-badge">Admin</span>}
-          </div>
-          <div className="page-header-actions">
-            <DateFilter value={dateFilter} onChange={handleDateFilterChange} />
-            <StatusFilter value={statusFilter} onChange={setStatusFilter} />
-            <SourceFilter value={sourceFilter} onChange={setSourceFilter} />
+          <div className="page-header-top">
+            <div className="page-header-title">
+              <h1 className="page-title">
+                {pageTitle}
+                {isAdmin && <span className="admin-badge">Admin</span>}
+              </h1>
+              <p className="page-subtitle">{pageSubtitle}</p>
+            </div>
             <button type="button" className="btn btn-outline" onClick={refetch}>
               <span>🔄</span> Actualizar
             </button>
+          </div>
+          <div className="page-header-filters">
+            <DateFilter value={dateFilter} onChange={handleDateFilterChange} />
+            <StatusFilter value={statusFilter} onChange={setStatusFilter} />
+            <SourceFilter value={sourceFilter} onChange={setSourceFilter} />
+            {isAdmin && (
+              <DriverFilter drivers={drivers} value={driverFilter} onChange={setDriverFilter} />
+            )}
           </div>
         </header>
 
@@ -89,6 +98,7 @@ export const DashboardPage = () => {
           isLoading={isLoading}
           statusFilter={statusFilter}
           sourceFilter={sourceFilter}
+          driverFilter={isAdmin ? driverFilter : 'all'}
           onUpdateRide={updateRide}
           showDriverColumn={isAdmin}
           showVehicleColumn={true}

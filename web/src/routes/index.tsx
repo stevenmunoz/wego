@@ -62,7 +62,7 @@ export const router = createBrowserRouter([
         element: <InDriverImportPage />,
       },
       {
-        path: '/usuarios',
+        path: '/users',
         element: <UserManagementPage />,
       },
       {

@@ -49,6 +49,8 @@ export interface FirestoreVehicle {
   has_air_conditioning: boolean;
   soat_expiry: Timestamp | null;
   tecnomecanica_expiry: Timestamp | null;
+  soat_document_url?: string;
+  tecnomecanica_document_url?: string;
   status: VehicleStatus;
   is_primary: boolean;
   created_at: Timestamp;

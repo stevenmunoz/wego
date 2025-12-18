@@ -463,6 +463,7 @@ export async function createVehicleExpense(
     // Only add optional fields if they have values
     if (input.vendor) expense.vendor = input.vendor;
     if (input.notes) expense.notes = input.notes;
+    if (input.receipt_url) expense.receipt_url = input.receipt_url;
 
     // Add recurrence pattern if recurring
     if (input.is_recurring && input.recurrence_pattern) {

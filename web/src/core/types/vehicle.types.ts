@@ -65,9 +65,13 @@ export interface VehicleCreateInput {
   is_primary?: boolean;
   notes?: string;
   imageFile?: File; // Optional image file for upload
+  soatFile?: File; // Optional SOAT document file for upload
+  tecnomecanicaFile?: File; // Optional Tecnomecánica document file for upload
 }
 
 export interface VehicleUpdateInput extends Partial<VehicleCreateInput> {
   status?: VehicleStatus;
   photo_url?: string;
+  soat_document_url?: string;
+  tecnomecanica_document_url?: string;
 }
