@@ -11,6 +11,7 @@ import { RidesTable } from '@/components/RidesTable';
 import { DateFilter, type DateFilterOption } from '@/components/DateFilter';
 import { StatusFilter, type StatusFilterOption } from '@/components/StatusFilter';
 import { SourceFilter, type SourceFilterOption } from '@/components/SourceFilter';
+import { DriverFilter } from '@/components/DriverFilter';
 import { useDriverRides } from '@/hooks/useDriverRides';
 import { useAdminRides } from '@/hooks/useAdminRides';
 import './DashboardPage.css';
@@ -24,6 +25,7 @@ export const DashboardPage = () => {
   const [dateRange, setDateRange] = useState<{ startDate?: Date; endDate?: Date }>({});
   const [statusFilter, setStatusFilter] = useState<StatusFilterOption>('all');
   const [sourceFilter, setSourceFilter] = useState<SourceFilterOption>('all');
+  const [driverFilter, setDriverFilter] = useState<string>('all');
 
   const options = useMemo(
     () => ({
@@ -68,6 +70,9 @@ export const DashboardPage = () => {
             <DateFilter value={dateFilter} onChange={handleDateFilterChange} />
             <StatusFilter value={statusFilter} onChange={setStatusFilter} />
             <SourceFilter value={sourceFilter} onChange={setSourceFilter} />
+            {isAdmin && (
+              <DriverFilter drivers={drivers} value={driverFilter} onChange={setDriverFilter} />
+            )}
             <button type="button" className="btn btn-outline" onClick={refetch}>
               <span>🔄</span> Actualizar
             </button>
@@ -89,6 +94,7 @@ export const DashboardPage = () => {
           isLoading={isLoading}
           statusFilter={statusFilter}
           sourceFilter={sourceFilter}
+          driverFilter={isAdmin ? driverFilter : 'all'}
           onUpdateRide={updateRide}
           showDriverColumn={isAdmin}
           showVehicleColumn={true}

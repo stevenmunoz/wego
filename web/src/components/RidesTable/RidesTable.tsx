@@ -40,6 +40,7 @@ interface RidesTableProps {
   onUpdateRide?: (id: string, updates: Partial<FirestoreInDriverRide>) => void;
   statusFilter?: StatusFilterOption;
   sourceFilter?: SourceFilterOption;
+  driverFilter?: string; // 'all' or driver ID
   showDriverColumn?: boolean;
   showVehicleColumn?: boolean;
   showSourceColumn?: boolean;
@@ -398,6 +399,7 @@ export const RidesTable: FC<RidesTableProps> = ({
   onUpdateRide,
   statusFilter = 'all',
   sourceFilter = 'all',
+  driverFilter = 'all',
   showDriverColumn = false,
   showVehicleColumn = false,
   showSourceColumn = false,
@@ -545,7 +547,7 @@ export const RidesTable: FC<RidesTableProps> = ({
     stopEditing();
   };
 
-  // Filter rides by status and source
+  // Filter rides by status, source, and driver
   const filteredRides = useMemo(() => {
     let filtered = rides;
 
@@ -567,8 +569,13 @@ export const RidesTable: FC<RidesTableProps> = ({
       filtered = filtered.filter((r) => r.category === sourceFilter);
     }
 
+    // Filter by driver
+    if (driverFilter !== 'all') {
+      filtered = filtered.filter((r) => r.driver_id === driverFilter);
+    }
+
     return filtered;
-  }, [rides, statusFilter, sourceFilter]);
+  }, [rides, statusFilter, sourceFilter, driverFilter]);
 
   const sortedRides = useMemo(() => sortRidesByDateAndTime(filteredRides), [filteredRides]);
   const totals = useMemo(() => calculateTotals(sortedRides), [sortedRides]);
