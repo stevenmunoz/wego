@@ -10,12 +10,8 @@ import type { FirestoreVehicle, DriverWithUser } from '@/core/firebase';
 import type { VehicleStatus } from '@/core/types';
 import './VehiclesTable.css';
 
-interface VehicleWithDriver extends FirestoreVehicle {
-  driver_name?: string;
-}
-
 interface VehiclesTableProps {
-  vehicles: (FirestoreVehicle | VehicleWithDriver)[];
+  vehicles: FirestoreVehicle[];
   isLoading: boolean;
   isAdminView?: boolean;
   drivers?: DriverWithUser[];
@@ -23,7 +19,8 @@ interface VehiclesTableProps {
   onEditVehicle?: (vehicle: FirestoreVehicle) => void;
   onDeleteVehicle?: (id: string) => void;
   onSetPrimary?: (id: string) => void;
-  onReassignVehicle?: (vehicleId: string, newDriverId: string) => void;
+  onAssignDriver?: (vehicleId: string, driverId: string) => void;
+  onUnassignDriver?: (vehicleId: string) => void;
 }
 
 // Status helpers
@@ -97,7 +94,8 @@ export const VehiclesTable: FC<VehiclesTableProps> = ({
   onEditVehicle,
   onDeleteVehicle,
   onSetPrimary,
-  onReassignVehicle,
+  onAssignDriver,
+  onUnassignDriver,
 }) => {
   const handleDelete = (vehicleId: string) => {
     if (onDeleteVehicle && window.confirm('¿Estás seguro de eliminar este vehículo?')) {
@@ -106,17 +104,23 @@ export const VehiclesTable: FC<VehiclesTableProps> = ({
   };
 
   const handleDriverChange = (vehicleId: string, newDriverId: string) => {
-    if (onReassignVehicle && newDriverId) {
-      onReassignVehicle(vehicleId, newDriverId);
+    if (!newDriverId) {
+      // Unassign driver
+      if (onUnassignDriver) {
+        onUnassignDriver(vehicleId);
+      }
+    } else {
+      // Assign new driver
+      if (onAssignDriver) {
+        onAssignDriver(vehicleId, newDriverId);
+      }
     }
   };
 
-  // Helper to get driver name from vehicle
-  const getDriverName = (vehicle: FirestoreVehicle | VehicleWithDriver): string => {
-    if ('driver_name' in vehicle && vehicle.driver_name) {
-      return vehicle.driver_name;
-    }
-    const driver = drivers.find((d) => d.id === vehicle.driver_id);
+  // Helper to get driver name by joining with drivers list
+  const getDriverName = (vehicle: FirestoreVehicle): string => {
+    if (!vehicle.assigned_driver_id) return 'Sin asignar';
+    const driver = drivers.find((d) => d.id === vehicle.assigned_driver_id);
     return driver?.name || 'Sin asignar';
   };
 
@@ -211,12 +215,13 @@ export const VehiclesTable: FC<VehiclesTableProps> = ({
                   </td>
                   {isAdminView && (
                     <td className="cell-driver">
-                      {onReassignVehicle ? (
+                      {onAssignDriver ? (
                         <select
                           className="driver-select"
-                          value={vehicle.driver_id}
+                          value={vehicle.assigned_driver_id || ''}
                           onChange={(e) => handleDriverChange(vehicle.id, e.target.value)}
                         >
+                          <option value="">Sin asignar</option>
                           {drivers.map((driver) => (
                             <option key={driver.id} value={driver.id}>
                               {driver.name}

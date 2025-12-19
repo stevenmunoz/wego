@@ -43,6 +43,8 @@ const vehicleSchema = z.object({
   tecnomecanica_expiry: z.string().optional(),
   is_primary: z.boolean().optional(),
   notes: z.string().optional(),
+  // Fleet management
+  weekly_rental_amount: z.coerce.number().min(0).optional(),
 });
 
 type VehicleFormData = z.infer<typeof vehicleSchema>;
@@ -115,6 +117,7 @@ export const VehicleForm: FC<VehicleFormProps> = ({
           tecnomecanica_expiry: timestampToDateString(vehicle.tecnomecanica_expiry),
           is_primary: vehicle.is_primary,
           notes: vehicle.notes,
+          weekly_rental_amount: vehicle.weekly_rental_amount,
         }
       : {
           vehicle_type: 'car',
@@ -126,6 +129,7 @@ export const VehicleForm: FC<VehicleFormProps> = ({
           has_child_seat: false,
           has_air_conditioning: true,
           is_primary: false,
+          weekly_rental_amount: undefined,
         },
   });
 
@@ -447,6 +451,28 @@ export const VehicleForm: FC<VehicleFormProps> = ({
               <input type="checkbox" {...register('is_primary')} />
               <span>Vehículo principal</span>
             </label>
+          </div>
+        </fieldset>
+
+        {/* Fleet Management (Optional) */}
+        <fieldset className="form-section">
+          <legend>Gestión de Flota (Opcional)</legend>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="weekly_rental_amount">Arriendo Semanal (COP)</label>
+              <input
+                id="weekly_rental_amount"
+                type="number"
+                min="0"
+                step="1000"
+                placeholder="Ej: 350000"
+                {...register('weekly_rental_amount')}
+              />
+              <span className="field-hint">
+                Monto que el conductor paga semanalmente por usar este vehículo
+              </span>
+            </div>
           </div>
         </fieldset>
 

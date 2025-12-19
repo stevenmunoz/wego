@@ -39,18 +39,20 @@ export {
 } from './firestore';
 export {
   getAllVehicles,
-  getDriverVehicles,
+  getOwnerVehicles,
   getVehicle,
   createVehicle,
   updateVehicle,
   deleteVehicle,
   setVehicleAsPrimary,
-  reassignVehicle,
+  assignDriver,
+  unassignDriver,
   type FirestoreVehicle,
 } from './vehicles';
 export {
   uploadVehicleImage,
   deleteVehicleImage,
+  deleteStorageFile,
   compressImage,
   uploadVehicleDocument,
   deleteVehicleDocument,

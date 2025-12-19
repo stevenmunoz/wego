@@ -1,17 +1,19 @@
 /**
  * Firestore vehicle finances service for P/L tracking
+ *
+ * Income and expenses are stored as subcollections under vehicles:
+ * - vehicles/{vehicleId}/income/{incomeId}
+ * - vehicles/{vehicleId}/expenses/{expenseId}
  */
 
 import {
   collection,
   doc,
   getDocs,
-  getDoc,
   setDoc,
   updateDoc,
   deleteDoc,
   query,
-  where,
   orderBy,
   Timestamp,
   serverTimestamp,
@@ -21,13 +23,10 @@ import type {
   IncomeType,
   ExpenseCategory,
   RecurrenceFrequency,
-  OwnedVehicleStatus,
   VehicleIncomeCreateInput,
   VehicleIncomeUpdateInput,
   VehicleExpenseCreateInput,
   VehicleExpenseUpdateInput,
-  OwnedVehicleCreateInput,
-  OwnedVehicleUpdateInput,
   VehiclePLSummary,
 } from '../types/vehicle-finance.types';
 
@@ -74,172 +73,6 @@ export interface FirestoreVehicleExpense {
   created_at: Timestamp;
   updated_at: Timestamp;
   notes?: string;
-}
-
-export interface FirestoreOwnedVehicle {
-  id: string;
-  owner_id: string;
-  plate: string;
-  brand: string;
-  model: string;
-  year: number;
-  color: string;
-  photo_url?: string;
-  current_driver_id?: string;
-  current_driver_name?: string;
-  weekly_rental_amount: number;
-  soat_expiry: Timestamp | null;
-  tecnomecanica_expiry: Timestamp | null;
-  status: OwnedVehicleStatus;
-  created_at: Timestamp;
-  updated_at: Timestamp;
-  notes?: string;
-}
-
-// ============ Owned Vehicles CRUD ============
-
-/**
- * Get all owned vehicles for an owner
- */
-export async function getOwnedVehicles(
-  ownerId: string,
-  options?: { status?: OwnedVehicleStatus }
-): Promise<FirestoreOwnedVehicle[]> {
-  const vehiclesCollection = collection(db, 'drivers', ownerId, 'vehicles');
-
-  let q = query(vehiclesCollection, orderBy('created_at', 'desc'));
-
-  if (options?.status) {
-    q = query(
-      vehiclesCollection,
-      where('status', '==', options.status),
-      orderBy('created_at', 'desc')
-    );
-  }
-
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => doc.data() as FirestoreOwnedVehicle);
-}
-
-/**
- * Get a single owned vehicle by ID
- */
-export async function getOwnedVehicle(
-  ownerId: string,
-  vehicleId: string
-): Promise<FirestoreOwnedVehicle | null> {
-  const vehicleRef = doc(db, 'drivers', ownerId, 'vehicles', vehicleId);
-  const snapshot = await getDoc(vehicleRef);
-
-  if (!snapshot.exists()) return null;
-  return snapshot.data() as FirestoreOwnedVehicle;
-}
-
-/**
- * Create a new owned vehicle
- */
-export async function createOwnedVehicle(
-  ownerId: string,
-  input: OwnedVehicleCreateInput
-): Promise<{ success: boolean; vehicleId?: string; error?: string }> {
-  try {
-    const vehiclesCollection = collection(db, 'drivers', ownerId, 'vehicles');
-    const vehicleRef = doc(vehiclesCollection);
-
-    const now = Timestamp.now();
-    const vehicle: FirestoreOwnedVehicle = {
-      id: vehicleRef.id,
-      owner_id: ownerId,
-      plate: input.plate.toUpperCase().replace(/[^A-Z0-9]/g, ''),
-      brand: input.brand,
-      model: input.model,
-      year: input.year,
-      color: input.color,
-      weekly_rental_amount: input.weekly_rental_amount,
-      current_driver_name: input.current_driver_name,
-      soat_expiry: input.soat_expiry ? Timestamp.fromDate(new Date(input.soat_expiry)) : null,
-      tecnomecanica_expiry: input.tecnomecanica_expiry
-        ? Timestamp.fromDate(new Date(input.tecnomecanica_expiry))
-        : null,
-      status: 'active',
-      created_at: now,
-      updated_at: now,
-      notes: input.notes,
-    };
-
-    await setDoc(vehicleRef, vehicle);
-
-    return { success: true, vehicleId: vehicleRef.id };
-  } catch (error) {
-    console.error('[Firestore] Error creating owned vehicle:', error);
-    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    return { success: false, error: errorMsg };
-  }
-}
-
-/**
- * Update an existing owned vehicle
- */
-export async function updateOwnedVehicle(
-  ownerId: string,
-  vehicleId: string,
-  updates: OwnedVehicleUpdateInput
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const vehicleRef = doc(db, 'drivers', ownerId, 'vehicles', vehicleId);
-
-    const firestoreUpdates: Record<string, unknown> = {
-      ...updates,
-      updated_at: serverTimestamp(),
-    };
-
-    // Normalize plate if updated
-    if (updates.plate) {
-      firestoreUpdates.plate = updates.plate.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    }
-
-    // Convert date strings to Timestamps
-    if (updates.soat_expiry !== undefined) {
-      firestoreUpdates.soat_expiry = updates.soat_expiry
-        ? Timestamp.fromDate(new Date(updates.soat_expiry))
-        : null;
-    }
-    if (updates.tecnomecanica_expiry !== undefined) {
-      firestoreUpdates.tecnomecanica_expiry = updates.tecnomecanica_expiry
-        ? Timestamp.fromDate(new Date(updates.tecnomecanica_expiry))
-        : null;
-    }
-
-    // Remove imageFile from updates (handled separately via storage)
-    delete firestoreUpdates.imageFile;
-
-    await updateDoc(vehicleRef, firestoreUpdates);
-
-    return { success: true };
-  } catch (error) {
-    console.error('[Firestore] Error updating owned vehicle:', error);
-    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    return { success: false, error: errorMsg };
-  }
-}
-
-/**
- * Delete an owned vehicle
- */
-export async function deleteOwnedVehicle(
-  ownerId: string,
-  vehicleId: string
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const vehicleRef = doc(db, 'drivers', ownerId, 'vehicles', vehicleId);
-    await deleteDoc(vehicleRef);
-
-    return { success: true };
-  } catch (error) {
-    console.error('[Firestore] Error deleting owned vehicle:', error);
-    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    return { success: false, error: errorMsg };
-  }
 }
 
 // ============ Vehicle Income CRUD ============
@@ -664,20 +497,5 @@ export function convertFirestoreExpense(
           next_occurrence: expense.recurrence_pattern.next_occurrence?.toDate(),
         }
       : undefined,
-  };
-}
-
-/**
- * Convert Firestore owned vehicle to app type
- */
-export function convertFirestoreOwnedVehicle(
-  vehicle: FirestoreOwnedVehicle
-): import('../types/vehicle-finance.types').OwnedVehicle {
-  return {
-    ...vehicle,
-    soat_expiry: vehicle.soat_expiry?.toDate() ?? null,
-    tecnomecanica_expiry: vehicle.tecnomecanica_expiry?.toDate() ?? null,
-    created_at: vehicle.created_at.toDate(),
-    updated_at: vehicle.updated_at.toDate(),
   };
 }

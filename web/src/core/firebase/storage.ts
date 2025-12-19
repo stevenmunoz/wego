@@ -1,5 +1,10 @@
 /**
- * Firebase Storage service for vehicle images
+ * Firebase Storage service for vehicle files
+ *
+ * All vehicle-related files are stored under:
+ * - vehicles/{vehicleId}/photo_{timestamp}.{ext}
+ * - vehicles/{vehicleId}/documents/{type}_{timestamp}.{ext}
+ * - vehicles/{vehicleId}/receipts/{timestamp}.{ext}
  */
 
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -43,10 +48,9 @@ function validateImageFile(file: File): { valid: boolean; error?: string } {
 
 /**
  * Upload a vehicle image to Firebase Storage
- * Path: vehicles/{driverId}/{vehicleId}/{filename}
+ * Path: vehicles/{vehicleId}/photo_{timestamp}.{ext}
  */
 export async function uploadVehicleImage(
-  driverId: string,
   vehicleId: string,
   file: File
 ): Promise<{ success: boolean; url?: string; error?: string }> {
@@ -60,16 +64,15 @@ export async function uploadVehicleImage(
     // Generate unique filename with timestamp
     const timestamp = Date.now();
     const extension = file.name.split('.').pop() || 'jpg';
-    const filename = `vehicle_${timestamp}.${extension}`;
+    const filename = `photo_${timestamp}.${extension}`;
 
     // Create storage reference
-    const storageRef = ref(firebaseStorage, `vehicles/${driverId}/${vehicleId}/${filename}`);
+    const storageRef = ref(firebaseStorage, `vehicles/${vehicleId}/${filename}`);
 
     // Upload file
     const snapshot = await uploadBytes(storageRef, file, {
       contentType: file.type,
       customMetadata: {
-        uploadedBy: driverId,
         vehicleId: vehicleId,
       },
     });
@@ -86,19 +89,19 @@ export async function uploadVehicleImage(
 }
 
 /**
- * Delete a vehicle image from Firebase Storage
+ * Delete a file from Firebase Storage by URL
  */
-export async function deleteVehicleImage(
-  imageUrl: string
+export async function deleteStorageFile(
+  fileUrl: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // Extract path from URL
     // URL format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{encoded-path}?token=...
-    const urlObj = new URL(imageUrl);
+    const urlObj = new URL(fileUrl);
     const pathMatch = urlObj.pathname.match(/\/o\/(.+)$/);
 
     if (!pathMatch) {
-      return { success: false, error: 'URL de imagen inválida' };
+      return { success: false, error: 'URL de archivo inválida' };
     }
 
     const encodedPath = pathMatch[1];
@@ -110,14 +113,24 @@ export async function deleteVehicleImage(
 
     return { success: true };
   } catch (error) {
-    console.error('[Storage] Error deleting vehicle image:', error);
+    console.error('[Storage] Error deleting file:', error);
     // If file doesn't exist, consider it a success
     if (error instanceof Error && error.message.includes('object-not-found')) {
       return { success: true };
     }
-    const errorMsg = error instanceof Error ? error.message : 'Error al eliminar imagen';
+    const errorMsg = error instanceof Error ? error.message : 'Error al eliminar archivo';
     return { success: false, error: errorMsg };
   }
+}
+
+/**
+ * Delete a vehicle image from Firebase Storage
+ * @deprecated Use deleteStorageFile instead
+ */
+export async function deleteVehicleImage(
+  imageUrl: string
+): Promise<{ success: boolean; error?: string }> {
+  return deleteStorageFile(imageUrl);
 }
 
 /**
@@ -195,10 +208,9 @@ export type DocumentType = 'soat' | 'tecnomecanica';
 
 /**
  * Upload a vehicle document (SOAT or Tecnomecánica) to Firebase Storage
- * Path: vehicles/{driverId}/{vehicleId}/documents/{documentType}_{timestamp}.{ext}
+ * Path: vehicles/{vehicleId}/documents/{documentType}_{timestamp}.{ext}
  */
 export async function uploadVehicleDocument(
-  driverId: string,
   vehicleId: string,
   documentType: DocumentType,
   file: File
@@ -218,14 +230,13 @@ export async function uploadVehicleDocument(
     // Create storage reference
     const storageRef = ref(
       firebaseStorage,
-      `vehicles/${driverId}/${vehicleId}/documents/${filename}`
+      `vehicles/${vehicleId}/documents/${filename}`
     );
 
     // Upload file
     const snapshot = await uploadBytes(storageRef, file, {
       contentType: file.type,
       customMetadata: {
-        uploadedBy: driverId,
         vehicleId: vehicleId,
         documentType: documentType,
       },
@@ -244,44 +255,19 @@ export async function uploadVehicleDocument(
 
 /**
  * Delete a vehicle document from Firebase Storage
+ * @deprecated Use deleteStorageFile instead
  */
 export async function deleteVehicleDocument(
   documentUrl: string
 ): Promise<{ success: boolean; error?: string }> {
-  try {
-    // Extract path from URL
-    const urlObj = new URL(documentUrl);
-    const pathMatch = urlObj.pathname.match(/\/o\/(.+)$/);
-
-    if (!pathMatch) {
-      return { success: false, error: 'URL de documento inválida' };
-    }
-
-    const encodedPath = pathMatch[1];
-    const path = decodeURIComponent(encodedPath);
-
-    // Create reference and delete
-    const storageRef = ref(firebaseStorage, path);
-    await deleteObject(storageRef);
-
-    return { success: true };
-  } catch (error) {
-    console.error('[Storage] Error deleting vehicle document:', error);
-    // If file doesn't exist, consider it a success
-    if (error instanceof Error && error.message.includes('object-not-found')) {
-      return { success: true };
-    }
-    const errorMsg = error instanceof Error ? error.message : 'Error al eliminar documento';
-    return { success: false, error: errorMsg };
-  }
+  return deleteStorageFile(documentUrl);
 }
 
 /**
  * Upload an expense receipt to Firebase Storage
- * Path: expenses/{ownerId}/{vehicleId}/receipts/{timestamp}.{ext}
+ * Path: vehicles/{vehicleId}/receipts/{timestamp}.{ext}
  */
 export async function uploadExpenseReceipt(
-  ownerId: string,
   vehicleId: string,
   file: File
 ): Promise<{ success: boolean; url?: string; error?: string }> {
@@ -300,14 +286,13 @@ export async function uploadExpenseReceipt(
     // Create storage reference
     const storageRef = ref(
       firebaseStorage,
-      `expenses/${ownerId}/${vehicleId}/receipts/${filename}`
+      `vehicles/${vehicleId}/receipts/${filename}`
     );
 
     // Upload file
     const snapshot = await uploadBytes(storageRef, file, {
       contentType: file.type,
       customMetadata: {
-        uploadedBy: ownerId,
         vehicleId: vehicleId,
         type: 'expense_receipt',
       },

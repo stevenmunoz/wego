@@ -194,6 +194,27 @@
   white-space: nowrap;
 }
 
+/* Sortable Header */
+.rides-table th.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.rides-table th.sortable-header:hover {
+  background: #f1f5f9;
+}
+
+.sort-indicator {
+  margin-left: 0.375rem;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.rides-table th.sortable-header:hover .sort-indicator {
+  opacity: 1;
+}
+
 .rides-table td {
   padding: 0.875rem 1rem;
   border-bottom: 1px solid #f1f5f9;
