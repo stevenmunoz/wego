@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   getInDriverRides,
   updateInDriverRide,
-  getDriverVehicles,
+  getOwnerVehicles,
   type FirestoreInDriverRide,
   type FirestoreVehicle,
 } from '@/core/firebase';
@@ -51,7 +51,7 @@ export const useDriverRides = (
       // Fetch rides and vehicles in parallel
       const [fetchedRides, fetchedVehicles] = await Promise.all([
         getInDriverRides(driverId, options),
-        getDriverVehicles(driverId),
+        getOwnerVehicles(driverId),
       ]);
 
       // Create a map of vehicle_id -> plate for quick lookup

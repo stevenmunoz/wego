@@ -365,12 +365,28 @@ export async function getAllDriversRides(options?: {
     });
 
     // Map rides with driver names
+    // IMPORTANT: Extract id, driver_id, and full path from document reference
+    // This ensures updates target the correct Firestore location
     const allRides: Array<FirestoreInDriverRide & { driver_name?: string }> = snapshot.docs.map(
       (docSnap) => {
         const data = docSnap.data() as FirestoreInDriverRide;
+        // Get the actual document ID (source of truth for Firestore path)
+        const actualId = docSnap.id;
+        // Get the actual driver_id from document path: {collection}/{driverId}/driver_rides/{rideId}
+        const pathDriverId = docSnap.ref.parent.parent?.id;
+        const actualDriverId = pathDriverId || data.driver_id;
+        // Store the full document path for updates
+        const docPath = docSnap.ref.path;
+
         return {
           ...data,
-          driver_name: nameMap.get(data.driver_id) || `Driver ${data.driver_id.slice(0, 8)}...`,
+          // Override id with the actual document ID (source of truth)
+          id: actualId,
+          // Override driver_id with the one from the path (source of truth)
+          driver_id: actualDriverId,
+          // Store full path for updates (client-side only)
+          _docPath: docPath,
+          driver_name: nameMap.get(actualDriverId) || `Driver ${actualDriverId.slice(0, 8)}...`,
         };
       }
     );
@@ -450,6 +466,9 @@ export interface FirestoreInDriverRide {
 
   // Categorization (for filtering/reporting)
   category: 'indriver' | 'independent' | 'external' | 'other';
+
+  // Client-side only: full document path for updates (not stored in Firestore)
+  _docPath?: string;
 }
 
 /**
@@ -627,14 +646,24 @@ export async function getInDriverRides(
 
 /**
  * Update a single InDriver ride in Firestore
+ * @param driverId - Driver ID (used if docPath not provided)
+ * @param rideId - Ride ID (used if docPath not provided)
+ * @param updates - Fields to update
+ * @param docPath - Optional full document path (preferred, more reliable)
  */
 export async function updateInDriverRide(
   driverId: string,
   rideId: string,
-  updates: Partial<Omit<FirestoreInDriverRide, 'id' | 'driver_id' | 'imported_at' | 'extracted_at'>>
+  updates: Partial<Omit<FirestoreInDriverRide, 'id' | 'driver_id' | 'imported_at' | 'extracted_at'>>,
+  docPath?: string
 ): Promise<{ success: boolean; error?: string }> {
+  console.log('[Firestore] updateInDriverRide called:', { driverId, rideId, updates, docPath });
   try {
-    const rideDocRef = doc(db, 'drivers', driverId, 'driver_rides', rideId);
+    // Use the stored document path if available (more reliable), otherwise construct it
+    const rideDocRef = docPath
+      ? doc(db, docPath)
+      : doc(db, 'drivers', driverId, 'driver_rides', rideId);
+    console.log('[Firestore] Document path:', rideDocRef.path);
 
     // Convert date string to Timestamp if present
     const firestoreUpdates: Record<string, unknown> = { ...updates };
@@ -663,7 +692,9 @@ export async function updateInDriverRide(
       }
     }
 
+    console.log('[Firestore] Sending update to Firestore:', firestoreUpdates);
     await updateDoc(rideDocRef, firestoreUpdates);
+    console.log('[Firestore] Update successful');
 
     return { success: true };
   } catch (error) {

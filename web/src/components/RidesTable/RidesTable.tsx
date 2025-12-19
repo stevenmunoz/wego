@@ -328,18 +328,24 @@ const getDateTimestamp = (date: { toDate: () => Date } | string | null | undefin
   return date.toDate?.()?.getTime() ?? 0;
 };
 
-const sortRidesByDateAndTime = <T extends FirestoreInDriverRide>(rides: T[]): T[] => {
+type SortDirection = 'asc' | 'desc';
+
+const sortRidesByDateAndTime = <T extends FirestoreInDriverRide>(
+  rides: T[],
+  direction: SortDirection = 'asc'
+): T[] => {
+  const multiplier = direction === 'asc' ? 1 : -1;
   return [...rides].sort((a, b) => {
     // First compare by date
     const dateA = getDateTimestamp(a.date);
     const dateB = getDateTimestamp(b.date);
     if (dateA !== dateB) {
-      return dateA - dateB; // ascending by date
+      return (dateA - dateB) * multiplier;
     }
     // If same date, compare by time string (HH:MM format)
     const timeA = a.time || '00:00';
     const timeB = b.time || '00:00';
-    return timeA.localeCompare(timeB); // ascending by time
+    return timeA.localeCompare(timeB) * multiplier;
   });
 };
 
@@ -413,6 +419,7 @@ export const RidesTable: FC<RidesTableProps> = ({
   const [selectedRide, setSelectedRide] = useState<
     (FirestoreInDriverRide & { driver_name?: string; vehicle_plate?: string }) | null
   >(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   // Memoized dropdown options
   const driverOptions = useMemo(
@@ -425,12 +432,14 @@ export const RidesTable: FC<RidesTableProps> = ({
   );
 
   const vehicleOptions = useMemo(
-    () =>
-      vehicles.map((v) => ({
+    () => [
+      { value: '', label: 'Sin vehículo', owner_id: '' },
+      ...vehicles.map((v) => ({
         value: v.id,
         label: `${v.plate} - ${v.brand} ${v.model}`,
-        driver_id: v.driver_id,
+        owner_id: v.owner_id,
       })),
+    ],
     [vehicles]
   );
 
@@ -442,13 +451,13 @@ export const RidesTable: FC<RidesTableProps> = ({
     []
   );
 
-  // Map vehicle_id -> driver info for quick lookup
+  // Map vehicle_id -> owner info for quick lookup
   const vehicleDriverMap = useMemo(() => {
-    const map = new Map<string, { driver_id: string; driver_name: string }>();
+    const map = new Map<string, { owner_id: string; driver_name: string }>();
     vehicles.forEach((v) => {
-      const driver = drivers.find((d) => d.id === v.driver_id);
+      const driver = drivers.find((d) => d.id === v.owner_id);
       map.set(v.id, {
-        driver_id: v.driver_id,
+        owner_id: v.owner_id,
         driver_name: driver?.name || '',
       });
     });
@@ -474,7 +483,11 @@ export const RidesTable: FC<RidesTableProps> = ({
     field: EditableField,
     value: string | number
   ) => {
-    if (!onUpdateRide) return;
+    console.log('[RidesTable] handleUpdateField called:', { rideId: ride.id, field, value });
+    if (!onUpdateRide) {
+      console.log('[RidesTable] No onUpdateRide callback, skipping update');
+      return;
+    }
 
     const updates: Partial<FirestoreInDriverRide> = {};
 
@@ -531,12 +544,17 @@ export const RidesTable: FC<RidesTableProps> = ({
         break;
       case 'vehicle': {
         const newVehicleId = value as string;
-        updates.vehicle_id = newVehicleId;
-        // Get the vehicle's driver info
-        const vehicleInfo = vehicleDriverMap.get(newVehicleId);
-        if (vehicleInfo) {
-          // Also update driver_id to match vehicle owner
-          updates.driver_id = vehicleInfo.driver_id;
+        if (newVehicleId) {
+          updates.vehicle_id = newVehicleId;
+          // Get the vehicle's owner info
+          const vehicleInfo = vehicleDriverMap.get(newVehicleId);
+          if (vehicleInfo) {
+            // Also update driver_id to match vehicle owner
+            updates.driver_id = vehicleInfo.owner_id;
+          }
+        } else {
+          // Clear vehicle assignment
+          updates.vehicle_id = null as unknown as string;
         }
         break;
       }
@@ -581,7 +599,15 @@ export const RidesTable: FC<RidesTableProps> = ({
     return filtered;
   }, [rides, statusFilter, sourceFilter, driverFilter]);
 
-  const sortedRides = useMemo(() => sortRidesByDateAndTime(filteredRides), [filteredRides]);
+  const sortedRides = useMemo(
+    () => sortRidesByDateAndTime(filteredRides, sortDirection),
+    [filteredRides, sortDirection]
+  );
+
+  const toggleSortDirection = () => {
+    setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    setCurrentPage(1); // Reset to first page when changing sort
+  };
   const totals = useMemo(() => calculateTotals(sortedRides), [sortedRides]);
 
   // Calculate totals for all rides (not just filtered) for summary cards
@@ -725,7 +751,16 @@ export const RidesTable: FC<RidesTableProps> = ({
               {showDriverColumn && <th>Conductor</th>}
               {showVehicleColumn && <th>Vehículo</th>}
               {showSourceColumn && <th>Fuente</th>}
-              <th>Fecha</th>
+              <th
+                className="sortable-header"
+                onClick={toggleSortDirection}
+                title={`Ordenar por fecha ${sortDirection === 'asc' ? 'descendente' : 'ascendente'}`}
+              >
+                Fecha
+                <span className="sort-indicator">
+                  {sortDirection === 'asc' ? '↑' : '↓'}
+                </span>
+              </th>
               <th>Hora</th>
               <th>Duracion</th>
               <th>Distancia</th>

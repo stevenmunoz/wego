@@ -75,13 +75,13 @@ export const InDriverImportPage: FC = () => {
     }
 
     // Determine the driver ID to save rides under
-    // If admin selects a vehicle, use the vehicle owner's driver_id
+    // If admin selects a vehicle, use the vehicle owner's ID
     // Otherwise use the logged-in user's ID
     let driverId = user.id;
     if (isAdmin && selectedVehicleId) {
       const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
-      if (selectedVehicle?.driver_id) {
-        driverId = selectedVehicle.driver_id;
+      if (selectedVehicle?.owner_id) {
+        driverId = selectedVehicle.owner_id;
       }
     }
 
