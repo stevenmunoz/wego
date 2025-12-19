@@ -10,13 +10,12 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { VehiclesTable } from '@/components/VehiclesTable';
 import { VehicleForm } from '@/components/VehicleForm';
 import { useDriverVehicles } from '@/hooks/useDriverVehicles';
-import { useAllVehicles, type VehicleWithDriver } from '@/hooks/useAllVehicles';
+import { useAllVehicles } from '@/hooks/useAllVehicles';
 import {
   uploadVehicleImage,
   compressImage,
-  deleteVehicleImage,
+  deleteStorageFile,
   uploadVehicleDocument,
-  deleteVehicleDocument,
 } from '@/core/firebase';
 import type { FirestoreVehicle, DriverWithUser } from '@/core/firebase';
 import type { VehicleCreateInput } from '@/core/types';
@@ -37,7 +36,7 @@ export const VehiclesPage = () => {
   const allVehiclesHook = useAllVehicles();
 
   // Select the appropriate data based on role
-  const vehicles: (FirestoreVehicle | VehicleWithDriver)[] = isAdmin
+  const vehicles: FirestoreVehicle[] = isAdmin
     ? allVehiclesHook.vehicles
     : driverVehiclesHook.vehicles;
   const drivers: DriverWithUser[] = isAdmin ? allVehiclesHook.drivers : [];
@@ -46,53 +45,49 @@ export const VehiclesPage = () => {
   const refetch = isAdmin ? allVehiclesHook.refetch : driverVehiclesHook.refetch;
 
   const handleAddVehicle = async (data: VehicleCreateInput) => {
-    // For admin, use selected driver; for driver, use their own ID
-    const targetDriverId = isAdmin ? selectedDriverId : user?.id;
-    if (!targetDriverId) return;
+    // For admin: they are the owner, selected driver is assigned
+    // For driver: they are both owner and driver
+    const ownerId = user?.id;
+    if (!ownerId) return;
 
     setIsSubmitting(true);
 
     try {
       const { imageFile, soatFile, tecnomecanicaFile, ...vehicleData } = data;
 
+      // If admin selected a driver, add it as assigned_driver_id
+      if (isAdmin && selectedDriverId) {
+        vehicleData.assigned_driver_id = selectedDriverId;
+      }
+
       // Create vehicle using the appropriate hook
       const result = isAdmin
-        ? await allVehiclesHook.addVehicle(targetDriverId, vehicleData)
+        ? await allVehiclesHook.addVehicle(ownerId, vehicleData)
         : await driverVehiclesHook.addVehicle(vehicleData);
 
       if (result.success && result.vehicleId) {
         const updates: Record<string, string> = {};
 
-        // Upload vehicle image
+        // Upload vehicle image (now uses vehicleId only)
         if (imageFile) {
           const compressedImage = await compressImage(imageFile);
-          const uploadResult = await uploadVehicleImage(
-            targetDriverId,
-            result.vehicleId,
-            compressedImage
-          );
+          const uploadResult = await uploadVehicleImage(result.vehicleId, compressedImage);
           if (uploadResult.success && uploadResult.url) {
             updates.photo_url = uploadResult.url;
           }
         }
 
-        // Upload SOAT document
+        // Upload SOAT document (now uses vehicleId only)
         if (soatFile) {
-          const soatResult = await uploadVehicleDocument(
-            targetDriverId,
-            result.vehicleId,
-            'soat',
-            soatFile
-          );
+          const soatResult = await uploadVehicleDocument(result.vehicleId, 'soat', soatFile);
           if (soatResult.success && soatResult.url) {
             updates.soat_document_url = soatResult.url;
           }
         }
 
-        // Upload Tecnomecánica document
+        // Upload Tecnomecánica document (now uses vehicleId only)
         if (tecnomecanicaFile) {
           const tecnoResult = await uploadVehicleDocument(
-            targetDriverId,
             result.vehicleId,
             'tecnomecanica',
             tecnomecanicaFile
@@ -105,7 +100,7 @@ export const VehiclesPage = () => {
         // Update vehicle with uploaded file URLs
         if (Object.keys(updates).length > 0) {
           if (isAdmin) {
-            await allVehiclesHook.updateVehicle(targetDriverId, result.vehicleId, updates);
+            await allVehiclesHook.updateVehicle(result.vehicleId, updates);
           } else {
             await driverVehiclesHook.updateVehicle(result.vehicleId, updates);
           }
@@ -125,7 +120,8 @@ export const VehiclesPage = () => {
   const handleEditVehicle = (vehicle: FirestoreVehicle) => {
     setEditingVehicle(vehicle);
     if (isAdmin) {
-      setSelectedDriverId(vehicle.driver_id);
+      // For admin editing, pre-select the current assigned driver (if any)
+      setSelectedDriverId(vehicle.assigned_driver_id || '');
     }
     setShowForm(true);
   };
@@ -133,72 +129,66 @@ export const VehiclesPage = () => {
   const handleUpdateVehicle = async (data: VehicleCreateInput) => {
     if (!editingVehicle) return;
 
-    const originalDriverId = editingVehicle.driver_id;
-    const newDriverId = isAdmin ? selectedDriverId : originalDriverId;
     setIsSubmitting(true);
 
     try {
       const { imageFile, soatFile, tecnomecanicaFile, ...vehicleData } = data;
 
-      // Check if driver changed (admin only)
-      if (isAdmin && newDriverId !== originalDriverId) {
-        // Reassign vehicle to new driver first
-        await allVehiclesHook.reassignVehicle(originalDriverId, newDriverId, editingVehicle.id);
-      }
-
-      // Update vehicle using the appropriate hook
+      // Update vehicle using the appropriate hook (now uses vehicleId only)
       if (isAdmin) {
-        await allVehiclesHook.updateVehicle(newDriverId, editingVehicle.id, vehicleData);
+        await allVehiclesHook.updateVehicle(editingVehicle.id, vehicleData);
+
+        // Handle driver assignment change (admin only)
+        const currentDriverId = editingVehicle.assigned_driver_id || '';
+        if (selectedDriverId !== currentDriverId) {
+          if (selectedDriverId) {
+            // Assign new driver
+            await allVehiclesHook.assignDriver(editingVehicle.id, selectedDriverId);
+          } else {
+            // Unassign current driver
+            await allVehiclesHook.unassignDriver(editingVehicle.id);
+          }
+        }
       } else {
         await driverVehiclesHook.updateVehicle(editingVehicle.id, vehicleData);
       }
 
       const updates: Record<string, string> = {};
 
-      // Handle vehicle image upload
+      // Handle vehicle image upload (now uses vehicleId only)
       if (imageFile) {
         if (editingVehicle.photo_url) {
-          await deleteVehicleImage(editingVehicle.photo_url);
+          await deleteStorageFile(editingVehicle.photo_url);
         }
 
         const compressedImage = await compressImage(imageFile);
-        const uploadResult = await uploadVehicleImage(
-          newDriverId,
-          editingVehicle.id,
-          compressedImage
-        );
+        const uploadResult = await uploadVehicleImage(editingVehicle.id, compressedImage);
 
         if (uploadResult.success && uploadResult.url) {
           updates.photo_url = uploadResult.url;
         }
       }
 
-      // Handle SOAT document upload
+      // Handle SOAT document upload (now uses vehicleId only)
       if (soatFile) {
         if (editingVehicle.soat_document_url) {
-          await deleteVehicleDocument(editingVehicle.soat_document_url);
+          await deleteStorageFile(editingVehicle.soat_document_url);
         }
 
-        const soatResult = await uploadVehicleDocument(
-          newDriverId,
-          editingVehicle.id,
-          'soat',
-          soatFile
-        );
+        const soatResult = await uploadVehicleDocument(editingVehicle.id, 'soat', soatFile);
 
         if (soatResult.success && soatResult.url) {
           updates.soat_document_url = soatResult.url;
         }
       }
 
-      // Handle Tecnomecánica document upload
+      // Handle Tecnomecánica document upload (now uses vehicleId only)
       if (tecnomecanicaFile) {
         if (editingVehicle.tecnomecanica_document_url) {
-          await deleteVehicleDocument(editingVehicle.tecnomecanica_document_url);
+          await deleteStorageFile(editingVehicle.tecnomecanica_document_url);
         }
 
         const tecnoResult = await uploadVehicleDocument(
-          newDriverId,
           editingVehicle.id,
           'tecnomecanica',
           tecnomecanicaFile
@@ -212,7 +202,7 @@ export const VehiclesPage = () => {
       // Update vehicle with uploaded file URLs
       if (Object.keys(updates).length > 0) {
         if (isAdmin) {
-          await allVehiclesHook.updateVehicle(newDriverId, editingVehicle.id, updates);
+          await allVehiclesHook.updateVehicle(editingVehicle.id, updates);
         } else {
           await driverVehiclesHook.updateVehicle(editingVehicle.id, updates);
         }
@@ -230,32 +220,27 @@ export const VehiclesPage = () => {
   };
 
   const handleDeleteVehicle = async (vehicleId: string) => {
-    const vehicle = vehicles.find((v) => v.id === vehicleId);
-    if (!vehicle) return;
-
+    // Both admin and driver now use the same simplified delete (vehicleId only)
     if (isAdmin) {
-      await allVehiclesHook.deleteVehicle(vehicle.driver_id, vehicleId);
+      await allVehiclesHook.deleteVehicle(vehicleId);
     } else {
       await driverVehiclesHook.deleteVehicle(vehicleId);
     }
   };
 
   const handleSetPrimary = async (vehicleId: string) => {
-    const vehicle = vehicles.find((v) => v.id === vehicleId);
-    if (!vehicle) return;
-
-    if (isAdmin) {
-      await allVehiclesHook.setPrimaryVehicle(vehicle.driver_id, vehicleId);
-    } else {
-      await driverVehiclesHook.setPrimaryVehicle(vehicleId);
-    }
+    // Both use the same simplified set primary (vehicleId only)
+    await driverVehiclesHook.setPrimaryVehicle(vehicleId);
   };
 
-  const handleReassignVehicle = async (vehicleId: string, newDriverId: string) => {
-    const vehicle = vehicles.find((v) => v.id === vehicleId);
-    if (!vehicle || !isAdmin) return;
+  const handleAssignDriver = async (vehicleId: string, driverId: string) => {
+    if (!isAdmin) return;
+    await allVehiclesHook.assignDriver(vehicleId, driverId);
+  };
 
-    await allVehiclesHook.reassignVehicle(vehicle.driver_id, newDriverId, vehicleId);
+  const handleUnassignDriver = async (vehicleId: string) => {
+    if (!isAdmin) return;
+    await allVehiclesHook.unassignDriver(vehicleId);
   };
 
   const handleCloseForm = () => {
@@ -309,7 +294,8 @@ export const VehiclesPage = () => {
           onEditVehicle={handleEditVehicle}
           onDeleteVehicle={handleDeleteVehicle}
           onSetPrimary={handleSetPrimary}
-          onReassignVehicle={isAdmin ? handleReassignVehicle : undefined}
+          onAssignDriver={isAdmin ? handleAssignDriver : undefined}
+          onUnassignDriver={isAdmin ? handleUnassignDriver : undefined}
         />
 
         {showForm && (
@@ -330,16 +316,13 @@ export const VehiclesPage = () => {
                     </button>
                   </div>
                   <div className="driver-selector-content">
-                    <label htmlFor="driver-select">
-                      {editingVehicle ? 'Conductor asignado:' : 'Asignar a conductor:'}
-                    </label>
+                    <label htmlFor="driver-select">Conductor asignado:</label>
                     <select
                       id="driver-select"
                       value={selectedDriverId}
                       onChange={(e) => setSelectedDriverId(e.target.value)}
-                      required
                     >
-                      {!editingVehicle && <option value="">Seleccionar conductor...</option>}
+                      <option value="">Sin asignar</option>
                       {drivers.map((driver) => (
                         <option key={driver.id} value={driver.id}>
                           {driver.name}
@@ -353,7 +336,7 @@ export const VehiclesPage = () => {
                 vehicle={editingVehicle || undefined}
                 onSubmit={editingVehicle ? handleUpdateVehicle : handleAddVehicle}
                 onCancel={handleCloseForm}
-                isSubmitting={isSubmitting || (isAdmin && !editingVehicle && !selectedDriverId)}
+                isSubmitting={isSubmitting}
               />
             </div>
           </div>

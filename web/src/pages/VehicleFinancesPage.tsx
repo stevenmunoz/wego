@@ -60,7 +60,7 @@ export const VehicleFinancesPage = () => {
   // Get owner ID from selected vehicle (for admin), or use current user
   const selectedVehicle = vehicles.find((v) => v.id === effectiveVehicleId);
   const effectiveOwnerId = isAdmin && selectedVehicle
-    ? (selectedVehicle.owner_id || selectedVehicle.driver_id)
+    ? selectedVehicle.owner_id
     : user?.id;
 
   // Fetch finances for selected vehicle
@@ -168,15 +168,11 @@ export const VehicleFinancesPage = () => {
       // Extract receipt file from data
       const { receipt_file, ...expenseData } = data;
 
-      // Upload receipt if provided
+      // Upload receipt if provided (now uses vehicleId only)
       let receiptUrl: string | undefined;
       if (receipt_file) {
         console.log('[VehicleFinancesPage] Uploading receipt...');
-        const uploadResult = await uploadExpenseReceipt(
-          effectiveOwnerId,
-          effectiveVehicleId,
-          receipt_file
-        );
+        const uploadResult = await uploadExpenseReceipt(effectiveVehicleId, receipt_file);
         if (uploadResult.success && uploadResult.url) {
           receiptUrl = uploadResult.url;
           console.log('[VehicleFinancesPage] Receipt uploaded:', receiptUrl);
@@ -222,15 +218,11 @@ export const VehicleFinancesPage = () => {
       // Extract receipt file from data
       const { receipt_file, ...expenseData } = data;
 
-      // Upload receipt if new file provided
+      // Upload receipt if new file provided (now uses vehicleId only)
       let receiptUrl: string | undefined;
       if (receipt_file) {
         console.log('[VehicleFinancesPage] Uploading receipt...');
-        const uploadResult = await uploadExpenseReceipt(
-          effectiveOwnerId,
-          effectiveVehicleId,
-          receipt_file
-        );
+        const uploadResult = await uploadExpenseReceipt(effectiveVehicleId, receipt_file);
         if (uploadResult.success && uploadResult.url) {
           receiptUrl = uploadResult.url;
           console.log('[VehicleFinancesPage] Receipt uploaded:', receiptUrl);

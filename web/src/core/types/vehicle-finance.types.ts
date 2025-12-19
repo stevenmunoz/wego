@@ -20,8 +20,6 @@ export type ExpenseCategory =
 
 export type RecurrenceFrequency = 'weekly' | 'biweekly' | 'monthly';
 
-export type OwnedVehicleStatus = 'active' | 'inactive' | 'sold';
-
 // ============ Interfaces ============
 
 export interface RecurrencePattern {
@@ -62,26 +60,6 @@ export interface VehicleExpense {
   recurring_parent_id?: string;
   receipt_url?: string;
   vendor?: string;
-  created_at: Date;
-  updated_at: Date;
-  notes?: string;
-}
-
-export interface OwnedVehicle {
-  id: string;
-  owner_id: string;
-  plate: string;
-  brand: string;
-  model: string;
-  year: number;
-  color: string;
-  photo_url?: string;
-  current_driver_id?: string;
-  current_driver_name?: string;
-  weekly_rental_amount: number;
-  soat_expiry: Date | null;
-  tecnomecanica_expiry: Date | null;
-  status: OwnedVehicleStatus;
   created_at: Date;
   updated_at: Date;
   notes?: string;
@@ -128,25 +106,6 @@ export interface VehicleExpenseUpdateInput extends Partial<VehicleExpenseCreateI
   receipt_url?: string;
 }
 
-export interface OwnedVehicleCreateInput {
-  plate: string;
-  brand: string;
-  model: string;
-  year: number;
-  color: string;
-  weekly_rental_amount: number;
-  current_driver_name?: string;
-  soat_expiry?: string;
-  tecnomecanica_expiry?: string;
-  notes?: string;
-  imageFile?: File;
-}
-
-export interface OwnedVehicleUpdateInput extends Partial<OwnedVehicleCreateInput> {
-  status?: OwnedVehicleStatus;
-  photo_url?: string;
-}
-
 // ============ Summary Types ============
 
 export interface VehiclePLSummary {
@@ -191,10 +150,4 @@ export const RECURRENCE_LABELS: Record<RecurrenceFrequency, string> = {
   weekly: 'Semanal',
   biweekly: 'Quincenal',
   monthly: 'Mensual',
-};
-
-export const OWNED_VEHICLE_STATUS_LABELS: Record<OwnedVehicleStatus, string> = {
-  active: 'Activo',
-  inactive: 'Inactivo',
-  sold: 'Vendido',
 };

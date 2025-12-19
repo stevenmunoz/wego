@@ -1,10 +1,14 @@
 /**
  * Firestore vehicle service for WeGo
+ *
+ * Unified vehicle collection: vehicles/{vehicleId}
+ * - owner_id: who owns/pays for the vehicle
+ * - assigned_driver_id: who currently drives (optional)
+ * - Income/expenses stored as subcollections
  */
 
 import {
   collection,
-  collectionGroup,
   doc,
   getDocs,
   getDoc,
@@ -16,6 +20,7 @@ import {
   orderBy,
   Timestamp,
   serverTimestamp,
+  writeBatch,
 } from 'firebase/firestore';
 import { db } from './firestore';
 import type {
@@ -31,9 +36,9 @@ import type {
  */
 export interface FirestoreVehicle {
   id: string;
-  owner_id: string; // User who owns this vehicle
-  driver_id: string; // Backward compatibility - same as owner_id
-  current_driver_id?: string; // Currently assigned driver (optional)
+  owner_id: string;
+  assigned_driver_id?: string;
+  weekly_rental_amount?: number;
   plate: string;
   brand: string;
   model: string;
@@ -59,111 +64,37 @@ export interface FirestoreVehicle {
   notes?: string;
 }
 
-// Collection path: vehicles/{vehicleId} (top-level collection)
-// Legacy path: drivers/{driverId}/vehicles/{vehicleId} (subcollection)
+// Collection path: vehicles/{vehicleId}
 
 /**
- * Helper to find the correct document reference for a vehicle
- * Checks both top-level collection and legacy subcollections
- * Returns the document reference and location info
- */
-async function findVehicleDocRef(
-  vehicleId: string,
-  ownerId?: string
-): Promise<{
-  ref: ReturnType<typeof doc>;
-  exists: boolean;
-  location: 'top-level' | 'subcollection' | 'not-found';
-  data?: FirestoreVehicle;
-}> {
-  // First, check top-level collection
-  const topLevelRef = doc(db, 'vehicles', vehicleId);
-  const topLevelSnap = await getDoc(topLevelRef);
-
-  if (topLevelSnap.exists()) {
-    return {
-      ref: topLevelRef,
-      exists: true,
-      location: 'top-level',
-      data: topLevelSnap.data() as FirestoreVehicle,
-    };
-  }
-
-  // If ownerId provided, check that specific subcollection
-  if (ownerId) {
-    const subRef = doc(db, 'drivers', ownerId, 'vehicles', vehicleId);
-    const subSnap = await getDoc(subRef);
-
-    if (subSnap.exists()) {
-      return {
-        ref: subRef,
-        exists: true,
-        location: 'subcollection',
-        data: subSnap.data() as FirestoreVehicle,
-      };
-    }
-  }
-
-  // If no ownerId, search across all subcollections using collectionGroup
-  // This is less efficient but handles cases where ownerId is unknown
-  if (!ownerId) {
-    const vehiclesGroup = collectionGroup(db, 'vehicles');
-    const q = query(vehiclesGroup, where('id', '==', vehicleId));
-    const snapshot = await getDocs(q);
-
-    if (!snapshot.empty) {
-      const docSnap = snapshot.docs[0];
-      return {
-        ref: docSnap.ref,
-        exists: true,
-        location: 'subcollection',
-        data: docSnap.data() as FirestoreVehicle,
-      };
-    }
-  }
-
-  // Not found anywhere
-  return {
-    ref: topLevelRef, // Default to top-level for new documents
-    exists: false,
-    location: 'not-found',
-  };
-}
-
-/**
- * Get ALL vehicles across all drivers (admin only)
- * Uses collectionGroup to query both top-level and subcollection vehicles
+ * Get ALL vehicles (admin only)
  */
 export async function getAllVehicles(): Promise<FirestoreVehicle[]> {
-  // Use collectionGroup to get vehicles from both:
-  // - Top-level: vehicles/{vehicleId}
-  // - Subcollections: drivers/{driverId}/vehicles/{vehicleId}
-  const vehiclesGroup = collectionGroup(db, 'vehicles');
-  const q = query(vehiclesGroup, orderBy('created_at', 'desc'));
+  const vehiclesCollection = collection(db, 'vehicles');
+  const q = query(vehiclesCollection, orderBy('created_at', 'desc'));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((doc) => doc.data() as FirestoreVehicle);
 }
 
 /**
  * Get all vehicles for an owner
- * Searches both top-level and subcollection for backward compatibility
  */
-export async function getDriverVehicles(
+export async function getOwnerVehicles(
   ownerId: string,
   options?: { status?: VehicleStatus }
 ): Promise<FirestoreVehicle[]> {
-  // Query top-level collection (new structure)
-  const topLevelCollection = collection(db, 'vehicles');
-  let topLevelQuery = query(
-    topLevelCollection,
+  const vehiclesCollection = collection(db, 'vehicles');
+
+  let q = query(
+    vehiclesCollection,
     where('owner_id', '==', ownerId),
     orderBy('is_primary', 'desc'),
     orderBy('created_at', 'desc')
   );
 
   if (options?.status) {
-    topLevelQuery = query(
-      topLevelCollection,
+    q = query(
+      vehiclesCollection,
       where('owner_id', '==', ownerId),
       where('status', '==', options.status),
       orderBy('is_primary', 'desc'),
@@ -171,63 +102,19 @@ export async function getDriverVehicles(
     );
   }
 
-  // Query subcollection (old structure: drivers/{driverId}/vehicles)
-  const subCollection = collection(db, 'drivers', ownerId, 'vehicles');
-  let subQuery = query(
-    subCollection,
-    orderBy('is_primary', 'desc'),
-    orderBy('created_at', 'desc')
-  );
-
-  if (options?.status) {
-    subQuery = query(
-      subCollection,
-      where('status', '==', options.status),
-      orderBy('is_primary', 'desc'),
-      orderBy('created_at', 'desc')
-    );
-  }
-
-  // Fetch from both locations
-  const [topLevelSnapshot, subSnapshot] = await Promise.all([
-    getDocs(topLevelQuery),
-    getDocs(subQuery),
-  ]);
-
-  // Combine results, deduplicating by id
-  const vehicleMap = new Map<string, FirestoreVehicle>();
-
-  // Add subcollection vehicles first (old data)
-  subSnapshot.docs.forEach((doc) => {
-    const data = doc.data() as FirestoreVehicle;
-    vehicleMap.set(data.id, data);
-  });
-
-  // Add top-level vehicles (new data overwrites old if same id)
-  topLevelSnapshot.docs.forEach((doc) => {
-    const data = doc.data() as FirestoreVehicle;
-    vehicleMap.set(data.id, data);
-  });
-
-  // Sort by is_primary desc, created_at desc
-  return Array.from(vehicleMap.values()).sort((a, b) => {
-    if (a.is_primary !== b.is_primary) {
-      return a.is_primary ? -1 : 1;
-    }
-    return b.created_at.toMillis() - a.created_at.toMillis();
-  });
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => doc.data() as FirestoreVehicle);
 }
 
 /**
  * Get a single vehicle by ID
- * Checks both top-level collection and legacy subcollections
  */
-export async function getVehicle(
-  vehicleId: string,
-  ownerId?: string
-): Promise<FirestoreVehicle | null> {
-  const { exists, data } = await findVehicleDocRef(vehicleId, ownerId);
-  return exists && data ? data : null;
+export async function getVehicle(vehicleId: string): Promise<FirestoreVehicle | null> {
+  const vehicleRef = doc(db, 'vehicles', vehicleId);
+  const snapshot = await getDoc(vehicleRef);
+
+  if (!snapshot.exists()) return null;
+  return snapshot.data() as FirestoreVehicle;
 }
 
 /**
@@ -245,7 +132,6 @@ export async function createVehicle(
     const vehicle: FirestoreVehicle = {
       id: vehicleRef.id,
       owner_id: ownerId,
-      driver_id: ownerId, // Backward compatibility
       plate: input.plate.toUpperCase().replace(/[^A-Z0-9]/g, ''),
       brand: input.brand,
       model: input.model,
@@ -270,6 +156,14 @@ export async function createVehicle(
       notes: input.notes,
     };
 
+    // Add optional fleet management fields
+    if (input.weekly_rental_amount !== undefined) {
+      vehicle.weekly_rental_amount = input.weekly_rental_amount;
+    }
+    if (input.assigned_driver_id) {
+      vehicle.assigned_driver_id = input.assigned_driver_id;
+    }
+
     await setDoc(vehicleRef, vehicle);
 
     return { success: true, vehicleId: vehicleRef.id };
@@ -282,23 +176,13 @@ export async function createVehicle(
 
 /**
  * Update an existing vehicle
- * Handles both top-level collection and legacy subcollection structures
  */
 export async function updateVehicle(
   vehicleId: string,
-  updates: VehicleUpdateInput,
-  ownerId?: string
+  updates: VehicleUpdateInput
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Find the vehicle in either top-level or subcollection
-    const { ref: vehicleRef, exists, location } = await findVehicleDocRef(vehicleId, ownerId);
-
-    if (!exists) {
-      console.error(`[Firestore] Vehicle ${vehicleId} not found in any collection`);
-      return { success: false, error: 'Vehículo no encontrado' };
-    }
-
-    console.log(`[Firestore] Updating vehicle ${vehicleId} in ${location} collection`);
+    const vehicleRef = doc(db, 'vehicles', vehicleId);
 
     const firestoreUpdates: Record<string, unknown> = {
       ...updates,
@@ -322,6 +206,11 @@ export async function updateVehicle(
         : null;
     }
 
+    // Remove file objects from updates (handled separately)
+    delete firestoreUpdates.imageFile;
+    delete firestoreUpdates.soatFile;
+    delete firestoreUpdates.tecnomecanicaFile;
+
     await updateDoc(vehicleRef, firestoreUpdates);
 
     return { success: true };
@@ -334,22 +223,10 @@ export async function updateVehicle(
 
 /**
  * Delete a vehicle
- * Handles both top-level collection and legacy subcollection structures
  */
-export async function deleteVehicle(
-  vehicleId: string,
-  ownerId?: string
-): Promise<{ success: boolean; error?: string }> {
+export async function deleteVehicle(vehicleId: string): Promise<{ success: boolean; error?: string }> {
   try {
-    // Find the vehicle in either top-level or subcollection
-    const { ref: vehicleRef, exists, location } = await findVehicleDocRef(vehicleId, ownerId);
-
-    if (!exists) {
-      console.error(`[Firestore] Vehicle ${vehicleId} not found in any collection`);
-      return { success: false, error: 'Vehículo no encontrado' };
-    }
-
-    console.log(`[Firestore] Deleting vehicle ${vehicleId} from ${location} collection`);
+    const vehicleRef = doc(db, 'vehicles', vehicleId);
     await deleteDoc(vehicleRef);
 
     return { success: true };
@@ -361,31 +238,25 @@ export async function deleteVehicle(
 }
 
 /**
- * Set a vehicle as primary (and unset others)
- * Handles both top-level collection and legacy subcollection structures
+ * Set a vehicle as primary (and unset others for the same owner)
  */
 export async function setVehicleAsPrimary(
   ownerId: string,
   vehicleId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Get all vehicles for this owner (from both collections)
-    const vehicles = await getDriverVehicles(ownerId);
+    const vehicles = await getOwnerVehicles(ownerId);
+    const batch = writeBatch(db);
 
-    // Update all vehicles - find each one's correct location
     for (const vehicle of vehicles) {
-      const { ref: vehicleRef, exists, location } = await findVehicleDocRef(vehicle.id, ownerId);
-
-      if (exists) {
-        console.log(`[Firestore] Setting is_primary=${vehicle.id === vehicleId} for vehicle ${vehicle.id} in ${location}`);
-        await updateDoc(vehicleRef, {
-          is_primary: vehicle.id === vehicleId,
-          updated_at: serverTimestamp(),
-        });
-      } else {
-        console.warn(`[Firestore] Vehicle ${vehicle.id} not found when setting primary`);
-      }
+      const vehicleRef = doc(db, 'vehicles', vehicle.id);
+      batch.update(vehicleRef, {
+        is_primary: vehicle.id === vehicleId,
+        updated_at: serverTimestamp(),
+      });
     }
+
+    await batch.commit();
 
     return { success: true };
   } catch (error) {
@@ -396,40 +267,41 @@ export async function setVehicleAsPrimary(
 }
 
 /**
- * Reassign a vehicle to a different driver (admin only)
- * This moves the vehicle document from one driver's subcollection to another
+ * Assign a driver to a vehicle
  */
-export async function reassignVehicle(
-  currentDriverId: string,
-  newDriverId: string,
-  vehicleId: string
+export async function assignDriver(
+  vehicleId: string,
+  driverId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Get the vehicle data from current location
-    const currentVehicleRef = doc(db, 'drivers', currentDriverId, 'vehicles', vehicleId);
-    const vehicleSnapshot = await getDoc(currentVehicleRef);
-
-    if (!vehicleSnapshot.exists()) {
-      return { success: false, error: 'Vehículo no encontrado' };
-    }
-
-    const vehicleData = vehicleSnapshot.data() as FirestoreVehicle;
-
-    // Create in new location with updated driver_id
-    const newVehicleRef = doc(db, 'drivers', newDriverId, 'vehicles', vehicleId);
-    await setDoc(newVehicleRef, {
-      ...vehicleData,
-      driver_id: newDriverId,
-      is_primary: false, // Reset primary status when reassigning
+    const vehicleRef = doc(db, 'vehicles', vehicleId);
+    await updateDoc(vehicleRef, {
+      assigned_driver_id: driverId,
       updated_at: serverTimestamp(),
     });
 
-    // Delete from old location
-    await deleteDoc(currentVehicleRef);
+    return { success: true };
+  } catch (error) {
+    console.error('[Firestore] Error assigning driver:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Unassign the current driver from a vehicle
+ */
+export async function unassignDriver(vehicleId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const vehicleRef = doc(db, 'vehicles', vehicleId);
+    await updateDoc(vehicleRef, {
+      assigned_driver_id: null,
+      updated_at: serverTimestamp(),
+    });
 
     return { success: true };
   } catch (error) {
-    console.error('[Firestore] Error reassigning vehicle:', error);
+    console.error('[Firestore] Error unassigning driver:', error);
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     return { success: false, error: errorMsg };
   }
