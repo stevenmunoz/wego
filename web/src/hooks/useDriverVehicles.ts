@@ -1,11 +1,14 @@
 /**
  * Hook for fetching and managing vehicles from Firebase
- * Vehicles are now stored as a top-level collection
+ *
+ * Unified vehicle model:
+ * - owner_id: who owns/pays for the vehicle
+ * - assigned_driver_id: who currently drives (optional)
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-  getDriverVehicles,
+  getOwnerVehicles,
   createVehicle,
   updateVehicle,
   deleteVehicle,
@@ -50,7 +53,7 @@ export const useDriverVehicles = (
     setError(null);
 
     try {
-      const fetchedVehicles = await getDriverVehicles(ownerId, options);
+      const fetchedVehicles = await getOwnerVehicles(ownerId, options);
       setVehicles(fetchedVehicles);
     } catch (err) {
       console.error('[useDriverVehicles] Error fetching vehicles:', err);

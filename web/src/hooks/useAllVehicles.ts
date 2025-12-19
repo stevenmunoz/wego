@@ -1,5 +1,10 @@
 /**
- * Hook for fetching all vehicles across all drivers (admin only)
+ * Hook for fetching all vehicles across all owners (admin only)
+ *
+ * Unified vehicle model:
+ * - owner_id: who owns/pays for the vehicle
+ * - assigned_driver_id: who currently drives (optional)
+ * - Driver names are looked up client-side from the drivers list
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -10,48 +15,41 @@ import {
   updateVehicle,
   deleteVehicle,
   setVehicleAsPrimary,
-  reassignVehicle,
+  assignDriver,
+  unassignDriver,
   type FirestoreVehicle,
   type DriverWithUser,
 } from '@/core/firebase';
 import type { VehicleCreateInput, VehicleUpdateInput } from '@/core/types';
 
-export interface VehicleWithDriver extends FirestoreVehicle {
-  driver_name?: string;
-}
-
 interface UseAllVehiclesReturn {
-  vehicles: VehicleWithDriver[];
+  vehicles: FirestoreVehicle[];
   drivers: DriverWithUser[];
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
   addVehicle: (
-    driverId: string,
+    ownerId: string,
     input: VehicleCreateInput
   ) => Promise<{ success: boolean; vehicleId?: string; error?: string }>;
   updateVehicle: (
-    driverId: string,
     vehicleId: string,
     updates: VehicleUpdateInput
   ) => Promise<{ success: boolean; error?: string }>;
-  deleteVehicle: (
-    driverId: string,
-    vehicleId: string
-  ) => Promise<{ success: boolean; error?: string }>;
+  deleteVehicle: (vehicleId: string) => Promise<{ success: boolean; error?: string }>;
   setPrimaryVehicle: (
-    driverId: string,
+    ownerId: string,
     vehicleId: string
   ) => Promise<{ success: boolean; error?: string }>;
-  reassignVehicle: (
-    currentDriverId: string,
-    newDriverId: string,
-    vehicleId: string
+  assignDriver: (
+    vehicleId: string,
+    driverId: string
   ) => Promise<{ success: boolean; error?: string }>;
+  unassignDriver: (vehicleId: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export const useAllVehicles = (): UseAllVehiclesReturn => {
-  const [vehicles, setVehicles] = useState<VehicleWithDriver[]>([]);
+  const [vehicles, setVehicles] = useState<FirestoreVehicle[]>([]);
   const [drivers, setDrivers] = useState<DriverWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,19 +62,7 @@ export const useAllVehicles = (): UseAllVehiclesReturn => {
       // Fetch all vehicles and drivers in parallel
       const [allVehicles, allDrivers] = await Promise.all([getAllVehicles(), getAllDrivers()]);
 
-      // Create a map of driver_id -> driver_name for quick lookup
-      const driverMap = new Map<string, string>();
-      allDrivers.forEach((driver) => {
-        driverMap.set(driver.id, driver.name);
-      });
-
-      // Enrich vehicles with driver names
-      const enrichedVehicles: VehicleWithDriver[] = allVehicles.map((vehicle) => ({
-        ...vehicle,
-        driver_name: driverMap.get(vehicle.driver_id) || 'Sin asignar',
-      }));
-
-      setVehicles(enrichedVehicles);
+      setVehicles(allVehicles);
       setDrivers(allDrivers);
     } catch (err) {
       console.error('[useAllVehicles] Error fetching data:', err);
@@ -88,8 +74,8 @@ export const useAllVehicles = (): UseAllVehiclesReturn => {
   }, []);
 
   const handleAddVehicle = useCallback(
-    async (driverId: string, input: VehicleCreateInput) => {
-      const result = await createVehicle(driverId, input);
+    async (ownerId: string, input: VehicleCreateInput) => {
+      const result = await createVehicle(ownerId, input);
       if (result.success) {
         await fetchData();
       }
@@ -99,7 +85,7 @@ export const useAllVehicles = (): UseAllVehiclesReturn => {
   );
 
   const handleUpdateVehicle = useCallback(
-    async (_driverId: string, vehicleId: string, updates: VehicleUpdateInput) => {
+    async (vehicleId: string, updates: VehicleUpdateInput) => {
       const result = await updateVehicle(vehicleId, updates);
       if (result.success) {
         await fetchData();
@@ -110,7 +96,7 @@ export const useAllVehicles = (): UseAllVehiclesReturn => {
   );
 
   const handleDeleteVehicle = useCallback(
-    async (_driverId: string, vehicleId: string) => {
+    async (vehicleId: string) => {
       const result = await deleteVehicle(vehicleId);
       if (result.success) {
         await fetchData();
@@ -121,8 +107,8 @@ export const useAllVehicles = (): UseAllVehiclesReturn => {
   );
 
   const handleSetPrimaryVehicle = useCallback(
-    async (driverId: string, vehicleId: string) => {
-      const result = await setVehicleAsPrimary(driverId, vehicleId);
+    async (ownerId: string, vehicleId: string) => {
+      const result = await setVehicleAsPrimary(ownerId, vehicleId);
       if (result.success) {
         await fetchData();
       }
@@ -131,9 +117,20 @@ export const useAllVehicles = (): UseAllVehiclesReturn => {
     [fetchData]
   );
 
-  const handleReassignVehicle = useCallback(
-    async (currentDriverId: string, newDriverId: string, vehicleId: string) => {
-      const result = await reassignVehicle(currentDriverId, newDriverId, vehicleId);
+  const handleAssignDriver = useCallback(
+    async (vehicleId: string, driverId: string) => {
+      const result = await assignDriver(vehicleId, driverId);
+      if (result.success) {
+        await fetchData();
+      }
+      return result;
+    },
+    [fetchData]
+  );
+
+  const handleUnassignDriver = useCallback(
+    async (vehicleId: string) => {
+      const result = await unassignDriver(vehicleId);
       if (result.success) {
         await fetchData();
       }
@@ -156,6 +153,7 @@ export const useAllVehicles = (): UseAllVehiclesReturn => {
     updateVehicle: handleUpdateVehicle,
     deleteVehicle: handleDeleteVehicle,
     setPrimaryVehicle: handleSetPrimaryVehicle,
-    reassignVehicle: handleReassignVehicle,
+    assignDriver: handleAssignDriver,
+    unassignDriver: handleUnassignDriver,
   };
 };
