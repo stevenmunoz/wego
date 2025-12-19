@@ -2,7 +2,7 @@
  * Hook for fetching all rides from all drivers (admin only)
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   getAllDrivers,
   updateInDriverRide,
@@ -41,6 +41,12 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Refs to always access latest state (avoids stale closure issues in callbacks)
+  const ridesRef = useRef<RideWithDriver[]>(rides);
+  const vehiclesRef = useRef<FirestoreVehicle[]>(vehicles);
+  ridesRef.current = rides;
+  vehiclesRef.current = vehicles;
+
   const fetchRides = useCallback(async () => {
     console.log('[useAdminRides] Starting fetch with options:', options);
     setIsLoading(true);
@@ -61,10 +67,10 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
       });
 
       // Create maps for lookups
-      // vehicle_id -> { plate, driver_id }
-      const vehicleMap = new Map<string, { plate: string; driver_id: string }>();
+      // vehicle_id -> { plate, owner_id }
+      const vehicleMap = new Map<string, { plate: string; owner_id: string }>();
       fetchedVehicles.forEach((vehicle: FirestoreVehicle) => {
-        vehicleMap.set(vehicle.id, { plate: vehicle.plate, driver_id: vehicle.driver_id });
+        vehicleMap.set(vehicle.id, { plate: vehicle.plate, owner_id: vehicle.owner_id });
       });
 
       // driver_id -> name
@@ -77,8 +83,8 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
       const enrichedRides: RideWithDriver[] = fetchedRides.map((ride) => {
         const vehicleInfo = ride.vehicle_id ? vehicleMap.get(ride.vehicle_id) : undefined;
         // Get driver name from vehicle owner, fallback to ride's driver_name
-        const driverName = vehicleInfo?.driver_id
-          ? driverNameMap.get(vehicleInfo.driver_id)
+        const driverName = vehicleInfo?.owner_id
+          ? driverNameMap.get(vehicleInfo.owner_id)
           : undefined;
 
         return {
@@ -103,18 +109,47 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
 
   const updateRide = useCallback(
     async (rideId: string, updates: Partial<FirestoreInDriverRide>) => {
+      console.log('[useAdminRides] updateRide called:', { rideId, updates });
+
+      // Use refs to get latest state (avoids stale closure issues)
+      const currentRides = ridesRef.current;
+      const currentVehicles = vehiclesRef.current;
+
       // Find the ride to get the driver_id
-      const ride = rides.find((r) => r.id === rideId);
+      const ride = currentRides.find((r) => r.id === rideId);
       if (!ride) {
+        console.log('[useAdminRides] Ride not found in local state');
         setError('Viaje no encontrado');
         return;
       }
 
+      console.log('[useAdminRides] Found ride, driver_id:', ride.driver_id, '_docPath:', ride._docPath);
+
+      // Build optimistic update with derived fields
+      const optimisticUpdate: Partial<RideWithDriver> = { ...updates };
+
+      // If vehicle_id is being updated, also derive vehicle_plate
+      if ('vehicle_id' in updates) {
+        if (updates.vehicle_id) {
+          const vehicle = currentVehicles.find((v) => v.id === updates.vehicle_id);
+          optimisticUpdate.vehicle_plate = vehicle?.plate;
+          console.log('[useAdminRides] Derived vehicle_plate:', vehicle?.plate);
+        } else {
+          // Clearing vehicle
+          optimisticUpdate.vehicle_plate = undefined;
+        }
+      }
+
       // Optimistically update local state first
-      setRides((prevRides) => prevRides.map((r) => (r.id === rideId ? { ...r, ...updates } : r)));
+      setRides((prevRides) =>
+        prevRides.map((r) => (r.id === rideId ? { ...r, ...optimisticUpdate } : r))
+      );
 
       try {
-        const result = await updateInDriverRide(ride.driver_id, rideId, updates);
+        console.log('[useAdminRides] Calling updateInDriverRide...');
+        // Pass _docPath for reliable document targeting (handles rides stored in different locations)
+        const result = await updateInDriverRide(ride.driver_id, rideId, updates, ride._docPath);
+        console.log('[useAdminRides] updateInDriverRide result:', result);
         if (!result.success) {
           // Revert on error
           setError(result.error || 'Error al actualizar el viaje');
@@ -127,7 +162,7 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
         await fetchRides(); // Refetch to get correct state
       }
     },
-    [rides, fetchRides]
+    [fetchRides]
   );
 
   useEffect(() => {
