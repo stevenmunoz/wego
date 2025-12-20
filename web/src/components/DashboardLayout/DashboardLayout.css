@@ -166,12 +166,19 @@
   color: #fff;
 }
 
+/* Main Area (wraps header and content) */
+.main-area {
+  flex: 1;
+  margin-left: 260px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Main Content */
 .main-content {
   flex: 1;
-  margin-left: 260px;
   padding: 2rem;
-  min-height: 100vh;
 }
 
 /* Responsive */
@@ -182,8 +189,12 @@
     height: auto;
   }
 
-  .main-content {
+  .main-area {
     margin-left: 0;
+  }
+
+  .main-content {
+    padding: 1rem;
   }
 
   .dashboard-layout {
