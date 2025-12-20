@@ -1,0 +1,77 @@
+/**
+ * NotificationBell styles
+ */
+
+.notification-bell-container {
+  position: relative;
+}
+
+.notification-bell-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background-color: transparent;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+  position: relative;
+}
+
+.notification-bell-button:hover {
+  background-color: var(--color-neutral-100);
+  border-color: var(--color-neutral-300);
+}
+
+.notification-bell-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent-200);
+}
+
+.notification-bell-button-active {
+  background-color: var(--color-neutral-100);
+  border-color: var(--color-accent-600);
+}
+
+.bell-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background-color: var(--color-accent-600);
+  color: var(--color-white);
+  font-family: var(--font-family-mono);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+  border-radius: var(--radius-full);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Animation for new notification */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.notification-badge {
+  animation: pulse 0.3s ease-out;
+}

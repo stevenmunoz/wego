@@ -5,6 +5,7 @@
 import { type FC, type ReactNode, useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/core/store/auth-store';
+import { Header } from '../Header';
 import './DashboardLayout.css';
 
 interface DashboardLayoutProps {
@@ -89,8 +90,14 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="main-content">{children}</main>
+      {/* Main Content Area */}
+      <div className="main-area">
+        {/* Header with notifications (admin only) */}
+        {isAdmin && <Header />}
+
+        {/* Main Content */}
+        <main className="main-content">{children}</main>
+      </div>
     </div>
   );
 };
