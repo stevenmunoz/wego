@@ -1,0 +1,239 @@
+/**
+ * Version Modal Styles
+ */
+
+.version-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  animation: version-modal-fade-in 0.2s ease-out;
+}
+
+@keyframes version-modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.version-modal {
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: version-modal-slide-up 0.3s ease-out;
+}
+
+@keyframes version-modal-slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.version-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.version-modal-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-primary-800, #1e2a3a);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.version-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background-color: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.version-modal-close:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.version-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.version-modal-section {
+  margin-bottom: 1.5rem;
+}
+
+.version-modal-section:last-child {
+  margin-bottom: 0;
+}
+
+.version-modal-section-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+}
+
+.version-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.version-modal-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.version-modal-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.version-modal-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.version-modal-value {
+  font-size: 0.875rem;
+  color: #111827;
+}
+
+.version-modal-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+}
+
+.version-modal-wrap {
+  word-break: break-all;
+}
+
+.version-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.version-modal-badge-dev {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.version-modal-badge-prod {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.version-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  border-radius: 0 0 12px 12px;
+}
+
+.version-modal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.version-modal-btn-secondary {
+  background-color: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.version-modal-btn-secondary:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.version-modal-btn-primary {
+  background-color: var(--color-primary-800, #1e2a3a);
+  color: #fff;
+}
+
+.version-modal-btn-primary:hover {
+  background-color: var(--color-primary-700, #2c3e50);
+}
+
+.version-modal-btn-copied {
+  background-color: #059669;
+}
+
+.version-modal-btn-copied:hover {
+  background-color: #047857;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .version-modal {
+    max-height: 85vh;
+  }
+
+  .version-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .version-modal-footer {
+    flex-direction: column;
+  }
+
+  .version-modal-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
