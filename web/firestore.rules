@@ -35,8 +35,9 @@ service cloud.firestore {
 
     // Users collection - users can read/write their own profile
     // Admins can read all user profiles, create any user, and update any user
+    // Public read allowed for driver lookup in external form (validates is_active status)
     match /users/{userId} {
-      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow read: if true;
       allow create: if request.auth != null && (request.auth.uid == userId || isAdmin());
       allow update: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
@@ -48,6 +49,24 @@ service cloud.firestore {
     // Allows admins to query all rides across all drivers
     match /{path=**}/driver_rides/{rideId} {
       allow read: if request.auth != null && isAdmin();
+    }
+
+    // ============================================================================
+    // NOTIFICATIONS COLLECTION
+    // ============================================================================
+    match /notifications/{notificationId} {
+      // Admins can read all notifications
+      allow read: if isAdmin();
+
+      // Only Cloud Functions can create notifications (no client writes)
+      allow create: if false;
+
+      // Admins can update read_by field only (to mark as read)
+      allow update: if isAdmin() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read_by']);
+
+      // Admins can delete notifications
+      allow delete: if isAdmin();
     }
 
     // ============================================================================
