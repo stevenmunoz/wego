@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '@/core/store/auth-store';
 import { useNotificationStore } from '@/core/store/notification-store';
 import { initAnalytics } from '@/core/firebase';
+import { VersionNotification } from '@/components/VersionNotification';
 import { router } from './routes';
 import './App.css';
 
@@ -69,6 +70,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
+      <VersionNotification />
     </QueryClientProvider>
   );
 }

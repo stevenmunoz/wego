@@ -1,8 +1,8 @@
 # Conductor Workspace Configuration
-WORKSPACE_NAME=san-jose-v1
-WORKSPACE_PATH=/Users/stevenmunoz/conductor/wego/.conductor/san-jose-v1
-PROJECT_ROOT=/Users/stevenmunoz/conductor/wego/.conductor/san-jose-v1
-SETUP_DATE=2025-12-18T23:40:18Z
+WORKSPACE_NAME=islamabad
+WORKSPACE_PATH=/Users/stevenmunoz/conductor/wego/.conductor/islamabad
+PROJECT_ROOT=/Users/stevenmunoz/conductor/wego/.conductor/islamabad
+SETUP_DATE=2025-12-18T00:30:27Z
 ROOT_PATH=/Users/stevenmunoz/conductor/wego
 PYTHON_VERSION=3.11
 NODE_VERSION=22.17
