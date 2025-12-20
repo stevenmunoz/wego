@@ -106,6 +106,24 @@ jobs:
         working-directory: ./web
         run: npm run build
 
+      - name: Install Cloud Functions dependencies
+        working-directory: ./web/functions
+        run: npm ci
+
+      - name: Build Cloud Functions
+        working-directory: ./web/functions
+        run: npm run build
+
+      - name: Deploy Cloud Functions
+        working-directory: ./web
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ steps.env.outputs.environment == 'production' && secrets.FIREBASE_SERVICE_ACCOUNT_PROD || secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
+        run: |
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/firebase-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-key.json
+          npx firebase-tools deploy --only functions --project ${{ steps.env.outputs.firebase_project_id }} --non-interactive
+          rm -f /tmp/firebase-key.json
+
       - name: Deploy Firestore Rules and Indexes
         working-directory: ./web
         env:
