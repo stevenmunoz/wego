@@ -12,6 +12,37 @@ import { VersionNotification } from '@/components/VersionNotification';
 import { router } from './routes';
 import './App.css';
 
+// Sentry test button - only shows in DEV environment
+const isDev = import.meta.env.VITE_FIREBASE_PROJECT_ID?.includes('dev');
+
+function SentryTestButton() {
+  if (!isDev) return null;
+
+  return (
+    <button
+      onClick={() => {
+        throw new Error('This is your first Sentry error!');
+      }}
+      style={{
+        position: 'fixed',
+        bottom: '80px',
+        right: '20px',
+        padding: '10px 16px',
+        backgroundColor: '#EF4444',
+        color: 'white',
+        border: 'none',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        zIndex: 9999,
+        fontSize: '14px',
+        fontWeight: 500,
+      }}
+    >
+      Test Sentry Error
+    </button>
+  );
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -71,6 +102,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
       <VersionNotification />
+      <SentryTestButton />
     </QueryClientProvider>
   );
 }
