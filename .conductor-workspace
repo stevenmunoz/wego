@@ -1,8 +1,8 @@
 # Conductor Workspace Configuration
-WORKSPACE_NAME=el-paso
-WORKSPACE_PATH=/Users/stevenmunoz/conductor/wego/.conductor/el-paso
-PROJECT_ROOT=/Users/stevenmunoz/conductor/wego/.conductor/el-paso
-SETUP_DATE=2025-12-21T00:59:51Z
+WORKSPACE_NAME=belgrade-v1
+WORKSPACE_PATH=/Users/stevenmunoz/conductor/wego/.conductor/belgrade-v1
+PROJECT_ROOT=/Users/stevenmunoz/conductor/wego/.conductor/belgrade-v1
+SETUP_DATE=2025-12-21T01:04:30Z
 ROOT_PATH=/Users/stevenmunoz/conductor/wego
 PYTHON_VERSION=3.11
 NODE_VERSION=22.17

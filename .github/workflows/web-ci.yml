@@ -13,7 +13,11 @@ on:
       - '.github/workflows/web-ci.yml'
 
 jobs:
+  # ============================================================================
+  # Unit Tests with Vitest
+  # ============================================================================
   test:
+    name: Unit Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -42,18 +46,83 @@ jobs:
       working-directory: ./web
       run: npx tsc --noEmit
 
-    # Tests disabled until test suite is set up
-    # - name: Run tests
-    #   working-directory: ./web
-    #   run: npm test -- --coverage
+    - name: Run unit tests
+      working-directory: ./web
+      run: npm test -- --run --coverage
 
     - name: Build
       working-directory: ./web
       run: npm run build
+      env:
+        # Use dev Firebase config for build verification
+        VITE_FIREBASE_API_KEY: ${{ secrets.DEV_FIREBASE_API_KEY }}
+        VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.DEV_FIREBASE_AUTH_DOMAIN }}
+        VITE_FIREBASE_PROJECT_ID: ${{ secrets.DEV_FIREBASE_PROJECT_ID }}
+        VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.DEV_FIREBASE_STORAGE_BUCKET }}
+        VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.DEV_FIREBASE_MESSAGING_SENDER_ID }}
+        VITE_FIREBASE_APP_ID: ${{ secrets.DEV_FIREBASE_APP_ID }}
 
-    # Coverage disabled until tests are enabled
-    # - name: Upload coverage
-    #   uses: codecov/codecov-action@v3
-    #   with:
-    #     files: ./web/coverage/coverage-final.json
-    #     flags: web
+    - name: Upload coverage
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./web/coverage/lcov.info
+        flags: web
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+  # ============================================================================
+  # E2E Tests with Playwright
+  # ============================================================================
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: test  # Run after unit tests pass
+    # Only run E2E on develop and main branches (not on every PR)
+    if: github.event_name == 'push' || github.event.pull_request.base.ref == 'develop' || github.event.pull_request.base.ref == 'main'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: web/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./web
+      run: npm ci
+
+    - name: Install Playwright browsers
+      working-directory: ./web
+      run: npx playwright install --with-deps chromium
+
+    - name: Run E2E tests
+      working-directory: ./web
+      run: npm run test:e2e -- --project=chromium
+      env:
+        CI: true
+        # Firebase dev environment for E2E
+        VITE_FIREBASE_API_KEY: ${{ secrets.DEV_FIREBASE_API_KEY }}
+        VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.DEV_FIREBASE_AUTH_DOMAIN }}
+        VITE_FIREBASE_PROJECT_ID: ${{ secrets.DEV_FIREBASE_PROJECT_ID }}
+        VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.DEV_FIREBASE_STORAGE_BUCKET }}
+        VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.DEV_FIREBASE_MESSAGING_SENDER_ID }}
+        VITE_FIREBASE_APP_ID: ${{ secrets.DEV_FIREBASE_APP_ID }}
+
+    - name: Upload Playwright report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: web/playwright-report/
+        retention-days: 7
+
+    - name: Upload Playwright screenshots
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: playwright-screenshots
+        path: web/test-results/
+        retention-days: 7

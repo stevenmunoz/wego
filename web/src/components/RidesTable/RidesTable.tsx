@@ -761,9 +761,7 @@ export const RidesTable: FC<RidesTableProps> = ({
                 title={`Ordenar por fecha ${sortDirection === 'asc' ? 'descendente' : 'ascendente'}`}
               >
                 Fecha
-                <span className="sort-indicator">
-                  {sortDirection === 'asc' ? '↑' : '↓'}
-                </span>
+                <span className="sort-indicator">{sortDirection === 'asc' ? '↑' : '↓'}</span>
               </th>
               <th>Hora</th>
               <th>Duracion</th>

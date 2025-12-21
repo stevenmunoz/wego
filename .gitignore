@@ -352,6 +352,15 @@ docs/_build/
 # MkDocs
 site/
 
+# ========== Playwright E2E Tests ==========
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+web/test-results/
+web/playwright-report/
+web/blob-report/
+
 # ========== Misc ==========
 # Local configuration overrides
 config.local.json

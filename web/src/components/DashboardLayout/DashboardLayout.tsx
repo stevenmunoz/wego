@@ -162,9 +162,7 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
             </div>
             <div className="version-row">
               <span className="version-label">API</span>
-              <span className="version-value">
-                {backendVersion || '—'}
-              </span>
+              <span className="version-value">{backendVersion || '—'}</span>
             </div>
           </button>
         </div>

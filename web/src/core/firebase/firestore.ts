@@ -718,7 +718,12 @@ export async function reassignRideToDriver(
   rideId: string,
   docPath?: string
 ): Promise<{ success: boolean; error?: string }> {
-  console.log('[Firestore] reassignRideToDriver called:', { oldDriverId, newDriverId, rideId, docPath });
+  console.log('[Firestore] reassignRideToDriver called:', {
+    oldDriverId,
+    newDriverId,
+    rideId,
+    docPath,
+  });
 
   try {
     // Get the old document reference

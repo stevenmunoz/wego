@@ -52,7 +52,13 @@ const formatFullCurrency = (amount: number): string => {
 };
 
 // Custom tooltip for charts
-const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number; payload: { revenue?: number } }> }) => {
+const CustomTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number; payload: { revenue?: number } }>;
+}) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     return (
@@ -127,8 +133,10 @@ export const SourceComparison: FC<SourceComparisonProps> = ({ data, isLoading })
   ];
 
   // Calculate percentages
-  const indriverPercent = totalRides > 0 ? ((data.indriver.count / totalRides) * 100).toFixed(1) : '0';
-  const externalPercent = totalRides > 0 ? ((data.external.count / totalRides) * 100).toFixed(1) : '0';
+  const indriverPercent =
+    totalRides > 0 ? ((data.indriver.count / totalRides) * 100).toFixed(1) : '0';
+  const externalPercent =
+    totalRides > 0 ? ((data.external.count / totalRides) * 100).toFixed(1) : '0';
 
   return (
     <div className="source-comparison">
@@ -181,17 +189,8 @@ export const SourceComparison: FC<SourceComparisonProps> = ({ data, isLoading })
           <h4 className="chart-subtitle">Ingresos por Fuente</h4>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={barData} layout="vertical" margin={{ left: 10, right: 20 }}>
-              <XAxis
-                type="number"
-                tickFormatter={formatCurrency}
-                tick={{ fontSize: 11 }}
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                tick={{ fontSize: 12 }}
-                width={60}
-              />
+              <XAxis type="number" tickFormatter={formatCurrency} tick={{ fontSize: 11 }} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={60} />
               <Tooltip
                 formatter={(value) => formatFullCurrency(value as number)}
                 labelStyle={{ fontWeight: 600 }}
