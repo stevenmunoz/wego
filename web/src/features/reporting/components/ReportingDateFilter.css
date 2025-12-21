@@ -172,8 +172,27 @@
   border: 1px solid var(--color-gray-300, #d1d5db);
   border-radius: 6px;
   font-size: 0.875rem;
-  color: var(--color-gray-700, #374151);
+  color: var(--color-gray-800, #1f2937);
+  background-color: var(--color-white, #ffffff);
   transition: border-color 0.15s ease;
+  color-scheme: light;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Ensure text is visible in date inputs */
+.date-input-group input[type='date']::-webkit-datetime-edit {
+  color: var(--color-gray-800, #1f2937);
+}
+
+.date-input-group input[type='date']::-webkit-datetime-edit-fields-wrapper {
+  color: var(--color-gray-800, #1f2937);
+}
+
+.date-input-group input[type='date']::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.6;
+  cursor: pointer;
 }
 
 .date-input-group input[type='date']:focus {

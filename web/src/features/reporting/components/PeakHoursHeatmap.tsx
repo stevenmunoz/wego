@@ -1,7 +1,8 @@
 /**
  * Peak Hours Heatmap Component
  *
- * 7x24 grid showing ride frequency by day and hour.
+ * Table-style heatmap showing ride frequency by hour (rows) and day (columns).
+ * Inspired by Looker Studio heatmap design.
  */
 
 import { type FC } from 'react';
@@ -13,10 +14,10 @@ interface PeakHoursHeatmapProps {
   isLoading: boolean;
 }
 
-const DAYS = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
+const DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
-// Get color intensity based on value
+// Get color intensity based on value (blue gradient like Looker Studio)
 const getIntensityClass = (value: number, maxValue: number): string => {
   if (value === 0 || maxValue === 0) return 'intensity-0';
 
@@ -28,19 +29,19 @@ const getIntensityClass = (value: number, maxValue: number): string => {
   return 'intensity-1';
 };
 
-// Format hour for display
+// Format hour for display (e.g., "6AM", "12PM")
 const formatHour = (hour: number): string => {
-  if (hour === 0) return '12am';
-  if (hour === 12) return '12pm';
-  if (hour < 12) return `${hour}am`;
-  return `${hour - 12}pm`;
+  if (hour === 0) return '12AM';
+  if (hour === 12) return '12PM';
+  if (hour < 12) return `${hour}AM`;
+  return `${hour - 12}PM`;
 };
 
 export const PeakHoursHeatmap: FC<PeakHoursHeatmapProps> = ({ data, isLoading }) => {
   if (isLoading) {
     return (
       <div className="peak-hours-heatmap">
-        <h3 className="section-title">Horas Pico</h3>
+        <h3 className="section-title">Viajes por Hora y Día</h3>
         <div className="heatmap-skeleton skeleton"></div>
       </div>
     );
@@ -49,7 +50,7 @@ export const PeakHoursHeatmap: FC<PeakHoursHeatmapProps> = ({ data, isLoading })
   if (!data) {
     return (
       <div className="peak-hours-heatmap">
-        <h3 className="section-title">Horas Pico</h3>
+        <h3 className="section-title">Viajes por Hora y Día</h3>
         <div className="empty-state">
           <span className="empty-icon">🕐</span>
           <p>No hay datos disponibles</p>
@@ -76,67 +77,81 @@ export const PeakHoursHeatmap: FC<PeakHoursHeatmapProps> = ({ data, isLoading })
     });
   });
 
+  // Calculate totals per day for the footer
+  const dayTotals = DAYS_SHORT.map((_, dayIndex) =>
+    HOURS.reduce((sum, hour) => sum + (data[dayIndex]?.[hour] || 0), 0)
+  );
+
   return (
     <div className="peak-hours-heatmap">
       <div className="heatmap-header">
-        <h3 className="section-title">Horas Pico</h3>
+        <h3 className="section-title">Viajes por Hora y Día</h3>
         {busiestValue > 0 && (
           <div className="busiest-info">
-            <span className="busiest-label">Hora mas activa:</span>
+            <span className="busiest-label">Hora más activa:</span>
             <span className="busiest-value">
-              {DAYS[busiestDay]} {formatHour(busiestHour)} ({busiestValue} viajes)
+              {DAYS_SHORT[busiestDay]} {formatHour(busiestHour)} ({busiestValue})
             </span>
           </div>
         )}
       </div>
 
-      <div className="heatmap-container">
-        <div className="heatmap-grid">
-          {/* Hour Labels (Top) */}
-          <div className="hour-labels">
-            <div className="corner-cell"></div>
-            {HOURS.filter((h) => h % 3 === 0).map((hour) => (
-              <div key={hour} className="hour-label" style={{ gridColumn: `span 3` }}>
-                {formatHour(hour)}
-              </div>
+      <div className="heatmap-table-container">
+        <table className="heatmap-table">
+          <thead>
+            <tr>
+              <th className="hour-header">Hora</th>
+              {DAYS_SHORT.map((day) => (
+                <th key={day} className="day-header">{day}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {HOURS.map((hour) => (
+              <tr key={hour} className="heatmap-row">
+                <td className="hour-cell">{formatHour(hour)}</td>
+                {DAYS_SHORT.map((day, dayIndex) => {
+                  const value = data[dayIndex]?.[hour] || 0;
+                  const intensityClass = getIntensityClass(value, maxValue);
+
+                  return (
+                    <td
+                      key={day}
+                      className={`value-cell ${intensityClass}`}
+                      title={`${day} ${formatHour(hour)}: ${value} viajes`}
+                    >
+                      {value}
+                    </td>
+                  );
+                })}
+              </tr>
             ))}
-          </div>
+          </tbody>
+          <tfoot>
+            <tr className="totals-row">
+              <td className="hour-cell total-label">Total</td>
+              {dayTotals.map((total, index) => (
+                <td key={DAYS_SHORT[index]} className="total-cell">
+                  {total}
+                </td>
+              ))}
+            </tr>
+          </tfoot>
+        </table>
+      </div>
 
-          {/* Grid Rows */}
-          {DAYS.map((day, dayIndex) => (
-            <div key={day} className="heatmap-row">
-              <div className="day-label">{day}</div>
-              {HOURS.map((hour) => {
-                const value = data[dayIndex][hour];
-                const intensityClass = getIntensityClass(value, maxValue);
-
-                return (
-                  <div
-                    key={hour}
-                    className={`heatmap-cell ${intensityClass}`}
-                    title={`${day} ${formatHour(hour)}: ${value} viajes`}
-                  >
-                    <span className="cell-value">{value > 0 ? value : ''}</span>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+      {/* Legend */}
+      <div className="heatmap-legend">
+        <span className="legend-label">Menos viajes</span>
+        <div className="legend-scale">
+          <div className="legend-cell intensity-0"></div>
+          <div className="legend-cell intensity-1"></div>
+          <div className="legend-cell intensity-2"></div>
+          <div className="legend-cell intensity-3"></div>
+          <div className="legend-cell intensity-4"></div>
+          <div className="legend-cell intensity-5"></div>
         </div>
-
-        {/* Legend */}
-        <div className="heatmap-legend">
-          <span className="legend-label">Menos</span>
-          <div className="legend-scale">
-            <div className="legend-cell intensity-0"></div>
-            <div className="legend-cell intensity-1"></div>
-            <div className="legend-cell intensity-2"></div>
-            <div className="legend-cell intensity-3"></div>
-            <div className="legend-cell intensity-4"></div>
-            <div className="legend-cell intensity-5"></div>
-          </div>
-          <span className="legend-label">Mas</span>
-        </div>
+        <span className="legend-label">Más viajes</span>
       </div>
     </div>
   );

@@ -73,12 +73,15 @@ export function aggregateSummary(rides: FirestoreInDriverRide[]): {
   totalRides: number;
   completedRides: number;
   totalRevenue: number;
+  totalPaid: number;
   totalCommissions: number;
   averagePerRide: number;
 } {
   const completedRides = rides.filter((r) => r.status === 'completed');
 
   const totalRevenue = completedRides.reduce((sum, r) => sum + (r.total_received || 0), 0);
+  // totalPaid includes ALL rides (not just completed) - commissions may apply to cancelled rides too
+  const totalPaid = rides.reduce((sum, r) => sum + (r.total_paid || 0), 0);
   const totalCommissions = completedRides.reduce((sum, r) => sum + (r.service_commission || 0), 0);
   const averagePerRide = completedRides.length > 0 ? totalRevenue / completedRides.length : 0;
 
@@ -86,6 +89,7 @@ export function aggregateSummary(rides: FirestoreInDriverRide[]): {
     totalRides: rides.length,
     completedRides: completedRides.length,
     totalRevenue,
+    totalPaid,
     totalCommissions,
     averagePerRide,
   };
@@ -373,18 +377,66 @@ export function aggregateByPaymentMethod(rides: FirestoreInDriverRide[]): Paymen
 // ============================================================================
 
 /**
+ * Vehicle finance data for aggregation
+ */
+export interface VehicleFinanceData {
+  totalIncome: number;
+  totalExpenses: number;
+  incomeByType: {
+    weekly_payment: number;
+    tip_share: number;
+    bonus: number;
+    other: number;
+  };
+  expensesByCategory: {
+    fuel: number;
+    maintenance: number;
+    insurance_soat: number;
+    tecnomecanica: number;
+    taxes: number;
+    fines: number;
+    parking: number;
+    car_wash: number;
+    accessories: number;
+    other: number;
+  };
+}
+
+/**
  * Run all aggregations on a set of rides
  */
 export function aggregateAllData(
   rides: FirestoreInDriverRide[],
   driverNames: Map<string, string>,
   vehiclePlates: Map<string, string>,
-  dateRange: DateRange
+  dateRange: DateRange,
+  vehicleFinances?: VehicleFinanceData
 ): ReportingAggregations {
   const summary = aggregateSummary(rides);
 
+  const totalVehicleIncome = vehicleFinances?.totalIncome ?? 0;
+  const totalVehicleExpenses = vehicleFinances?.totalExpenses ?? 0;
+  const netProfit = totalVehicleIncome - totalVehicleExpenses;
+
+  // Default breakdowns
+  const defaultIncomeByType = { weekly_payment: 0, tip_share: 0, bonus: 0, other: 0 };
+  const defaultExpensesByCategory = {
+    fuel: 0, maintenance: 0, insurance_soat: 0, tecnomecanica: 0,
+    taxes: 0, fines: 0, parking: 0, car_wash: 0, accessories: 0, other: 0,
+  };
+
+  // Calculate average rides per day
+  const daysInPeriod = getDaysDiff(dateRange.startDate, dateRange.endDate);
+  const averageRidesPerDay = daysInPeriod > 0 ? summary.completedRides / daysInPeriod : 0;
+
   return {
     ...summary,
+    averageRidesPerDay,
+    totalVehicleIncome,
+    totalVehicleExpenses,
+    netProfit,
+    incomeByType: vehicleFinances?.incomeByType ?? defaultIncomeByType,
+    expensesByCategory: vehicleFinances?.expensesByCategory ?? defaultExpensesByCategory,
     bySource: aggregateBySource(rides),
     dailyTrends: aggregateDailyTrends(rides),
     byDriver: aggregateByDriver(rides, driverNames),
