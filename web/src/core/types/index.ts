@@ -63,4 +63,5 @@ export interface UserUpdateRequest {
 
 export * from './vehicle.types';
 export * from './vehicle-finance.types';
+export * from './finance-category.types';
 export * from './notification.types';

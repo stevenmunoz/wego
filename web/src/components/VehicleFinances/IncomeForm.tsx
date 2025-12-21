@@ -4,16 +4,18 @@
  * Form for adding/editing income entries
  */
 
-import { type FC } from 'react';
+import { type FC, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { VehicleIncome, VehicleIncomeCreateInput, IncomeType } from '@/core/types';
-import { INCOME_TYPE_LABELS, RECURRENCE_LABELS } from '@/core/types';
+import type { VehicleIncome, VehicleIncomeCreateInput } from '@/core/types';
+import { RECURRENCE_LABELS } from '@/core/types';
+import { useIncomeCategories, useIncomeCategoryKeys } from '@/hooks/useFinanceCategories';
 import './IncomeForm.css';
 
-const incomeSchema = z.object({
-  type: z.enum(['weekly_payment', 'tip_share', 'bonus', 'other']),
+// Base schema fields (without type, which is dynamic)
+const baseIncomeSchema = z.object({
+  type: z.string().min(1, 'El tipo es requerido'),
   amount: z.coerce.number().min(1, 'El monto debe ser mayor a 0'),
   description: z.string().min(1, 'La descripción es requerida'),
   date: z.string().min(1, 'La fecha es requerida'),
@@ -22,7 +24,20 @@ const incomeSchema = z.object({
   notes: z.string().optional(),
 });
 
-type IncomeFormData = z.infer<typeof incomeSchema>;
+/**
+ * Create income schema with dynamic type validation
+ */
+function createIncomeSchema(validTypeKeys: string[]) {
+  return baseIncomeSchema.refine(
+    (data) => validTypeKeys.length === 0 || validTypeKeys.includes(data.type),
+    {
+      message: 'Tipo de ingreso inválido',
+      path: ['type'],
+    }
+  );
+}
+
+type IncomeFormData = z.infer<typeof baseIncomeSchema>;
 
 interface IncomeFormProps {
   income?: VehicleIncome;
@@ -47,6 +62,19 @@ export const IncomeForm: FC<IncomeFormProps> = ({
   isSubmitting = false,
   error,
 }) => {
+  // Get dynamic income types
+  const { activeCategories, labels: typeLabels, isLoading: typesLoading } = useIncomeCategories();
+  const validTypeKeys = useIncomeCategoryKeys();
+
+  // Create schema with dynamic type validation
+  const incomeSchema = useMemo(
+    () => createIncomeSchema(validTypeKeys),
+    [validTypeKeys]
+  );
+
+  // Get default type (first active type or 'weekly_payment' as fallback)
+  const defaultType = activeCategories.length > 0 ? activeCategories[0].key : 'weekly_payment';
+
   const {
     register,
     handleSubmit,
@@ -65,7 +93,7 @@ export const IncomeForm: FC<IncomeFormProps> = ({
           notes: income.notes || '',
         }
       : {
-          type: 'weekly_payment' as IncomeType,
+          type: defaultType,
           amount: 0,
           description: '',
           date: dateToDateString(new Date()),
@@ -112,12 +140,23 @@ export const IncomeForm: FC<IncomeFormProps> = ({
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="type">Tipo *</label>
-              <select id="type" {...register('type')}>
-                {Object.entries(INCOME_TYPE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
+              <select id="type" {...register('type')} disabled={typesLoading}>
+                {typesLoading ? (
+                  <option value="">Cargando...</option>
+                ) : activeCategories.length > 0 ? (
+                  activeCategories.map((cat) => (
+                    <option key={cat.key} value={cat.key}>
+                      {cat.label}
+                    </option>
+                  ))
+                ) : (
+                  // Fallback to labels map if no types loaded
+                  Object.entries(typeLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 

@@ -4,31 +4,22 @@
  * Form for adding/editing expense entries
  */
 
-import { type FC, useState, useRef } from 'react';
+import { type FC, useState, useRef, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { VehicleExpense, VehicleExpenseCreateInput, ExpenseCategory } from '@/core/types';
-import { EXPENSE_CATEGORY_LABELS, RECURRENCE_LABELS } from '@/core/types';
+import type { VehicleExpense, VehicleExpenseCreateInput } from '@/core/types';
+import { RECURRENCE_LABELS } from '@/core/types';
+import { useExpenseCategories, useExpenseCategoryKeys } from '@/hooks/useFinanceCategories';
 import './ExpenseForm.css';
 
 // Allowed file types for receipts
 const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-const expenseSchema = z.object({
-  category: z.enum([
-    'fuel',
-    'maintenance',
-    'insurance_soat',
-    'tecnomecanica',
-    'taxes',
-    'fines',
-    'parking',
-    'car_wash',
-    'accessories',
-    'other',
-  ]),
+// Base schema fields (without category, which is dynamic)
+const baseExpenseSchema = z.object({
+  category: z.string().min(1, 'La categoría es requerida'),
   amount: z.coerce.number().min(1, 'El monto debe ser mayor a 0'),
   description: z.string().min(1, 'La descripción es requerida'),
   date: z.string().min(1, 'La fecha es requerida'),
@@ -38,7 +29,20 @@ const expenseSchema = z.object({
   notes: z.string().optional(),
 });
 
-type ExpenseFormData = z.infer<typeof expenseSchema>;
+/**
+ * Create expense schema with dynamic category validation
+ */
+function createExpenseSchema(validCategoryKeys: string[]) {
+  return baseExpenseSchema.refine(
+    (data) => validCategoryKeys.length === 0 || validCategoryKeys.includes(data.category),
+    {
+      message: 'Categoría inválida',
+      path: ['category'],
+    }
+  );
+}
+
+type ExpenseFormData = z.infer<typeof baseExpenseSchema>;
 
 interface ExpenseFormProps {
   expense?: VehicleExpense;
@@ -63,6 +67,19 @@ export const ExpenseForm: FC<ExpenseFormProps> = ({
   isSubmitting = false,
   error,
 }) => {
+  // Get dynamic expense categories
+  const { activeCategories, labels: categoryLabels, isLoading: categoriesLoading } = useExpenseCategories();
+  const validCategoryKeys = useExpenseCategoryKeys();
+
+  // Create schema with dynamic category validation
+  const expenseSchema = useMemo(
+    () => createExpenseSchema(validCategoryKeys),
+    [validCategoryKeys]
+  );
+
+  // Get default category (first active category or 'fuel' as fallback)
+  const defaultCategory = activeCategories.length > 0 ? activeCategories[0].key : 'fuel';
+
   const {
     register,
     handleSubmit,
@@ -82,7 +99,7 @@ export const ExpenseForm: FC<ExpenseFormProps> = ({
           notes: expense.notes || '',
         }
       : {
-          category: 'fuel' as ExpenseCategory,
+          category: defaultCategory,
           amount: 0,
           description: '',
           date: dateToDateString(new Date()),
@@ -171,12 +188,23 @@ export const ExpenseForm: FC<ExpenseFormProps> = ({
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="category">Categoría *</label>
-              <select id="category" {...register('category')}>
-                {Object.entries(EXPENSE_CATEGORY_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
+              <select id="category" {...register('category')} disabled={categoriesLoading}>
+                {categoriesLoading ? (
+                  <option value="">Cargando...</option>
+                ) : activeCategories.length > 0 ? (
+                  activeCategories.map((cat) => (
+                    <option key={cat.key} value={cat.key}>
+                      {cat.label}
+                    </option>
+                  ))
+                ) : (
+                  // Fallback to labels map if no categories loaded
+                  Object.entries(categoryLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 

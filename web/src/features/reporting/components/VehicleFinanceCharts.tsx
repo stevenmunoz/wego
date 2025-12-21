@@ -18,7 +18,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import type { IncomeByTypeBreakdown, ExpensesByCategoryBreakdown } from '../types';
-import { INCOME_TYPE_LABELS, EXPENSE_CATEGORY_LABELS } from '@/core/types/vehicle-finance.types';
+import { useFinanceCategories } from '@/hooks/useFinanceCategories';
 import './VehicleFinanceCharts.css';
 
 interface VehicleFinanceChartsProps {
@@ -28,28 +28,6 @@ interface VehicleFinanceChartsProps {
   expensesByCategory: ExpensesByCategoryBreakdown;
   isLoading: boolean;
 }
-
-// Colors for income types
-const INCOME_COLORS: Record<string, string> = {
-  weekly_payment: '#16a34a', // Green
-  tip_share: '#22c55e',
-  bonus: '#4ade80',
-  other: '#86efac',
-};
-
-// Colors for expense categories
-const EXPENSE_COLORS: Record<string, string> = {
-  fuel: '#ef4444', // Red shades
-  maintenance: '#f97316', // Orange
-  insurance_soat: '#eab308', // Yellow
-  tecnomecanica: '#84cc16', // Lime
-  taxes: '#06b6d4', // Cyan
-  fines: '#8b5cf6', // Purple
-  parking: '#ec4899', // Pink
-  car_wash: '#14b8a6', // Teal
-  accessories: '#f59e0b', // Amber
-  other: '#6b7280', // Gray
-};
 
 // Currency formatting
 const formatCurrency = (amount: number): string => {
@@ -90,22 +68,25 @@ export const VehicleFinanceCharts: FC<VehicleFinanceChartsProps> = ({
   expensesByCategory,
   isLoading,
 }) => {
+  // Get dynamic labels and colors from categories store
+  const { getIncomeLabel, getIncomeColor, getExpenseLabel, getExpenseColor } = useFinanceCategories();
+
   // Prepare income data for pie chart
   const incomeData = Object.entries(incomeByType)
     .filter(([, value]) => value > 0)
     .map(([key, value]) => ({
-      name: INCOME_TYPE_LABELS[key as keyof typeof INCOME_TYPE_LABELS] || key,
+      name: getIncomeLabel(key),
       value,
-      color: INCOME_COLORS[key] || '#86efac',
+      color: getIncomeColor(key),
     }));
 
   // Prepare expenses data for pie chart
   const expensesData = Object.entries(expensesByCategory)
     .filter(([, value]) => value > 0)
     .map(([key, value]) => ({
-      name: EXPENSE_CATEGORY_LABELS[key as keyof typeof EXPENSE_CATEGORY_LABELS] || key,
+      name: getExpenseLabel(key),
       value,
-      color: EXPENSE_COLORS[key] || '#6b7280',
+      color: getExpenseColor(key),
     }));
 
   // Prepare comparison data for bar chart
