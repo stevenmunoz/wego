@@ -56,7 +56,7 @@ export const PaymentMethodChart: FC<PaymentMethodChartProps> = ({ data, isLoadin
   if (isLoading) {
     return (
       <div className="payment-method-chart">
-        <h3 className="section-title">Metodos de Pago</h3>
+        <h3 className="section-title">Métodos de Pago</h3>
         <div className="chart-skeleton skeleton"></div>
       </div>
     );
@@ -65,7 +65,7 @@ export const PaymentMethodChart: FC<PaymentMethodChartProps> = ({ data, isLoadin
   if (!data) {
     return (
       <div className="payment-method-chart">
-        <h3 className="section-title">Metodos de Pago</h3>
+        <h3 className="section-title">Métodos de Pago</h3>
         <div className="empty-state">
           <span className="empty-icon">💳</span>
           <p>No hay datos disponibles</p>
@@ -89,7 +89,7 @@ export const PaymentMethodChart: FC<PaymentMethodChartProps> = ({ data, isLoadin
   if (chartData.length === 0) {
     return (
       <div className="payment-method-chart">
-        <h3 className="section-title">Metodos de Pago</h3>
+        <h3 className="section-title">Métodos de Pago</h3>
         <div className="empty-state">
           <span className="empty-icon">💳</span>
           <p>No hay datos de pagos</p>
@@ -100,7 +100,7 @@ export const PaymentMethodChart: FC<PaymentMethodChartProps> = ({ data, isLoadin
 
   return (
     <div className="payment-method-chart">
-      <h3 className="section-title">Metodos de Pago</h3>
+      <h3 className="section-title">Métodos de Pago</h3>
 
       <div className="chart-wrapper">
         <ResponsiveContainer width="100%" height={200}>

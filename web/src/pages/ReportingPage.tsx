@@ -21,6 +21,7 @@ import {
   PeakHoursHeatmap,
   PaymentMethodChart,
   GoalsSettingsModal,
+  VehicleFinanceCharts,
 } from '@/features/reporting/components';
 import { useReportingData, useReportingGoals } from '@/features/reporting/hooks';
 import type { ReportingDateFilterOption, DateRange } from '@/features/reporting/types';
@@ -93,7 +94,7 @@ export const ReportingPage: FC = () => {
           <div className="header-left">
             <h1 className="page-title">Reportes</h1>
             <p className="page-subtitle">
-              Analisis de rendimiento y eficiencia
+              Análisis de rendimiento y eficiencia
             </p>
           </div>
           <div className="header-actions">
@@ -134,6 +135,21 @@ export const ReportingPage: FC = () => {
 
         {/* Summary Cards */}
         <SummaryCards aggregations={aggregations} isLoading={isLoading} />
+
+        {/* Vehicle Finance Charts */}
+        <section className="section-vehicle-finances">
+          <h2 className="section-title">Finanzas de Vehículos</h2>
+          <VehicleFinanceCharts
+            totalIncome={aggregations?.totalVehicleIncome ?? 0}
+            totalExpenses={aggregations?.totalVehicleExpenses ?? 0}
+            incomeByType={aggregations?.incomeByType ?? { weekly_payment: 0, tip_share: 0, bonus: 0, other: 0 }}
+            expensesByCategory={aggregations?.expensesByCategory ?? {
+              fuel: 0, maintenance: 0, insurance_soat: 0, tecnomecanica: 0,
+              taxes: 0, fines: 0, parking: 0, car_wash: 0, accessories: 0, other: 0
+            }}
+            isLoading={isLoading}
+          />
+        </section>
 
         {/* Charts Row */}
         <div className="charts-row">

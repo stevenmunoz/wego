@@ -51,15 +51,15 @@ export const CancellationRate: FC<CancellationRateProps> = ({ data, isLoading })
       <h3 className="section-title">Cancelaciones</h3>
 
       <div className="cards-grid">
-        {/* Total Cancellation Rate */}
+        {/* Total Cancellation Rate - spans full width */}
         <div className={`cancel-card rate-card status-${rateStatus}`}>
           <div className="card-header">
             <span className="card-icon">📉</span>
-            <span className="card-title">Tasa de Cancelacion</span>
+            <span className="card-title">Tasa de Cancelación</span>
           </div>
           <div className="card-value">{data.cancellationRate.toFixed(1)}%</div>
           <div className="card-detail">
-            {data.totalCancelled} de {data.totalRides} viajes
+            {data.totalCancelled} de {data.totalRides} viajes cancelados
           </div>
         </div>
 
@@ -70,11 +70,14 @@ export const CancellationRate: FC<CancellationRateProps> = ({ data, isLoading })
             <span className="card-title">Por Pasajero</span>
           </div>
           <div className="card-value">{data.byPassenger}</div>
-          <div className="card-detail">
-            {data.totalCancelled > 0
-              ? ((data.byPassenger / data.totalCancelled) * 100).toFixed(0)
-              : 0}
-            % del total
+          <div className="card-detail card-detail-percentage">
+            <span className="card-detail-value">
+              {data.totalCancelled > 0
+                ? ((data.byPassenger / data.totalCancelled) * 100).toFixed(0)
+                : 0}
+              %
+            </span>
+            <span className="card-detail-label">del total</span>
           </div>
         </div>
 
@@ -85,11 +88,14 @@ export const CancellationRate: FC<CancellationRateProps> = ({ data, isLoading })
             <span className="card-title">Por Conductor</span>
           </div>
           <div className="card-value">{data.byDriver}</div>
-          <div className="card-detail">
-            {data.totalCancelled > 0
-              ? ((data.byDriver / data.totalCancelled) * 100).toFixed(0)
-              : 0}
-            % del total
+          <div className="card-detail card-detail-percentage">
+            <span className="card-detail-value">
+              {data.totalCancelled > 0
+                ? ((data.byDriver / data.totalCancelled) * 100).toFixed(0)
+                : 0}
+              %
+            </span>
+            <span className="card-detail-label">del total</span>
           </div>
         </div>
       </div>
