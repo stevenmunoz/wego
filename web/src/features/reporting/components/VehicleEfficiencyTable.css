@@ -1,0 +1,209 @@
+/**
+ * Vehicle Efficiency Table Styles
+ */
+
+.vehicle-efficiency-table {
+  background: var(--color-white, #ffffff);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-gray-800, #1f2937);
+  margin: 0 0 1rem 0;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+thead {
+  background: var(--color-gray-50, #f9fafb);
+}
+
+th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-gray-600, #4b5563);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-gray-200, #e5e7eb);
+  white-space: nowrap;
+}
+
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+th.sortable:hover {
+  background: var(--color-gray-100, #f3f4f6);
+}
+
+td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-gray-100, #f3f4f6);
+  color: var(--color-gray-700, #374151);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover td {
+  background: var(--color-gray-50, #f9fafb);
+}
+
+.align-right {
+  text-align: right;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Vehicle Plate Badge */
+.vehicle-plate {
+  white-space: nowrap;
+}
+
+.plate-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: var(--color-gray-100, #f3f4f6);
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-gray-800, #1f2937);
+}
+
+/* Utilization Cell */
+.utilization-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.utilization-bar {
+  width: 60px;
+  height: 6px;
+  background: var(--color-gray-200, #e5e7eb);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.utilization-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.utilization-fill.status-high {
+  background: var(--color-success-500, #22c55e);
+}
+
+.utilization-fill.status-medium {
+  background: var(--color-warning-500, #eab308);
+}
+
+.utilization-fill.status-low {
+  background: var(--color-error-500, #ef4444);
+}
+
+.utilization-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  min-width: 40px;
+  text-align: right;
+}
+
+.utilization-value.status-high {
+  color: var(--color-success-600, #16a34a);
+}
+
+.utilization-value.status-medium {
+  color: var(--color-warning-600, #ca8a04);
+}
+
+.utilization-value.status-low {
+  color: var(--color-error-600, #dc2626);
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  color: var(--color-gray-400, #9ca3af);
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/* Skeleton Loading */
+.table-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.row-skeleton {
+  height: 48px;
+  border-radius: 6px;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  th,
+  td {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  th {
+    font-size: 0.6875rem;
+  }
+
+  .utilization-bar {
+    width: 40px;
+  }
+}

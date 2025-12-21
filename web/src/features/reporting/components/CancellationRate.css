@@ -1,0 +1,145 @@
+/**
+ * Cancellation Rate Styles
+ */
+
+.cancellation-rate {
+  background: var(--color-white, #ffffff);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-gray-800, #1f2937);
+  margin: 0 0 1rem 0;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.cards-grid.loading {
+  min-height: 120px;
+}
+
+.cancel-card {
+  padding: 1rem;
+  background: var(--color-gray-50, #f9fafb);
+  border-radius: 10px;
+  border: 1px solid var(--color-gray-100, #f3f4f6);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.card-icon {
+  font-size: 1rem;
+}
+
+.card-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-gray-500, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--color-gray-800, #1f2937);
+  margin-bottom: 0.25rem;
+}
+
+.card-detail {
+  font-size: 0.75rem;
+  color: var(--color-gray-500, #6b7280);
+}
+
+/* Rate Card Statuses */
+.rate-card {
+  border-left: 3px solid;
+}
+
+.rate-card.status-good {
+  border-left-color: var(--color-success-500, #22c55e);
+  background: var(--color-success-50, #f0fdf4);
+}
+
+.rate-card.status-good .card-value {
+  color: var(--color-success-600, #16a34a);
+}
+
+.rate-card.status-warning {
+  border-left-color: var(--color-warning-500, #eab308);
+  background: var(--color-warning-50, #fefce8);
+}
+
+.rate-card.status-warning .card-value {
+  color: var(--color-warning-600, #ca8a04);
+}
+
+.rate-card.status-bad {
+  border-left-color: var(--color-error-500, #ef4444);
+  background: var(--color-error-50, #fef2f2);
+}
+
+.rate-card.status-bad .card-value {
+  color: var(--color-error-600, #dc2626);
+}
+
+/* By Type Cards */
+.passenger-card {
+  border-left: 3px solid var(--color-info-500, #0ea5e9);
+}
+
+.driver-card {
+  border-left: 3px solid var(--color-accent-600, #f05365);
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--color-gray-400, #9ca3af);
+}
+
+.empty-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/* Skeleton */
+.cancel-card.skeleton {
+  height: 100px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border: none;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
