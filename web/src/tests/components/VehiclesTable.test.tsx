@@ -24,6 +24,11 @@ const createMockVehicle = (overrides: Partial<FirestoreVehicle> = {}): Firestore
   vehicle_type: 'car',
   fuel_type: 'gasoline',
   passenger_capacity: 4,
+  luggage_capacity: 2,
+  accepts_pets: false,
+  accepts_wheelchairs: false,
+  has_child_seat: false,
+  has_air_conditioning: true,
   status: 'active',
   is_primary: false,
   owner_id: 'owner-001',
@@ -37,10 +42,13 @@ const createMockVehicle = (overrides: Partial<FirestoreVehicle> = {}): Firestore
 // Mock driver data
 const createMockDriver = (overrides: Partial<DriverWithUser> = {}): DriverWithUser => ({
   id: 'driver-001',
+  user_id: 'user-001',
   name: 'Juan Pérez',
   email: 'juan@example.com',
+  is_active: true,
+  created_at: createMockTimestamp(new Date('2024-01-01')),
   phone: '3001234567',
-  status: 'active',
+  unique_slug: 'juan-perez',
   ...overrides,
 });
 
