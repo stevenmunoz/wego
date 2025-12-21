@@ -8,6 +8,7 @@ import { FirebaseError } from 'firebase/app';
 import { signUp } from '@/core/firebase';
 import { useAuthStore } from '@/core/store/auth-store';
 import { UserCreateRequest } from '@/core/types';
+import { trackSignup } from '@/core/analytics';
 
 /**
  * Map Firebase auth errors to user-friendly Spanish messages
@@ -39,6 +40,7 @@ export const useRegister = () => {
       return userCredential.user;
     },
     onSuccess: (user) => {
+      trackSignup('email');
       setFirebaseUser(user);
       navigate('/dashboard');
     },
