@@ -1,0 +1,228 @@
+/**
+ * Peak Hours Heatmap Styles
+ */
+
+.peak-hours-heatmap {
+  background: var(--color-white, #ffffff);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.heatmap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-gray-800, #1f2937);
+  margin: 0;
+}
+
+.busiest-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.busiest-label {
+  color: var(--color-gray-500, #6b7280);
+}
+
+.busiest-value {
+  font-weight: 600;
+  color: var(--color-accent-600, #f05365);
+}
+
+.heatmap-container {
+  overflow-x: auto;
+}
+
+.heatmap-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 600px;
+}
+
+/* Hour Labels */
+.hour-labels {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.corner-cell {
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.hour-label {
+  font-size: 0.625rem;
+  color: var(--color-gray-500, #6b7280);
+  text-align: center;
+  padding: 0 2px;
+}
+
+/* Grid Rows */
+.heatmap-row {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.day-label {
+  width: 40px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-gray-600, #4b5563);
+  flex-shrink: 0;
+}
+
+/* Cells */
+.heatmap-cell {
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  transition: transform 0.1s ease;
+}
+
+.heatmap-cell:hover {
+  transform: scale(1.2);
+  z-index: 1;
+}
+
+.cell-value {
+  font-size: 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Intensity Levels */
+.intensity-0 {
+  background: var(--color-gray-100, #f3f4f6);
+}
+
+.intensity-0 .cell-value {
+  color: var(--color-gray-400, #9ca3af);
+}
+
+.intensity-1 {
+  background: #c7e9c0;
+}
+
+.intensity-1 .cell-value {
+  color: #2e7d32;
+}
+
+.intensity-2 {
+  background: #74c476;
+}
+
+.intensity-3 {
+  background: #31a354;
+}
+
+.intensity-4 {
+  background: #006d2c;
+}
+
+.intensity-5 {
+  background: #00441b;
+}
+
+/* Legend */
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.legend-label {
+  font-size: 0.6875rem;
+  color: var(--color-gray-500, #6b7280);
+}
+
+.legend-scale {
+  display: flex;
+  gap: 2px;
+}
+
+.legend-cell {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  color: var(--color-gray-400, #9ca3af);
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/* Skeleton */
+.heatmap-skeleton {
+  height: 200px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .heatmap-cell {
+    width: 18px;
+    height: 18px;
+  }
+
+  .day-label {
+    width: 32px;
+    font-size: 0.6875rem;
+  }
+
+  .hour-label {
+    font-size: 0.5625rem;
+  }
+
+  .cell-value {
+    display: none;
+  }
+}
