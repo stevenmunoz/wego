@@ -52,16 +52,16 @@ jobs:
             Reference the CLAUDE.md file for project-specific conventions.
 
   # ============================================================================
-  # Claude Security Review (runs on PRs to main only)
-  # Deep security analysis for production deployments
+  # Claude Security Review (runs on PRs to main or develop)
+  # Deep security analysis - shift left to catch issues early
   # ============================================================================
   security-review:
     name: Claude Security Review
     runs-on: ubuntu-latest
-    # Only run on PRs targeting main branch
+    # Run on PRs targeting main or develop branches
     if: |
       github.event_name == 'pull_request' &&
-      github.event.pull_request.base.ref == 'main'
+      (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'develop')
 
     permissions:
       contents: read
