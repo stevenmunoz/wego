@@ -6,6 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act } from '@testing-library/react';
+import type { User as FirebaseUser } from 'firebase/auth';
 
 // Use vi.hoisted to avoid "Cannot access before initialization" error
 const { mockLogOut, mockOnAuthChange, mockGetUserProfile } = vi.hoisted(() => ({
@@ -29,7 +30,7 @@ vi.mock('@/core/firebase/firestore', () => ({
 import { useAuthStore } from '@/core/store/auth-store';
 
 // Helper to create mock Firebase user
-const createMockFirebaseUser = (overrides = {}) => ({
+const createMockFirebaseUser = (overrides: Partial<FirebaseUser> = {}): Partial<FirebaseUser> => ({
   uid: 'test-uid-123',
   email: 'test@example.com',
   displayName: 'Test User',
@@ -129,7 +130,7 @@ describe('AuthStore', () => {
       const mockFirebaseUser = createMockFirebaseUser();
 
       act(() => {
-        useAuthStore.getState().setFirebaseUser(mockFirebaseUser as any);
+        useAuthStore.getState().setFirebaseUser(mockFirebaseUser as FirebaseUser);
       });
 
       const state = useAuthStore.getState();
@@ -145,7 +146,7 @@ describe('AuthStore', () => {
       const mockFirebaseUser = createMockFirebaseUser({ displayName: null });
 
       act(() => {
-        useAuthStore.getState().setFirebaseUser(mockFirebaseUser as any);
+        useAuthStore.getState().setFirebaseUser(mockFirebaseUser as FirebaseUser);
       });
 
       const state = useAuthStore.getState();
@@ -156,7 +157,7 @@ describe('AuthStore', () => {
       const mockFirebaseUser = createMockFirebaseUser({ email: null });
 
       act(() => {
-        useAuthStore.getState().setFirebaseUser(mockFirebaseUser as any);
+        useAuthStore.getState().setFirebaseUser(mockFirebaseUser as FirebaseUser);
       });
 
       const state = useAuthStore.getState();
@@ -167,7 +168,7 @@ describe('AuthStore', () => {
       // First set a user
       const mockFirebaseUser = createMockFirebaseUser();
       act(() => {
-        useAuthStore.getState().setFirebaseUser(mockFirebaseUser as any);
+        useAuthStore.getState().setFirebaseUser(mockFirebaseUser as FirebaseUser);
         useAuthStore.getState().setUserRole('admin');
       });
 
@@ -241,7 +242,7 @@ describe('AuthStore', () => {
       // First set a user
       const mockFirebaseUser = createMockFirebaseUser();
       act(() => {
-        useAuthStore.getState().setFirebaseUser(mockFirebaseUser as any);
+        useAuthStore.getState().setFirebaseUser(mockFirebaseUser as FirebaseUser);
         useAuthStore.getState().setUserRole('admin');
       });
 
@@ -305,7 +306,7 @@ describe('AuthStore', () => {
       mockGetUserProfile.mockResolvedValue({ role: 'admin' });
 
       // Capture the callback passed to onAuthChange
-      let authCallback: ((user: any) => void) | undefined;
+      let authCallback: ((user: FirebaseUser | null) => void) | undefined;
       mockOnAuthChange.mockImplementation((callback) => {
         authCallback = callback;
         return vi.fn();
@@ -332,12 +333,12 @@ describe('AuthStore', () => {
       // First set a user
       const mockFirebaseUser = createMockFirebaseUser();
       act(() => {
-        useAuthStore.getState().setFirebaseUser(mockFirebaseUser as any);
+        useAuthStore.getState().setFirebaseUser(mockFirebaseUser as FirebaseUser);
         useAuthStore.getState().setUserRole('admin');
       });
 
       // Capture the callback
-      let authCallback: ((user: any) => void) | undefined;
+      let authCallback: ((user: FirebaseUser | null) => void) | undefined;
       mockOnAuthChange.mockImplementation((callback) => {
         authCallback = callback;
         return vi.fn();

@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // Mock Firebase module before importing component
@@ -72,7 +72,8 @@ describe('VehicleForm', () => {
 
       render(
         <VehicleForm
-          vehicle={existingVehicle as any}
+          // @ts-expect-error - mock object for testing
+          vehicle={existingVehicle}
           onSubmit={mockOnSubmit}
           onCancel={mockOnCancel}
         />
@@ -239,7 +240,8 @@ describe('VehicleForm', () => {
     it('pre-populates plate field', () => {
       render(
         <VehicleForm
-          vehicle={existingVehicle as any}
+          // @ts-expect-error - mock object for testing
+          vehicle={existingVehicle}
           onSubmit={mockOnSubmit}
           onCancel={mockOnCancel}
         />
@@ -252,7 +254,8 @@ describe('VehicleForm', () => {
     it('pre-populates brand field', () => {
       render(
         <VehicleForm
-          vehicle={existingVehicle as any}
+          // @ts-expect-error - mock object for testing
+          vehicle={existingVehicle}
           onSubmit={mockOnSubmit}
           onCancel={mockOnCancel}
         />
@@ -265,7 +268,8 @@ describe('VehicleForm', () => {
     it('pre-populates vehicle type dropdown', () => {
       render(
         <VehicleForm
-          vehicle={existingVehicle as any}
+          // @ts-expect-error - mock object for testing
+          vehicle={existingVehicle}
           onSubmit={mockOnSubmit}
           onCancel={mockOnCancel}
         />
@@ -280,7 +284,8 @@ describe('VehicleForm', () => {
     it('pre-populates checkboxes', () => {
       render(
         <VehicleForm
-          vehicle={existingVehicle as any}
+          // @ts-expect-error - mock object for testing
+          vehicle={existingVehicle}
           onSubmit={mockOnSubmit}
           onCancel={mockOnCancel}
         />

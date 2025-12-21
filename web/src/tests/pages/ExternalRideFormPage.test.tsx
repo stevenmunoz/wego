@@ -8,6 +8,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import type { Driver } from '@/features/external-rides/types';
+import type { Timestamp } from 'firebase/firestore';
 
 // Mock Firebase config first
 vi.mock('@/core/firebase/config', () => ({
@@ -63,7 +64,7 @@ const createMockDriver = (overrides: Partial<Driver> = {}): Driver => ({
   name: 'Juan Pérez',
   email: 'juan@example.com',
   is_active: true,
-  created_at: { toDate: () => new Date('2024-01-01') } as any,
+  created_at: { toDate: () => new Date('2024-01-01') } as Timestamp,
   phone: '+57 310 123 4567',
   unique_slug: 'juan-perez',
   ...overrides,
