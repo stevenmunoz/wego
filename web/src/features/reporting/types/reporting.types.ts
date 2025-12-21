@@ -64,6 +64,27 @@ export interface SourceBreakdown {
   };
 }
 
+// Vehicle finance breakdowns
+export interface IncomeByTypeBreakdown {
+  weekly_payment: number;
+  tip_share: number;
+  bonus: number;
+  other: number;
+}
+
+export interface ExpensesByCategoryBreakdown {
+  fuel: number;
+  maintenance: number;
+  insurance_soat: number;
+  tecnomecanica: number;
+  taxes: number;
+  fines: number;
+  parking: number;
+  car_wash: number;
+  accessories: number;
+  other: number;
+}
+
 export interface DailyTrend {
   date: string; // YYYY-MM-DD format
   totalRides: number;
@@ -113,12 +134,23 @@ export interface PaymentMethodBreakdown {
 export type PeakHoursMatrix = number[][];
 
 export interface ReportingAggregations {
-  // Summary metrics
+  // Summary metrics (from rides)
   totalRides: number;
   completedRides: number;
-  totalRevenue: number;
+  totalRevenue: number; // Platform-reported revenue from rides (total_received)
+  totalPaid: number; // Total paid by passengers (total_paid)
   totalCommissions: number;
   averagePerRide: number;
+  averageRidesPerDay: number; // Average rides per day in the period
+
+  // Vehicle finance metrics (from /finances)
+  totalVehicleIncome: number; // Actual income received
+  totalVehicleExpenses: number;
+  netProfit: number;
+
+  // Vehicle finance breakdown for charts
+  incomeByType: IncomeByTypeBreakdown;
+  expensesByCategory: ExpensesByCategoryBreakdown;
 
   // Source breakdown
   bySource: SourceBreakdown;
