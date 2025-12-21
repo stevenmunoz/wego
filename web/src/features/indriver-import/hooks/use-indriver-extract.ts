@@ -5,6 +5,11 @@
 import { useState, useCallback } from 'react';
 import { indriverApi, downloadExport } from '../services/indriver-api';
 import { saveInDriverRides } from '@/core/firebase';
+import {
+  trackImportStarted,
+  trackExtractionCompleted,
+  trackImportCompleted,
+} from '@/core/analytics';
 import type {
   ExtractedInDriverRide,
   UploadedFile,
@@ -93,6 +98,11 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
     setIsExtracting(true);
     setError(null);
 
+    // Track import started
+    const fileTypes = [...new Set(files.map((f) => f.file.type.split('/')[1] || 'unknown'))];
+    trackImportStarted(files.length, fileTypes);
+    const startTime = Date.now();
+
     // Mark all files as processing
     setFiles((prev) => prev.map((f) => ({ ...f, status: 'processing' as const })));
 
@@ -117,6 +127,9 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
 
       setExtractedRides(response.results);
       setSummary(response.summary);
+
+      // Track extraction completed
+      trackExtractionCompleted(response.results.length, Date.now() - startTime);
 
       if (!response.success && response.errors.length > 0) {
         setError(`${response.errors.length} archivo(s) no pudieron ser procesados`);
@@ -169,6 +182,9 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
         const result = await saveInDriverRides(driverId, extractedRides, vehicleId);
 
         if (result.success) {
+          // Track import completed
+          trackImportCompleted(result.savedCount || extractedRides.length);
+
           // Clear rides after successful import
           setExtractedRides([]);
 

@@ -5,6 +5,7 @@
 import { type FC, type ReactNode, useMemo, useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/core/store/auth-store';
+import { trackLogout } from '@/core/analytics';
 import { useRemoteConfig } from '@/hooks/useRemoteConfig';
 import { Header } from '../Header';
 import { VersionModal } from '../VersionModal';
@@ -102,6 +103,7 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
   }, []);
 
   const handleLogout = async () => {
+    trackLogout();
     await logout();
     navigate('/login');
   };
