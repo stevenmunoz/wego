@@ -8,3 +8,4 @@ export { CancellationRate } from './CancellationRate';
 export { PeakHoursHeatmap } from './PeakHoursHeatmap';
 export { PaymentMethodChart } from './PaymentMethodChart';
 export { GoalsSettingsModal } from './GoalsSettingsModal';
+export { VehicleFinanceCharts } from './VehicleFinanceCharts';

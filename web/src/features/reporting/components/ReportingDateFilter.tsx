@@ -52,7 +52,7 @@ const filterOptions: FilterOptionConfig[] = [
   },
   {
     id: 'last7days',
-    label: 'Ultimos 7 dias',
+    label: 'Últimos 7 días',
     getRange: () => {
       const end = new Date();
       const start = new Date();
@@ -62,7 +62,7 @@ const filterOptions: FilterOptionConfig[] = [
   },
   {
     id: 'last30days',
-    label: 'Ultimos 30 dias',
+    label: 'Últimos 30 días',
     getRange: () => {
       const end = new Date();
       const start = new Date();
