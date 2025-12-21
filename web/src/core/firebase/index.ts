@@ -21,6 +21,7 @@ export {
   saveInDriverRides,
   getInDriverRides,
   updateInDriverRide,
+  reassignRideToDriver,
   getUserProfile,
   getAllUsers,
   createUserProfile,
