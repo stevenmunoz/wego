@@ -34,7 +34,12 @@ function App() {
   const hasRequestedPermission = useNotificationStore((state) => state.hasRequestedPermission);
 
   // Remote Config for maintenance mode
-  const { maintenanceMode, maintenanceTitle, maintenanceMessage, isLoading: isConfigLoading } = useRemoteConfig();
+  const {
+    maintenanceMode,
+    maintenanceTitle,
+    maintenanceMessage,
+    isLoading: isConfigLoading,
+  } = useRemoteConfig();
 
   useEffect(() => {
     // Initialize Firebase Auth listener
@@ -70,16 +75,18 @@ function App() {
       // Clear notifications when user is not admin
       setCurrentUserId(null);
     }
-  }, [user?.id, userRole, setCurrentUserId, initNotificationListener, requestPermission, hasRequestedPermission]);
+  }, [
+    user?.id,
+    userRole,
+    setCurrentUserId,
+    initNotificationListener,
+    requestPermission,
+    hasRequestedPermission,
+  ]);
 
   // Show maintenance mode if enabled (skip loading state to avoid flash)
   if (maintenanceMode && !isConfigLoading) {
-    return (
-      <MaintenanceMode
-        title={maintenanceTitle}
-        message={maintenanceMessage}
-      />
-    );
+    return <MaintenanceMode title={maintenanceTitle} message={maintenanceMessage} />;
   }
 
   return (

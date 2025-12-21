@@ -18,7 +18,8 @@ const DEFAULT_CONFIG = {
   // Emergency kill switch
   maintenance_mode: false,
   maintenance_title: 'Estamos en mantenimiento',
-  maintenance_message: 'Estamos realizando mejoras en la plataforma. Por favor, intenta de nuevo más tarde.',
+  maintenance_message:
+    'Estamos realizando mejoras en la plataforma. Por favor, intenta de nuevo más tarde.',
 
   // Dynamic content
   promo_banner_enabled: false,
@@ -71,7 +72,9 @@ export function getMaintenanceTitle(): string {
 
 export function getMaintenanceMessage(): string {
   if (!remoteConfig) return DEFAULT_CONFIG.maintenance_message;
-  return getValue(remoteConfig, 'maintenance_message').asString() || DEFAULT_CONFIG.maintenance_message;
+  return (
+    getValue(remoteConfig, 'maintenance_message').asString() || DEFAULT_CONFIG.maintenance_message
+  );
 }
 
 // ============================================================

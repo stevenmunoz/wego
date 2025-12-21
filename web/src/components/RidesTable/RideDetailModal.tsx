@@ -146,12 +146,7 @@ export const RideDetailModal: FC<RideDetailModalProps> = ({ ride, isOpen, onClos
       <div className="ride-detail-modal" onClick={(e) => e.stopPropagation()}>
         <div className="ride-detail-header">
           <h2 className="ride-detail-title">Detalles del viaje</h2>
-          <button
-            type="button"
-            className="ride-detail-close"
-            onClick={onClose}
-            aria-label="Cerrar"
-          >
+          <button type="button" className="ride-detail-close" onClick={onClose} aria-label="Cerrar">
             ×
           </button>
         </div>

@@ -74,10 +74,7 @@ export const useVehicleFinances = (
     () => options?.startDate ?? new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     [options?.startDate]
   );
-  const effectiveEndDate = useMemo(
-    () => options?.endDate ?? new Date(),
-    [options?.endDate]
-  );
+  const effectiveEndDate = useMemo(() => options?.endDate ?? new Date(), [options?.endDate]);
 
   const fetchData = useCallback(async () => {
     if (!ownerId || !vehicleId) {
@@ -131,7 +128,13 @@ export const useVehicleFinances = (
     if (!vehicleId || (rawIncome.length === 0 && rawExpenses.length === 0)) {
       return null;
     }
-    return calculatePLSummary(vehicleId, rawIncome, rawExpenses, effectiveStartDate, effectiveEndDate);
+    return calculatePLSummary(
+      vehicleId,
+      rawIncome,
+      rawExpenses,
+      effectiveStartDate,
+      effectiveEndDate
+    );
   }, [vehicleId, rawIncome, rawExpenses, effectiveStartDate, effectiveEndDate]);
 
   // Income CRUD

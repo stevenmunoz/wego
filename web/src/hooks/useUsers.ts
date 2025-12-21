@@ -185,10 +185,7 @@ export const useUsers = (): UseUsersReturn => {
   );
 
   const createDriver = useCallback(
-    async (
-      driverId: string,
-      data: { phone: string; unique_slug: string }
-    ): Promise<boolean> => {
+    async (driverId: string, data: { phone: string; unique_slug: string }): Promise<boolean> => {
       setError(null);
       try {
         const result = await createDriverProfile(driverId, data);

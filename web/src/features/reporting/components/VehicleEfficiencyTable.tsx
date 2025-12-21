@@ -33,10 +33,7 @@ const getUtilizationStatus = (percent: number): 'high' | 'medium' | 'low' => {
   return 'low';
 };
 
-export const VehicleEfficiencyTable: FC<VehicleEfficiencyTableProps> = ({
-  data,
-  isLoading,
-}) => {
+export const VehicleEfficiencyTable: FC<VehicleEfficiencyTableProps> = ({ data, isLoading }) => {
   const [sortField, setSortField] = useState<SortField>('rideCount');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
