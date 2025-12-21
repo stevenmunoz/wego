@@ -13,7 +13,6 @@ import { trackPageViewed, trackReportingDateFiltered, trackReportingRefreshed } 
 import {
   SummaryCards,
   ReportingDateFilter,
-  getInitialDateRange,
   SourceComparison,
   TrendChart,
   DriverEfficiencyTable,
@@ -25,6 +24,7 @@ import {
 } from '@/features/reporting/components';
 import { useReportingData, useReportingGoals } from '@/features/reporting/hooks';
 import type { ReportingDateFilterOption, DateRange } from '@/features/reporting/types';
+import { getInitialDateRange } from '@/features/reporting/utils';
 import './ReportingPage.css';
 
 export const ReportingPage: FC = () => {

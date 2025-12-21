@@ -1,5 +1,5 @@
 export { SummaryCards } from './SummaryCards';
-export { ReportingDateFilter, getInitialDateRange } from './ReportingDateFilter';
+export { ReportingDateFilter } from './ReportingDateFilter';
 export { SourceComparison } from './SourceComparison';
 export { TrendChart } from './TrendChart';
 export { DriverEfficiencyTable } from './DriverEfficiencyTable';
