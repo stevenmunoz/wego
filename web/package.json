@@ -12,6 +12,9 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report",
     "seed:driver": "npx tsx scripts/seed-test-driver.ts",
     "deploy:remoteconfig": "npx tsx scripts/deploy-remote-config.ts",
     "deploy:remoteconfig:dev": "npx tsx scripts/deploy-remote-config.ts wego-dev-a5a13",
@@ -34,6 +37,7 @@
     "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.1",

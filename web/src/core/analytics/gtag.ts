@@ -62,10 +62,7 @@ export function trackPageView(path: string, title?: string): void {
  * @param eventName - The name of the event
  * @param params - Optional event parameters
  */
-export function trackEvent(
-  eventName: string,
-  params?: Record<string, unknown>
-): void {
+export function trackEvent(eventName: string, params?: Record<string, unknown>): void {
   if (!window.gtag) return;
 
   window.gtag('event', eventName, params);

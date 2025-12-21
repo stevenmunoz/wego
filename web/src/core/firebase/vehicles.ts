@@ -224,7 +224,9 @@ export async function updateVehicle(
 /**
  * Delete a vehicle
  */
-export async function deleteVehicle(vehicleId: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteVehicle(
+  vehicleId: string
+): Promise<{ success: boolean; error?: string }> {
   try {
     const vehicleRef = doc(db, 'vehicles', vehicleId);
     await deleteDoc(vehicleRef);
@@ -291,7 +293,9 @@ export async function assignDriver(
 /**
  * Unassign the current driver from a vehicle
  */
-export async function unassignDriver(vehicleId: string): Promise<{ success: boolean; error?: string }> {
+export async function unassignDriver(
+  vehicleId: string
+): Promise<{ success: boolean; error?: string }> {
   try {
     const vehicleRef = doc(db, 'vehicles', vehicleId);
     await updateDoc(vehicleRef, {

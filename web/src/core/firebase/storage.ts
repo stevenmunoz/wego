@@ -18,12 +18,7 @@ const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 // Allowed document types (PDF and images)
-const ALLOWED_DOCUMENT_TYPES = [
-  'application/pdf',
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-];
+const ALLOWED_DOCUMENT_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
 /**
  * Validate image file before upload
@@ -228,10 +223,7 @@ export async function uploadVehicleDocument(
     const filename = `${documentType}_${timestamp}.${extension}`;
 
     // Create storage reference
-    const storageRef = ref(
-      firebaseStorage,
-      `vehicles/${vehicleId}/documents/${filename}`
-    );
+    const storageRef = ref(firebaseStorage, `vehicles/${vehicleId}/documents/${filename}`);
 
     // Upload file
     const snapshot = await uploadBytes(storageRef, file, {
@@ -284,10 +276,7 @@ export async function uploadExpenseReceipt(
     const filename = `receipt_${timestamp}.${extension}`;
 
     // Create storage reference
-    const storageRef = ref(
-      firebaseStorage,
-      `vehicles/${vehicleId}/receipts/${filename}`
-    );
+    const storageRef = ref(firebaseStorage, `vehicles/${vehicleId}/receipts/${filename}`);
 
     // Upload file
     const snapshot = await uploadBytes(storageRef, file, {

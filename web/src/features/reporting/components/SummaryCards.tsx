@@ -112,7 +112,9 @@ export const SummaryCards: FC<SummaryCardsProps> = ({ aggregations, isLoading })
           <span className="card-label">Ingresos Reales</span>
           <span className="card-value value-actual">{formatCurrency(totalVehicleIncome)}</span>
           <span className="card-detail">
-            {totalVehicleExpenses > 0 ? `gastos: ${formatCurrency(totalVehicleExpenses)}` : 'de vehículos'}
+            {totalVehicleExpenses > 0
+              ? `gastos: ${formatCurrency(totalVehicleExpenses)}`
+              : 'de vehículos'}
           </span>
         </div>
       </div>

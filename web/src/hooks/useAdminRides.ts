@@ -125,7 +125,12 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
         return;
       }
 
-      console.log('[useAdminRides] Found ride, driver_id:', ride.driver_id, '_docPath:', ride._docPath);
+      console.log(
+        '[useAdminRides] Found ride, driver_id:',
+        ride.driver_id,
+        '_docPath:',
+        ride._docPath
+      );
 
       // Check if driver_id is being changed
       const isDriverChange =
@@ -183,7 +188,10 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
           delete otherUpdates.driver_id;
 
           if (Object.keys(otherUpdates).length > 0) {
-            console.log('[useAdminRides] Applying additional updates to new location:', otherUpdates);
+            console.log(
+              '[useAdminRides] Applying additional updates to new location:',
+              otherUpdates
+            );
             const newDocPath = `drivers/${updates.driver_id}/driver_rides/${rideId}`;
             const updateResult = await updateInDriverRide(
               updates.driver_id,

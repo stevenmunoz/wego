@@ -32,7 +32,8 @@ const initialState: RemoteConfigState = {
   error: null,
   maintenanceMode: false,
   maintenanceTitle: 'Estamos en mantenimiento',
-  maintenanceMessage: 'Estamos realizando mejoras en la plataforma. Por favor, intenta de nuevo más tarde.',
+  maintenanceMessage:
+    'Estamos realizando mejoras en la plataforma. Por favor, intenta de nuevo más tarde.',
   promoBannerEnabled: false,
   promoBannerText: '',
 };
