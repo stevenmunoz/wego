@@ -6,8 +6,10 @@ import { type FC, type ReactNode, useMemo, useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/core/store/auth-store';
 import { trackLogout } from '@/core/analytics';
+import { useRemoteConfig } from '@/hooks/useRemoteConfig';
 import { Header } from '../Header';
 import { VersionModal } from '../VersionModal';
+import { PromoBanner } from '../PromoBanner';
 import './DashboardLayout.css';
 
 // Get web version from build-time env (production) or will be fetched from version.json (dev)
@@ -45,6 +47,9 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
   const [backendVersion, setBackendVersion] = useState<string | null>(null);
   const [webVersion, setWebVersion] = useState<string>(buildVersion || 'loading...');
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
+
+  // Remote Config for promo banner
+  const { promoBannerEnabled, promoBannerText } = useRemoteConfig();
 
   const isAdmin = userRole === 'admin';
 
@@ -174,6 +179,9 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
 
       {/* Main Content Area */}
       <div className="main-area">
+        {/* Promo Banner */}
+        {promoBannerEnabled && <PromoBanner text={promoBannerText} />}
+
         {/* Header with notifications (admin only) */}
         {isAdmin && <Header />}
 
