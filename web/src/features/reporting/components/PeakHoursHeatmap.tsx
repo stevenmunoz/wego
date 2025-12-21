@@ -102,7 +102,9 @@ export const PeakHoursHeatmap: FC<PeakHoursHeatmapProps> = ({ data, isLoading })
             <tr>
               <th className="hour-header">Hora</th>
               {DAYS_SHORT.map((day) => (
-                <th key={day} className="day-header">{day}</th>
+                <th key={day} className="day-header">
+                  {day}
+                </th>
               ))}
             </tr>
           </thead>

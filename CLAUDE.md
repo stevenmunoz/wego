@@ -686,6 +686,11 @@ VITE_FIREBASE_APP_ID=<dev-app-id>
 | `DEV_API_URL` | Cloud Run URL for dev backend (set after first deploy) |
 | `PROD_API_URL` | Cloud Run URL for prod backend (set after first deploy) |
 
+#### Claude AI Code Review
+| Secret | Description |
+|--------|-------------|
+| `ANTHROPIC_API_KEY` | Anthropic API key for Claude code review |
+
 ### Service Account IAM Roles
 
 The service accounts used in `FIREBASE_SERVICE_ACCOUNT_DEV` and `FIREBASE_SERVICE_ACCOUNT_PROD` must have the following IAM roles in their respective GCP projects:
@@ -717,6 +722,59 @@ The dashboard displays an environment badge in the sidebar:
 const isDev = import.meta.env.VITE_FIREBASE_PROJECT_ID?.includes('dev');
 const envLabel = isDev ? 'DEV' : 'PROD';
 ```
+
+---
+
+## CI/CD Pipeline
+
+### Workflow Overview
+
+```
+PR Created/Updated
+       │
+       ▼
+┌──────────────────────────────────────────────────────┐
+│                    PARALLEL JOBS                      │
+├──────────────────────────────────────────────────────┤
+│  Web CI (web-ci.yml)     │  Backend CI (backend-ci.yml)
+│  ├─ Lint (ESLint)        │  ├─ Lint (ruff)
+│  ├─ Format (Prettier)    │  ├─ Type check (mypy)
+│  ├─ Type check (tsc)     │  ├─ Unit tests (pytest)
+│  ├─ Unit tests (Vitest)  │  └─ Integration tests
+│  ├─ Build                │
+│  └─ E2E tests (Playwright)
+│                          │
+├──────────────────────────────────────────────────────┤
+│              Claude AI Code Review                    │
+│  ├─ Code quality review (all PRs)                    │
+│  └─ Security review (PRs to main only)               │
+└──────────────────────────────────────────────────────┘
+       │
+       ▼ (on merge)
+┌──────────────────────────────────────────────────────┐
+│                   DEPLOYMENT                          │
+├──────────────────────────────────────────────────────┤
+│  develop → DEV environment                           │
+│  main    → PROD environment                          │
+└──────────────────────────────────────────────────────┘
+```
+
+### Claude AI Code Review
+
+The pipeline includes automated AI code review using Claude:
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `claude-review.yml` | PR opened/updated | Code quality, patterns, best practices |
+| `claude-review.yml` (security) | PR to main | Security vulnerabilities, auth issues |
+
+**Features:**
+- Automatic review comments on PRs
+- @claude mention support for interactive questions
+- WeGo-specific context from CLAUDE.md
+- Security-focused review for production deployments
+
+**To enable:** Add `ANTHROPIC_API_KEY` to repository secrets.
 
 ---
 
@@ -757,4 +815,4 @@ npm run db:studio    # Open Prisma Studio
 
 ---
 
-*Last updated: December 2024 - Added Vehicle Finance (P/L) feature documentation*
+*Last updated: December 2024 - Added Claude AI Code Review to CI/CD pipeline*

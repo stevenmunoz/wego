@@ -258,7 +258,9 @@ export const VehiclesTable: FC<VehiclesTableProps> = ({
                   </td>
                   <td className={`cell-document expiry-${tecnoStatus}`}>
                     <div className="document-cell">
-                      <span className="document-date">{formatDate(vehicle.tecnomecanica_expiry)}</span>
+                      <span className="document-date">
+                        {formatDate(vehicle.tecnomecanica_expiry)}
+                      </span>
                       {tecnoStatus === 'expired' && <span className="expiry-tag">Vencido</span>}
                       {tecnoStatus === 'warning' && (
                         <span className="expiry-tag warning">Por vencer</span>

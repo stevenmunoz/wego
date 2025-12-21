@@ -178,9 +178,7 @@ export const GoalsSettingsModal: FC<GoalsSettingsModalProps> = ({
             </div>
 
             <div className="form-group">
-              <label htmlFor="target-value">
-                Valor Objetivo {isRevenue && '(COP)'}
-              </label>
+              <label htmlFor="target-value">Valor Objetivo {isRevenue && '(COP)'}</label>
               <input
                 type="number"
                 id="target-value"

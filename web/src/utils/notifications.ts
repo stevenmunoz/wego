@@ -29,10 +29,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
  * @param title - Notification title
  * @param options - Notification options
  */
-export function showBrowserNotification(
-  title: string,
-  options?: NotificationOptions
-): void {
+export function showBrowserNotification(title: string, options?: NotificationOptions): void {
   if (!('Notification' in window)) {
     return;
   }
@@ -81,7 +78,10 @@ export async function playNotificationSound(): Promise<void> {
  */
 function playFallbackBeep(): void {
   try {
-    const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const audioContext = new (
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    )();
 
     // Create oscillator for the beep
     const oscillator = audioContext.createOscillator();

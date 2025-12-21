@@ -42,7 +42,17 @@ interface IncomeDoc {
 interface ExpenseDoc {
   amount: number;
   date: Timestamp;
-  category?: 'fuel' | 'maintenance' | 'insurance_soat' | 'tecnomecanica' | 'taxes' | 'fines' | 'parking' | 'car_wash' | 'accessories' | 'other';
+  category?:
+    | 'fuel'
+    | 'maintenance'
+    | 'insurance_soat'
+    | 'tecnomecanica'
+    | 'taxes'
+    | 'fines'
+    | 'parking'
+    | 'car_wash'
+    | 'accessories'
+    | 'other';
 }
 
 export function useReportingData(options: UseReportingDataOptions): UseReportingDataReturn {
@@ -65,8 +75,16 @@ export function useReportingData(options: UseReportingDataOptions): UseReporting
     totalExpenses: 0,
     incomeByType: { weekly_payment: 0, tip_share: 0, bonus: 0, other: 0 },
     expensesByCategory: {
-      fuel: 0, maintenance: 0, insurance_soat: 0, tecnomecanica: 0,
-      taxes: 0, fines: 0, parking: 0, car_wash: 0, accessories: 0, other: 0,
+      fuel: 0,
+      maintenance: 0,
+      insurance_soat: 0,
+      tecnomecanica: 0,
+      taxes: 0,
+      fines: 0,
+      parking: 0,
+      car_wash: 0,
+      accessories: 0,
+      other: 0,
     },
   });
 
@@ -138,73 +156,89 @@ export function useReportingData(options: UseReportingDataOptions): UseReporting
   }, []);
 
   // Fetch vehicle finances (income and expenses) with breakdown
-  const fetchVehicleFinances = useCallback(async (vehicleIds: string[], startDate: Date, endDate: Date): Promise<VehicleFinanceData> => {
-    let totalIncome = 0;
-    let totalExpenses = 0;
-    const incomeByType = {
-      weekly_payment: 0,
-      tip_share: 0,
-      bonus: 0,
-      other: 0,
-    };
-    const expensesByCategory = {
-      fuel: 0,
-      maintenance: 0,
-      insurance_soat: 0,
-      tecnomecanica: 0,
-      taxes: 0,
-      fines: 0,
-      parking: 0,
-      car_wash: 0,
-      accessories: 0,
-      other: 0,
-    };
-
-    const startTs = Timestamp.fromDate(startDate);
-    const endTs = Timestamp.fromDate(endDate);
-
-    try {
-      // Fetch income and expenses for all vehicles in parallel
-      const promises = vehicleIds.map(async (vehicleId) => {
-        // Fetch income
-        const incomeSnapshot = await getDocs(collection(db, 'vehicles', vehicleId, 'income'));
-        incomeSnapshot.docs.forEach((doc) => {
-          const data = doc.data() as IncomeDoc;
-          if (data.date && data.date.toMillis() >= startTs.toMillis() && data.date.toMillis() <= endTs.toMillis()) {
-            const amount = data.amount || 0;
-            totalIncome += amount;
-            const incomeType = data.type || 'other';
-            incomeByType[incomeType] = (incomeByType[incomeType] || 0) + amount;
-          }
-        });
-
-        // Fetch expenses
-        const expenseSnapshot = await getDocs(collection(db, 'vehicles', vehicleId, 'expenses'));
-        expenseSnapshot.docs.forEach((doc) => {
-          const data = doc.data() as ExpenseDoc;
-          if (data.date && data.date.toMillis() >= startTs.toMillis() && data.date.toMillis() <= endTs.toMillis()) {
-            const amount = data.amount || 0;
-            totalExpenses += amount;
-            const category = data.category || 'other';
-            expensesByCategory[category] = (expensesByCategory[category] || 0) + amount;
-          }
-        });
-      });
-
-      await Promise.all(promises);
-
-      console.log('[useReportingData] Vehicle finances:', { totalIncome, totalExpenses, incomeByType, expensesByCategory });
-      return { totalIncome, totalExpenses, incomeByType, expensesByCategory };
-    } catch (err) {
-      console.error('[useReportingData] Error fetching vehicle finances:', err);
-      return {
-        totalIncome: 0,
-        totalExpenses: 0,
-        incomeByType,
-        expensesByCategory,
+  const fetchVehicleFinances = useCallback(
+    async (vehicleIds: string[], startDate: Date, endDate: Date): Promise<VehicleFinanceData> => {
+      let totalIncome = 0;
+      let totalExpenses = 0;
+      const incomeByType = {
+        weekly_payment: 0,
+        tip_share: 0,
+        bonus: 0,
+        other: 0,
       };
-    }
-  }, []);
+      const expensesByCategory = {
+        fuel: 0,
+        maintenance: 0,
+        insurance_soat: 0,
+        tecnomecanica: 0,
+        taxes: 0,
+        fines: 0,
+        parking: 0,
+        car_wash: 0,
+        accessories: 0,
+        other: 0,
+      };
+
+      const startTs = Timestamp.fromDate(startDate);
+      const endTs = Timestamp.fromDate(endDate);
+
+      try {
+        // Fetch income and expenses for all vehicles in parallel
+        const promises = vehicleIds.map(async (vehicleId) => {
+          // Fetch income
+          const incomeSnapshot = await getDocs(collection(db, 'vehicles', vehicleId, 'income'));
+          incomeSnapshot.docs.forEach((doc) => {
+            const data = doc.data() as IncomeDoc;
+            if (
+              data.date &&
+              data.date.toMillis() >= startTs.toMillis() &&
+              data.date.toMillis() <= endTs.toMillis()
+            ) {
+              const amount = data.amount || 0;
+              totalIncome += amount;
+              const incomeType = data.type || 'other';
+              incomeByType[incomeType] = (incomeByType[incomeType] || 0) + amount;
+            }
+          });
+
+          // Fetch expenses
+          const expenseSnapshot = await getDocs(collection(db, 'vehicles', vehicleId, 'expenses'));
+          expenseSnapshot.docs.forEach((doc) => {
+            const data = doc.data() as ExpenseDoc;
+            if (
+              data.date &&
+              data.date.toMillis() >= startTs.toMillis() &&
+              data.date.toMillis() <= endTs.toMillis()
+            ) {
+              const amount = data.amount || 0;
+              totalExpenses += amount;
+              const category = data.category || 'other';
+              expensesByCategory[category] = (expensesByCategory[category] || 0) + amount;
+            }
+          });
+        });
+
+        await Promise.all(promises);
+
+        console.log('[useReportingData] Vehicle finances:', {
+          totalIncome,
+          totalExpenses,
+          incomeByType,
+          expensesByCategory,
+        });
+        return { totalIncome, totalExpenses, incomeByType, expensesByCategory };
+      } catch (err) {
+        console.error('[useReportingData] Error fetching vehicle finances:', err);
+        return {
+          totalIncome: 0,
+          totalExpenses: 0,
+          incomeByType,
+          expensesByCategory,
+        };
+      }
+    },
+    []
+  );
 
   // Process rides and calculate aggregations
   const processRides = useCallback(
@@ -239,11 +273,7 @@ export function useReportingData(options: UseReportingDataOptions): UseReporting
       const { vehicleIds } = await fetchLookupData();
 
       // Fetch vehicle finances for the date range
-      const finances = await fetchVehicleFinances(
-        vehicleIds,
-        options.startDate,
-        options.endDate
-      );
+      const finances = await fetchVehicleFinances(vehicleIds, options.startDate, options.endDate);
       vehicleFinancesRef.current = finances;
 
       // Build the query
@@ -263,11 +293,7 @@ export function useReportingData(options: UseReportingDataOptions): UseReporting
       const unsubscribe = onSnapshot(
         q,
         (snapshot) => {
-          console.log(
-            '[useReportingData] Received',
-            snapshot.docs.length,
-            'rides'
-          );
+          console.log('[useReportingData] Received', snapshot.docs.length, 'rides');
 
           const rides: FirestoreInDriverRide[] = snapshot.docs.map((docSnap) => {
             const data = docSnap.data() as FirestoreInDriverRide;
@@ -301,7 +327,14 @@ export function useReportingData(options: UseReportingDataOptions): UseReporting
       setIsLoading(false);
       setIsRealtime(false);
     }
-  }, [isAdmin, options.startDate, options.endDate, fetchLookupData, fetchVehicleFinances, processRides]);
+  }, [
+    isAdmin,
+    options.startDate,
+    options.endDate,
+    fetchLookupData,
+    fetchVehicleFinances,
+    processRides,
+  ]);
 
   // Manual refetch function
   const refetch = useCallback(() => {

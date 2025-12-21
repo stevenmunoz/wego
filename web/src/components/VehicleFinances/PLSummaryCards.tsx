@@ -43,7 +43,9 @@ export const PLSummaryCards: FC<PLSummaryCardsProps> = ({ summary }) => {
           <div className="card-content">
             <span className="card-label">Total Ingresos</span>
             <span className="card-value value-income">{formatCurrency(summary.total_income)}</span>
-            <span className="card-detail">{summary.income_count} registro{summary.income_count !== 1 ? 's' : ''}</span>
+            <span className="card-detail">
+              {summary.income_count} registro{summary.income_count !== 1 ? 's' : ''}
+            </span>
           </div>
         </div>
 
@@ -52,8 +54,12 @@ export const PLSummaryCards: FC<PLSummaryCardsProps> = ({ summary }) => {
           <div className="card-icon">📉</div>
           <div className="card-content">
             <span className="card-label">Total Gastos</span>
-            <span className="card-value value-expense">{formatCurrency(summary.total_expenses)}</span>
-            <span className="card-detail">{summary.expense_count} registro{summary.expense_count !== 1 ? 's' : ''}</span>
+            <span className="card-value value-expense">
+              {formatCurrency(summary.total_expenses)}
+            </span>
+            <span className="card-detail">
+              {summary.expense_count} registro{summary.expense_count !== 1 ? 's' : ''}
+            </span>
           </div>
         </div>
 
@@ -65,9 +71,7 @@ export const PLSummaryCards: FC<PLSummaryCardsProps> = ({ summary }) => {
             <span className={`card-value ${isProfitable ? 'value-profit' : 'value-loss'}`}>
               {formatCurrency(summary.net_profit)}
             </span>
-            <span className="card-detail">
-              {isProfitable ? 'Utilidad' : 'Pérdida'}
-            </span>
+            <span className="card-detail">{isProfitable ? 'Utilidad' : 'Pérdida'}</span>
           </div>
         </div>
 
@@ -81,7 +85,9 @@ export const PLSummaryCards: FC<PLSummaryCardsProps> = ({ summary }) => {
             </span>
             <span className="card-detail">
               {summary.total_income > 0
-                ? (isProfitable ? 'Rentable' : 'No rentable')
+                ? isProfitable
+                  ? 'Rentable'
+                  : 'No rentable'
                 : 'Sin ingresos'}
             </span>
           </div>

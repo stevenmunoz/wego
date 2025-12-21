@@ -421,8 +421,16 @@ export function aggregateAllData(
   // Default breakdowns
   const defaultIncomeByType = { weekly_payment: 0, tip_share: 0, bonus: 0, other: 0 };
   const defaultExpensesByCategory = {
-    fuel: 0, maintenance: 0, insurance_soat: 0, tecnomecanica: 0,
-    taxes: 0, fines: 0, parking: 0, car_wash: 0, accessories: 0, other: 0,
+    fuel: 0,
+    maintenance: 0,
+    insurance_soat: 0,
+    tecnomecanica: 0,
+    taxes: 0,
+    fines: 0,
+    parking: 0,
+    car_wash: 0,
+    accessories: 0,
+    other: 0,
   };
 
   // Calculate average rides per day

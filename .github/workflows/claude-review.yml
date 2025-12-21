@@ -1,0 +1,116 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  issue_comment:
+    types: [created]
+
+jobs:
+  # ============================================================================
+  # Claude AI Code Review
+  # Provides intelligent code review comments on PRs
+  # ============================================================================
+  claude-review:
+    name: Claude Code Review
+    runs-on: ubuntu-latest
+    # Only run on PRs or when @claude is mentioned in comments
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude'))
+
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Code Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Custom prompt for WeGo-specific review
+          prompt: |
+            Review this pull request for WeGo, a transportation platform.
+
+            Focus your review on:
+            1. **Security**: Firebase/Firestore security rules, auth guards, data validation
+            2. **TypeScript**: Strict typing, no `any` types, proper interfaces
+            3. **React Best Practices**: Hooks usage, component structure, state management
+            4. **Code Quality**: DRY principles, clear naming, proper error handling
+            5. **Design System**: Adherence to WeGo design system in design-system/
+            6. **i18n**: User-facing copy must be in Spanish (Colombia)
+            7. **Testing**: Adequate test coverage for new code
+
+            Be concise and actionable. Prioritize critical issues over style preferences.
+            Reference the CLAUDE.md file for project-specific conventions.
+
+  # ============================================================================
+  # Claude Security Review (runs on PRs to main or develop)
+  # Deep security analysis - shift left to catch issues early
+  # ============================================================================
+  security-review:
+    name: Claude Security Review
+    runs-on: ubuntu-latest
+    # Run on PRs targeting main or develop branches
+    if: |
+      github.event_name == 'pull_request' &&
+      (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'develop')
+
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Security Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Perform a comprehensive SECURITY REVIEW of this pull request for WeGo.
+
+            Focus on WeGo-specific security concerns:
+
+            **Firebase/Firestore Security:**
+            - Firestore security rules properly restrict access
+            - No sensitive data exposed in client-side code
+            - Auth guards on all protected routes
+            - Owner-based access control for vehicle finance data
+
+            **Authentication & Authorization:**
+            - JWT token handling
+            - Password hashing (bcrypt/passlib)
+            - Session management
+            - Role-based access control (UserRole enum)
+
+            **Data Validation:**
+            - Zod schemas at API boundaries
+            - Input sanitization
+            - No SQL/NoSQL injection vectors
+            - XSS prevention in React components
+
+            **Secrets & Configuration:**
+            - No hardcoded API keys or secrets
+            - Environment variables properly used
+            - Firebase config not exposing sensitive data
+
+            **Payment & Financial Data:**
+            - Vehicle finance data properly protected
+            - Transaction handling secure
+            - Commission calculations validated
+
+            Flag any CRITICAL, HIGH, MEDIUM, or LOW severity issues.
+            Provide specific file:line references and remediation steps.

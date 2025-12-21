@@ -139,18 +139,12 @@ export const DriverEfficiencyTable: FC<DriverEfficiencyTableProps> = ({
               <th onClick={() => handleSort('avgPerRide')} className="sortable align-right">
                 Prom/Viaje {getSortIcon('avgPerRide')}
               </th>
-              {goal && (
-                <th className="align-center">vs Meta</th>
-              )}
+              {goal && <th className="align-center">vs Meta</th>}
             </tr>
           </thead>
           <tbody>
             {sortedData.map((driver) => {
-              const achievement = calculateGoalAchievement(
-                driver.rideCount,
-                driver.revenue,
-                goal
-              );
+              const achievement = calculateGoalAchievement(driver.rideCount, driver.revenue, goal);
 
               return (
                 <tr key={driver.driverId}>

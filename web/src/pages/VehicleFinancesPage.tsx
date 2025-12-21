@@ -55,13 +55,12 @@ export const VehicleFinancesPage = () => {
   const vehiclesLoading = isAdmin ? allVehiclesHook.isLoading : driverVehiclesHook.isLoading;
 
   // Get the first vehicle if none selected
-  const effectiveVehicleId = selectedVehicleId || (vehicles.length > 0 ? vehicles[0].id : undefined);
+  const effectiveVehicleId =
+    selectedVehicleId || (vehicles.length > 0 ? vehicles[0].id : undefined);
 
   // Get owner ID from selected vehicle (for admin), or use current user
   const selectedVehicle = vehicles.find((v) => v.id === effectiveVehicleId);
-  const effectiveOwnerId = isAdmin && selectedVehicle
-    ? selectedVehicle.owner_id
-    : user?.id;
+  const effectiveOwnerId = isAdmin && selectedVehicle ? selectedVehicle.owner_id : user?.id;
 
   // Fetch finances for selected vehicle
   const {
@@ -117,9 +116,13 @@ export const VehicleFinancesPage = () => {
       // For admins, leave it empty since they're recording on behalf of drivers
       const incomeData: VehicleIncomeCreateInput = {
         ...data,
-        driver_name: !isAdmin ? (data.driver_name || user?.full_name || undefined) : undefined,
+        driver_name: !isAdmin ? data.driver_name || user?.full_name || undefined : undefined,
       };
-      console.log('[VehicleFinancesPage] Adding income:', { incomeData, effectiveOwnerId, effectiveVehicleId });
+      console.log('[VehicleFinancesPage] Adding income:', {
+        incomeData,
+        effectiveOwnerId,
+        effectiveVehicleId,
+      });
       const result = await addIncome(incomeData);
       console.log('[VehicleFinancesPage] Add income result:', result);
       if (result.success) {
@@ -188,7 +191,11 @@ export const VehicleFinancesPage = () => {
         ...(receiptUrl && { receipt_url: receiptUrl }),
       };
 
-      console.log('[VehicleFinancesPage] Adding expense:', { finalExpenseData, effectiveOwnerId, effectiveVehicleId });
+      console.log('[VehicleFinancesPage] Adding expense:', {
+        finalExpenseData,
+        effectiveOwnerId,
+        effectiveVehicleId,
+      });
       const result = await addExpense(finalExpenseData);
       console.log('[VehicleFinancesPage] Add expense result:', result);
       if (result.success) {
@@ -341,32 +348,16 @@ export const VehicleFinancesPage = () => {
 
           {/* Date Presets */}
           <div className="date-presets">
-            <button
-              type="button"
-              className="btn-preset"
-              onClick={() => setDatePreset('week')}
-            >
+            <button type="button" className="btn-preset" onClick={() => setDatePreset('week')}>
               7 días
             </button>
-            <button
-              type="button"
-              className="btn-preset"
-              onClick={() => setDatePreset('month')}
-            >
+            <button type="button" className="btn-preset" onClick={() => setDatePreset('month')}>
               30 días
             </button>
-            <button
-              type="button"
-              className="btn-preset"
-              onClick={() => setDatePreset('quarter')}
-            >
+            <button type="button" className="btn-preset" onClick={() => setDatePreset('quarter')}>
               3 meses
             </button>
-            <button
-              type="button"
-              className="btn-preset"
-              onClick={() => setDatePreset('year')}
-            >
+            <button type="button" className="btn-preset" onClick={() => setDatePreset('year')}>
               1 año
             </button>
           </div>

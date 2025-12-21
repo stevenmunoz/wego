@@ -548,7 +548,11 @@ export const VehicleForm: FC<VehicleFormProps> = ({
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="tecnomecanica_expiry">Vencimiento</label>
-                <input id="tecnomecanica_expiry" type="date" {...register('tecnomecanica_expiry')} />
+                <input
+                  id="tecnomecanica_expiry"
+                  type="date"
+                  {...register('tecnomecanica_expiry')}
+                />
               </div>
               <div className="form-group">
                 <label>Documento</label>

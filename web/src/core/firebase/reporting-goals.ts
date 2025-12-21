@@ -20,11 +20,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { db } from './firestore';
-import type {
-  ReportingGoal,
-  ReportingGoalInput,
-  GoalTargetType,
-} from '@/features/reporting/types';
+import type { ReportingGoal, ReportingGoalInput, GoalTargetType } from '@/features/reporting/types';
 
 // ============ Firestore Types ============
 
@@ -42,15 +38,9 @@ export interface FirestoreReportingGoal {
 /**
  * Get all reporting goals for an owner (admin)
  */
-export async function getReportingGoals(
-  ownerId: string
-): Promise<ReportingGoal[]> {
+export async function getReportingGoals(ownerId: string): Promise<ReportingGoal[]> {
   const goalsCollection = collection(db, 'reporting_goals');
-  const q = query(
-    goalsCollection,
-    where('owner_id', '==', ownerId),
-    orderBy('created_at', 'desc')
-  );
+  const q = query(goalsCollection, where('owner_id', '==', ownerId), orderBy('created_at', 'desc'));
 
   const snapshot = await getDocs(q);
   return snapshot.docs.map((doc) => doc.data() as ReportingGoal);
