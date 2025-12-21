@@ -94,5 +94,5 @@ export async function waitForLoadingToFinish() {
   });
 }
 
-// Import vi for mock functions
-import { vi } from 'vitest';
+// Import vi and expect for mock functions and assertions
+import { vi, expect } from 'vitest';

@@ -216,7 +216,7 @@ describe('calculateTotals', () => {
       distancia: { value: 5, unit: 'km' },
       duracion: { value: 15, unit: 'min' },
       confidence: 0.9,
-    } as ExtractedInDriverRide,
+    } as unknown as ExtractedInDriverRide,
     {
       id: '2',
       date: '2024-01-15',
@@ -231,7 +231,7 @@ describe('calculateTotals', () => {
       distancia: { value: 4, unit: 'km' },
       duracion: { value: 12, unit: 'min' },
       confidence: 0.85,
-    } as ExtractedInDriverRide,
+    } as unknown as ExtractedInDriverRide,
     {
       id: '3',
       date: '2024-01-15',
@@ -246,7 +246,7 @@ describe('calculateTotals', () => {
       distancia: null,
       duracion: null,
       confidence: 0.7,
-    } as ExtractedInDriverRide,
+    } as unknown as ExtractedInDriverRide,
   ];
 
   it('calculates correct total ingresos from completed rides', () => {

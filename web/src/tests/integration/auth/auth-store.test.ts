@@ -7,6 +7,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act } from '@testing-library/react';
 import type { User as FirebaseUser } from 'firebase/auth';
+import { UserRole, UserStatus } from '@/core/types';
 
 // Use vi.hoisted to avoid "Cannot access before initialization" error
 const { mockLogOut, mockOnAuthChange, mockGetUserProfile } = vi.hoisted(() => ({
@@ -80,8 +81,8 @@ describe('AuthStore', () => {
         id: 'user-123',
         email: 'test@example.com',
         full_name: 'Test User',
-        role: 'user' as const,
-        status: 'active' as const,
+        role: UserRole.USER,
+        status: UserStatus.ACTIVE,
         is_verified: true,
         created_at: '2024-01-01',
         updated_at: '2024-01-01',
@@ -103,8 +104,8 @@ describe('AuthStore', () => {
         id: 'user-123',
         email: 'test@example.com',
         full_name: 'Test User',
-        role: 'user' as const,
-        status: 'active' as const,
+        role: UserRole.USER,
+        status: UserStatus.ACTIVE,
         is_verified: true,
         created_at: '2024-01-01',
         updated_at: '2024-01-01',
@@ -319,7 +320,7 @@ describe('AuthStore', () => {
       // Simulate auth state change
       await act(async () => {
         if (authCallback) {
-          await authCallback(mockFirebaseUser);
+          await authCallback(mockFirebaseUser as FirebaseUser);
         }
       });
 

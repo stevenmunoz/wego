@@ -21,7 +21,7 @@ vi.mock('@/core/firebase/firestore', () => ({
 
 // Mock the hooks and components
 const mockUseDriverBySlug = vi.hoisted(() =>
-  vi.fn(() => ({
+  vi.fn((): { driver: Driver | null; isLoading: boolean; error: string | null; refetch: () => void } => ({
     driver: null,
     isLoading: true,
     error: null,
