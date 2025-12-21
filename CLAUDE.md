@@ -594,6 +594,7 @@ export const useRidesStore = create<RidesState>((set) => ({
 | `web/src/hooks/useVehicleFinances.ts` | React hook for vehicle finances |
 | `web/firestore.rules` | Firestore security rules |
 | `web/firestore.indexes.json` | Firestore composite indexes |
+| `web/src/core/analytics/gtag.ts` | Google Analytics 4 initialization and tracking |
 
 ---
 
@@ -669,7 +670,9 @@ VITE_FIREBASE_APP_ID=<dev-app-id>
 | `DEV_FIREBASE_STORAGE_BUCKET` | Firebase storage bucket for dev |
 | `DEV_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID for dev |
 | `DEV_FIREBASE_APP_ID` | Firebase app ID for dev |
+| `DEV_GA4_MEASUREMENT_ID` | Google Analytics 4 measurement ID for dev (e.g., G-XXXXXXXXXX) |
 | `PROD_FIREBASE_*` | Same variables for production |
+| `PROD_GA4_MEASUREMENT_ID` | Google Analytics 4 measurement ID for prod |
 | `FIREBASE_SERVICE_ACCOUNT_DEV` | Service account JSON for dev deployment |
 | `FIREBASE_SERVICE_ACCOUNT_PROD` | Service account JSON for prod deployment |
 

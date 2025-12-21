@@ -8,6 +8,7 @@ import { FirebaseError } from 'firebase/app';
 import { signIn } from '@/core/firebase';
 import { useAuthStore } from '@/core/store/auth-store';
 import { LoginRequest } from '@/core/types';
+import { trackLogin } from '@/core/analytics';
 
 /**
  * Map Firebase auth errors to user-friendly Spanish messages
@@ -43,6 +44,7 @@ export const useLogin = () => {
       return userCredential.user;
     },
     onSuccess: (user) => {
+      trackLogin('email');
       setFirebaseUser(user);
       navigate('/dashboard');
     },
