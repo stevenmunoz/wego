@@ -377,9 +377,7 @@ describe('ExternalRideFormPage', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(
-            'Wizard for Juan Carlos Antonio María de los Ángeles Rodríguez López'
-          )
+          screen.getByText('Wizard for Juan Carlos Antonio María de los Ángeles Rodríguez López')
         ).toBeInTheDocument();
       });
     });

@@ -127,9 +127,7 @@ describe('VehicleForm', () => {
     });
 
     it('shows "Guardando..." when submitting', () => {
-      render(
-        <VehicleForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} isSubmitting={true} />
-      );
+      render(<VehicleForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} isSubmitting={true} />);
 
       expect(screen.getByRole('button', { name: /guardando/i })).toBeInTheDocument();
     });
@@ -185,27 +183,21 @@ describe('VehicleForm', () => {
     it('sets default vehicle type to car', () => {
       render(<VehicleForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
-      const vehicleTypeSelect = screen.getByLabelText(
-        /tipo de vehículo/i
-      ) as HTMLSelectElement;
+      const vehicleTypeSelect = screen.getByLabelText(/tipo de vehículo/i) as HTMLSelectElement;
       expect(vehicleTypeSelect.value).toBe('car');
     });
 
     it('sets default fuel type to gasoline', () => {
       render(<VehicleForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
-      const fuelTypeSelect = screen.getByLabelText(
-        /tipo de combustible/i
-      ) as HTMLSelectElement;
+      const fuelTypeSelect = screen.getByLabelText(/tipo de combustible/i) as HTMLSelectElement;
       expect(fuelTypeSelect.value).toBe('gasoline');
     });
 
     it('sets default passenger capacity to 4', () => {
       render(<VehicleForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
-      const passengerInput = screen.getByLabelText(
-        /capacidad de pasajeros/i
-      ) as HTMLInputElement;
+      const passengerInput = screen.getByLabelText(/capacidad de pasajeros/i) as HTMLInputElement;
       expect(passengerInput.value).toBe('4');
     });
   });
@@ -275,9 +267,7 @@ describe('VehicleForm', () => {
         />
       );
 
-      const vehicleTypeSelect = screen.getByLabelText(
-        /tipo de vehículo/i
-      ) as HTMLSelectElement;
+      const vehicleTypeSelect = screen.getByLabelText(/tipo de vehículo/i) as HTMLSelectElement;
       expect(vehicleTypeSelect.value).toBe('suv');
     });
 
@@ -291,12 +281,10 @@ describe('VehicleForm', () => {
         />
       );
 
-      expect(
-        (screen.getByLabelText(/acepta mascotas/i) as HTMLInputElement).checked
-      ).toBe(true);
-      expect(
-        (screen.getByLabelText(/acepta sillas de ruedas/i) as HTMLInputElement).checked
-      ).toBe(true);
+      expect((screen.getByLabelText(/acepta mascotas/i) as HTMLInputElement).checked).toBe(true);
+      expect((screen.getByLabelText(/acepta sillas de ruedas/i) as HTMLInputElement).checked).toBe(
+        true
+      );
     });
   });
 });

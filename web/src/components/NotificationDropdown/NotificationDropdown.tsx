@@ -22,9 +22,7 @@ export const NotificationDropdown: FC<NotificationDropdownProps> = ({ onClose })
   const error = useNotificationStore((state) => state.error);
 
   // Count read notifications
-  const readCount = notifications.filter((n) =>
-    n.read_by.includes(currentUserId || '')
-  ).length;
+  const readCount = notifications.filter((n) => n.read_by.includes(currentUserId || '')).length;
 
   const handleMarkAllRead = () => {
     markAllAsRead();
@@ -39,11 +37,7 @@ export const NotificationDropdown: FC<NotificationDropdownProps> = ({ onClose })
       <div className="notification-dropdown-header">
         <h3 className="notification-dropdown-title">Notificaciones</h3>
         {unreadCount > 0 && (
-          <button
-            className="mark-all-read-button"
-            onClick={handleMarkAllRead}
-            type="button"
-          >
+          <button className="mark-all-read-button" onClick={handleMarkAllRead} type="button">
             Marcar todas como leídas
           </button>
         )}
@@ -81,11 +75,7 @@ export const NotificationDropdown: FC<NotificationDropdownProps> = ({ onClose })
       {/* Footer with clear button */}
       {readCount > 0 && !isLoading && !error && (
         <div className="notification-dropdown-footer">
-          <button
-            className="clear-read-button"
-            onClick={handleClearRead}
-            type="button"
-          >
+          <button className="clear-read-button" onClick={handleClearRead} type="button">
             Limpiar leídas ({readCount})
           </button>
         </div>

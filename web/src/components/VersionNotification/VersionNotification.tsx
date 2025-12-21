@@ -35,9 +35,7 @@ export const VersionNotification: FC = () => {
             <path d="M16 21h5v-5" />
           </svg>
         </span>
-        <span className="version-notification-message">
-          Nueva versión disponible
-        </span>
+        <span className="version-notification-message">Nueva versión disponible</span>
       </div>
       <div className="version-notification-actions">
         <button

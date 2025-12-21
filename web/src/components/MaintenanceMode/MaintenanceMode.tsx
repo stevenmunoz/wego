@@ -44,9 +44,7 @@ export const MaintenanceMode: FC<MaintenanceModeProps> = ({ title, message }) =>
         </div>
 
         {/* Footer */}
-        <p className="maintenance-mode-footer">
-          Gracias por tu paciencia
-        </p>
+        <p className="maintenance-mode-footer">Gracias por tu paciencia</p>
       </div>
     </div>
   );

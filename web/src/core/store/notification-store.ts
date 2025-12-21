@@ -88,9 +88,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       // Optimistic update
       set({
         notifications: notifications.map((n) =>
-          n.id === notificationId
-            ? { ...n, read_by: [...n.read_by, currentUserId] }
-            : n
+          n.id === notificationId ? { ...n, read_by: [...n.read_by, currentUserId] } : n
         ),
         unreadCount: Math.max(0, get().unreadCount - 1),
       });
@@ -134,9 +132,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     if (!currentUserId) return;
 
     try {
-      const unreadNotifications = notifications.filter(
-        (n) => !n.read_by.includes(currentUserId)
-      );
+      const unreadNotifications = notifications.filter((n) => !n.read_by.includes(currentUserId));
 
       if (unreadNotifications.length === 0) return;
 
@@ -152,9 +148,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       set({
         notifications: notifications.map((n) => ({
           ...n,
-          read_by: n.read_by.includes(currentUserId)
-            ? n.read_by
-            : [...n.read_by, currentUserId],
+          read_by: n.read_by.includes(currentUserId) ? n.read_by : [...n.read_by, currentUserId],
         })),
         unreadCount: 0,
       });
@@ -169,27 +163,19 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
     try {
       // Find all read notifications for this user
-      const readNotifications = notifications.filter((n) =>
-        n.read_by.includes(currentUserId)
-      );
+      const readNotifications = notifications.filter((n) => n.read_by.includes(currentUserId));
 
       if (readNotifications.length === 0) return;
 
       // Delete all read notifications from Firestore
-      await Promise.all(
-        readNotifications.map((n) => deleteDoc(doc(db, 'notifications', n.id)))
-      );
+      await Promise.all(readNotifications.map((n) => deleteDoc(doc(db, 'notifications', n.id))));
 
       // Optimistic update - remove read notifications from local state
       set({
-        notifications: notifications.filter(
-          (n) => !n.read_by.includes(currentUserId)
-        ),
+        notifications: notifications.filter((n) => !n.read_by.includes(currentUserId)),
       });
 
-      console.log(
-        `[NotificationStore] Cleared ${readNotifications.length} read notifications`
-      );
+      console.log(`[NotificationStore] Cleared ${readNotifications.length} read notifications`);
     } catch (error) {
       console.error('[NotificationStore] Error clearing read notifications:', error);
     }
@@ -231,9 +217,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           ...docSnap.data(),
         })) as Notification[];
 
-        const unreadCount = notifications.filter(
-          (n) => !n.read_by.includes(currentUserId)
-        ).length;
+        const unreadCount = notifications.filter((n) => !n.read_by.includes(currentUserId)).length;
 
         // Check for new notifications (for sound/browser notification)
         const currentIds = new Set(notifications.map((n) => n.id));
@@ -284,10 +268,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 /**
  * Helper to check if a notification is read by the current user
  */
-export function isNotificationRead(
-  notification: Notification,
-  userId: string | null
-): boolean {
+export function isNotificationRead(notification: Notification, userId: string | null): boolean {
   if (!userId) return false;
   return notification.read_by.includes(userId);
 }

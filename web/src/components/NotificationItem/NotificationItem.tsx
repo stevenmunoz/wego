@@ -4,7 +4,11 @@
  */
 
 import { type FC } from 'react';
-import { useNotificationStore, getNotificationDate, isNotificationRead } from '@/core/store/notification-store';
+import {
+  useNotificationStore,
+  getNotificationDate,
+  isNotificationRead,
+} from '@/core/store/notification-store';
 import type { Notification } from '@/core/types/notification.types';
 import { formatTimeAgo } from '@/utils/notifications';
 import './NotificationItem.css';

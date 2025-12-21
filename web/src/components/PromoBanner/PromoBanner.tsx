@@ -114,17 +114,11 @@ export const PromoBanner: FC<PromoBannerProps> = ({ text }) => {
           <h2 id="promo-title" className="promo-title">
             {text}
           </h2>
-          <p className="promo-message">
-            Descubre todas las novedades que tenemos para ti
-          </p>
+          <p className="promo-message">Descubre todas las novedades que tenemos para ti</p>
         </div>
 
         {/* CTA Button */}
-        <button
-          type="button"
-          className="promo-cta"
-          onClick={handleDismiss}
-        >
+        <button type="button" className="promo-cta" onClick={handleDismiss}>
           Continuar
           <svg
             viewBox="0 0 24 24"

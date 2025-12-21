@@ -116,7 +116,14 @@ Online: ${debugInfo.onlineStatus ? 'Yes' : 'No'}
             onClick={onClose}
             aria-label="Cerrar"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
@@ -129,11 +136,15 @@ Online: ${debugInfo.onlineStatus ? 'Yes' : 'No'}
             <div className="version-modal-grid">
               <div className="version-modal-item">
                 <span className="version-modal-label">Web</span>
-                <span className="version-modal-value version-modal-mono">{debugInfo.webVersion}</span>
+                <span className="version-modal-value version-modal-mono">
+                  {debugInfo.webVersion}
+                </span>
               </div>
               <div className="version-modal-item">
                 <span className="version-modal-label">API</span>
-                <span className="version-modal-value version-modal-mono">{debugInfo.apiVersion}</span>
+                <span className="version-modal-value version-modal-mono">
+                  {debugInfo.apiVersion}
+                </span>
               </div>
             </div>
           </section>
@@ -144,13 +155,17 @@ Online: ${debugInfo.onlineStatus ? 'Yes' : 'No'}
             <div className="version-modal-grid">
               <div className="version-modal-item">
                 <span className="version-modal-label">Ambiente</span>
-                <span className={`version-modal-badge version-modal-badge-${debugInfo.environment.toLowerCase()}`}>
+                <span
+                  className={`version-modal-badge version-modal-badge-${debugInfo.environment.toLowerCase()}`}
+                >
                   {debugInfo.environment}
                 </span>
               </div>
               <div className="version-modal-item">
                 <span className="version-modal-label">Firebase</span>
-                <span className="version-modal-value version-modal-mono">{debugInfo.firebaseProject}</span>
+                <span className="version-modal-value version-modal-mono">
+                  {debugInfo.firebaseProject}
+                </span>
               </div>
             </div>
           </section>
@@ -185,7 +200,9 @@ Online: ${debugInfo.onlineStatus ? 'Yes' : 'No'}
             <h3 className="version-modal-section-title">Pantalla</h3>
             <div className="version-modal-item">
               <span className="version-modal-label">Resolución</span>
-              <span className="version-modal-value version-modal-mono">{debugInfo.screenResolution}</span>
+              <span className="version-modal-value version-modal-mono">
+                {debugInfo.screenResolution}
+              </span>
             </div>
           </section>
 
@@ -201,7 +218,9 @@ Online: ${debugInfo.onlineStatus ? 'Yes' : 'No'}
               </div>
               <div className="version-modal-item">
                 <span className="version-modal-label">Timestamp</span>
-                <span className="version-modal-value version-modal-mono">{debugInfo.timestamp}</span>
+                <span className="version-modal-value version-modal-mono">
+                  {debugInfo.timestamp}
+                </span>
               </div>
               <div className="version-modal-grid">
                 <div className="version-modal-item">
@@ -236,14 +255,28 @@ Online: ${debugInfo.onlineStatus ? 'Yes' : 'No'}
           >
             {copied ? (
               <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
                 Copiado
               </>
             ) : (
               <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                 </svg>

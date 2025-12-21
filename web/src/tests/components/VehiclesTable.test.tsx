@@ -11,8 +11,7 @@ import type { FirestoreVehicle, DriverWithUser } from '@/core/firebase';
 import type { Timestamp } from 'firebase/firestore';
 
 // Helper to create mock Firestore Timestamp
-const createMockTimestamp = (date: Date): Timestamp =>
-  ({ toDate: () => date }) as Timestamp;
+const createMockTimestamp = (date: Date): Timestamp => ({ toDate: () => date }) as Timestamp;
 
 // Mock vehicle data
 const createMockVehicle = (overrides: Partial<FirestoreVehicle> = {}): FirestoreVehicle => ({
@@ -290,9 +289,7 @@ describe('VehiclesTable', () => {
     it('hides set primary button for already primary vehicle', () => {
       const onSetPrimary = vi.fn();
       const vehicles = [createMockVehicle({ is_primary: true })];
-      render(
-        <VehiclesTable vehicles={vehicles} isLoading={false} onSetPrimary={onSetPrimary} />
-      );
+      render(<VehiclesTable vehicles={vehicles} isLoading={false} onSetPrimary={onSetPrimary} />);
 
       // Star button for set primary should not be visible
       const starButtons = screen.queryAllByTitle(/establecer como principal/i);
@@ -302,9 +299,7 @@ describe('VehiclesTable', () => {
     it('shows set primary button for non-primary vehicle', () => {
       const onSetPrimary = vi.fn();
       const vehicles = [createMockVehicle({ is_primary: false })];
-      render(
-        <VehiclesTable vehicles={vehicles} isLoading={false} onSetPrimary={onSetPrimary} />
-      );
+      render(<VehiclesTable vehicles={vehicles} isLoading={false} onSetPrimary={onSetPrimary} />);
 
       expect(screen.getByTitle(/establecer como principal/i)).toBeInTheDocument();
     });
@@ -312,9 +307,7 @@ describe('VehiclesTable', () => {
     it('calls onSetPrimary when star button clicked', () => {
       const onSetPrimary = vi.fn();
       const vehicles = [createMockVehicle({ id: 'test-vehicle', is_primary: false })];
-      render(
-        <VehiclesTable vehicles={vehicles} isLoading={false} onSetPrimary={onSetPrimary} />
-      );
+      render(<VehiclesTable vehicles={vehicles} isLoading={false} onSetPrimary={onSetPrimary} />);
 
       fireEvent.click(screen.getByTitle(/establecer como principal/i));
       expect(onSetPrimary).toHaveBeenCalledWith('test-vehicle');
@@ -389,9 +382,7 @@ describe('VehiclesTable', () => {
     it('shows edit button when onEditVehicle provided', () => {
       const onEditVehicle = vi.fn();
       const vehicles = [createMockVehicle()];
-      render(
-        <VehiclesTable vehicles={vehicles} isLoading={false} onEditVehicle={onEditVehicle} />
-      );
+      render(<VehiclesTable vehicles={vehicles} isLoading={false} onEditVehicle={onEditVehicle} />);
 
       expect(screen.getByTitle(/editar vehículo/i)).toBeInTheDocument();
     });

@@ -220,7 +220,10 @@ export interface UseReportingGoalsReturn {
   isLoading: boolean;
   error: string | null;
   createGoal: (input: ReportingGoalInput) => Promise<{ success: boolean; error?: string }>;
-  updateGoal: (goalId: string, input: Partial<ReportingGoalInput>) => Promise<{ success: boolean; error?: string }>;
+  updateGoal: (
+    goalId: string,
+    input: Partial<ReportingGoalInput>
+  ) => Promise<{ success: boolean; error?: string }>;
   deleteGoal: (goalId: string) => Promise<{ success: boolean; error?: string }>;
   refetch: () => Promise<void>;
 }
