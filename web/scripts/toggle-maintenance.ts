@@ -124,6 +124,39 @@ interface RemoteConfigTemplate {
   parameterGroups: Record<string, unknown>;
 }
 
+// Default template with all required parameters
+const DEFAULT_TEMPLATE: RemoteConfigTemplate = {
+  parameters: {
+    maintenance_mode: {
+      defaultValue: { value: 'false' },
+      description: 'Emergency kill switch - set to true to show maintenance page',
+      valueType: 'BOOLEAN',
+    },
+    maintenance_title: {
+      defaultValue: { value: 'Estamos en mantenimiento' },
+      description: 'Title shown on maintenance page',
+      valueType: 'STRING',
+    },
+    maintenance_message: {
+      defaultValue: { value: 'Estamos realizando mejoras en la plataforma. Por favor, intenta de nuevo más tarde.' },
+      description: 'Message shown on maintenance page',
+      valueType: 'STRING',
+    },
+    promo_banner_enabled: {
+      defaultValue: { value: 'false' },
+      description: 'Show promotional banner',
+      valueType: 'BOOLEAN',
+    },
+    promo_banner_text: {
+      defaultValue: { value: 'Bienvenido a WeGo - Tu plataforma de transporte seguro' },
+      description: 'Promotional banner text',
+      valueType: 'STRING',
+    },
+  },
+  conditions: [],
+  parameterGroups: {},
+};
+
 async function getCurrentTemplate(accessToken: string): Promise<{ template: RemoteConfigTemplate; etag: string }> {
   const response = await fetch(
     `https://firebaseremoteconfig.googleapis.com/v1/projects/${projectId}/remoteConfig`,
@@ -132,12 +165,27 @@ async function getCurrentTemplate(accessToken: string): Promise<{ template: Remo
     }
   );
 
+  const etag = response.headers.get('etag') || '*';
+
+  // If no template exists or it's empty, return default template
   if (response.status === 404) {
-    throw new Error('No Remote Config template found. Run deploy:remoteconfig first.');
+    console.log('No existing Remote Config template found, creating new one...');
+    return { template: { ...DEFAULT_TEMPLATE }, etag };
   }
 
   const template = await response.json() as RemoteConfigTemplate;
-  const etag = response.headers.get('etag') || '*';
+
+  // If template has no parameters, use defaults
+  if (!template.parameters || Object.keys(template.parameters).length === 0) {
+    console.log('Remote Config template is empty, using defaults...');
+    return { template: { ...DEFAULT_TEMPLATE }, etag };
+  }
+
+  // Ensure maintenance_mode parameter exists
+  if (!template.parameters.maintenance_mode) {
+    console.log('maintenance_mode parameter missing, adding it...');
+    template.parameters.maintenance_mode = DEFAULT_TEMPLATE.parameters.maintenance_mode;
+  }
 
   return { template, etag };
 }
@@ -175,12 +223,8 @@ async function main() {
     // Get current template
     const { template, etag } = await getCurrentTemplate(accessToken);
 
-    // Update maintenance_mode parameter
-    if (template.parameters.maintenance_mode) {
-      template.parameters.maintenance_mode.defaultValue.value = maintenanceMode.toString();
-    } else {
-      throw new Error('maintenance_mode parameter not found in Remote Config');
-    }
+    // Update maintenance_mode parameter (guaranteed to exist from getCurrentTemplate)
+    template.parameters.maintenance_mode.defaultValue.value = maintenanceMode.toString();
 
     // Publish updated template
     await updateTemplate(accessToken, template, etag);
