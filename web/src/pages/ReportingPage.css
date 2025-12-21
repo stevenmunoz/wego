@@ -141,6 +141,18 @@
 }
 
 /* Section Layouts */
+.section-vehicle-finances {
+  margin: 2rem 0 2.5rem 0;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-gray-800, #1f2937);
+  margin: 0 0 0.5rem 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
 .charts-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -152,6 +164,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 1.5rem;
+  margin-top: 2rem;
   margin-bottom: 1.5rem;
 }
 

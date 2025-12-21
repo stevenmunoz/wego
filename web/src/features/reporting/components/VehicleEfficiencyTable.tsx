@@ -73,7 +73,7 @@ export const VehicleEfficiencyTable: FC<VehicleEfficiencyTableProps> = ({
   if (isLoading) {
     return (
       <div className="vehicle-efficiency-table">
-        <h3 className="section-title">Eficiencia por Vehiculo</h3>
+        <h3 className="section-title">Eficiencia por Vehículo</h3>
         <div className="table-skeleton">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="row-skeleton skeleton"></div>
@@ -86,10 +86,10 @@ export const VehicleEfficiencyTable: FC<VehicleEfficiencyTableProps> = ({
   if (!data || data.length === 0) {
     return (
       <div className="vehicle-efficiency-table">
-        <h3 className="section-title">Eficiencia por Vehiculo</h3>
+        <h3 className="section-title">Eficiencia por Vehículo</h3>
         <div className="empty-state">
           <span className="empty-icon">🚙</span>
-          <p>No hay datos de vehiculos</p>
+          <p>No hay datos de vehículos</p>
         </div>
       </div>
     );
@@ -97,13 +97,13 @@ export const VehicleEfficiencyTable: FC<VehicleEfficiencyTableProps> = ({
 
   return (
     <div className="vehicle-efficiency-table">
-      <h3 className="section-title">Eficiencia por Vehiculo</h3>
+      <h3 className="section-title">Eficiencia por Vehículo</h3>
       <div className="table-container">
         <table>
           <thead>
             <tr>
               <th onClick={() => handleSort('plate')} className="sortable">
-                Vehiculo {getSortIcon('plate')}
+                Vehículo {getSortIcon('plate')}
               </th>
               <th onClick={() => handleSort('rideCount')} className="sortable align-right">
                 Viajes {getSortIcon('rideCount')}
@@ -112,10 +112,10 @@ export const VehicleEfficiencyTable: FC<VehicleEfficiencyTableProps> = ({
                 Ingresos {getSortIcon('revenue')}
               </th>
               <th onClick={() => handleSort('activeDays')} className="sortable align-right">
-                Dias Activos {getSortIcon('activeDays')}
+                Días Activos {getSortIcon('activeDays')}
               </th>
               <th onClick={() => handleSort('utilizationPercent')} className="sortable align-right">
-                Utilizacion {getSortIcon('utilizationPercent')}
+                Utilización {getSortIcon('utilizationPercent')}
               </th>
             </tr>
           </thead>
