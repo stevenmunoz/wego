@@ -1,10 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import * as Sentry from '@sentry/react';
+import { initGA4 } from '@/core/analytics';
 import App from './App.tsx';
 import './index.css';
 
 const isDev = import.meta.env.VITE_FIREBASE_PROJECT_ID?.includes('dev');
+
+// Initialize Google Analytics 4
+initGA4();
 
 Sentry.init({
   dsn: 'https://256b8f4c66275b4497181d0a484a7aaf@o4510389719203840.ingest.us.sentry.io/4510569633546240',
