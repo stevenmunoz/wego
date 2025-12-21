@@ -17,6 +17,13 @@ import {
   deleteStorageFile,
   uploadVehicleDocument,
 } from '@/core/firebase';
+import {
+  trackVehicleCreated,
+  trackVehicleEdited,
+  trackVehicleDeleted,
+  trackVehicleSetPrimary,
+  trackVehiclePhotoUploaded,
+} from '@/core/analytics';
 import type { FirestoreVehicle, DriverWithUser } from '@/core/firebase';
 import type { VehicleCreateInput } from '@/core/types';
 import './VehiclesPage.css';
@@ -66,6 +73,9 @@ export const VehiclesPage = () => {
         : await driverVehiclesHook.addVehicle(vehicleData);
 
       if (result.success && result.vehicleId) {
+        // Track vehicle created
+        trackVehicleCreated(vehicleData.vehicle_type || 'car', !!imageFile);
+
         const updates: Record<string, string> = {};
 
         // Upload vehicle image (now uses vehicleId only)
@@ -73,6 +83,7 @@ export const VehiclesPage = () => {
           const compressedImage = await compressImage(imageFile);
           const uploadResult = await uploadVehicleImage(result.vehicleId, compressedImage);
           if (uploadResult.success && uploadResult.url) {
+            trackVehiclePhotoUploaded(Math.round(compressedImage.size / 1024));
             updates.photo_url = uploadResult.url;
           }
         }
@@ -133,6 +144,21 @@ export const VehiclesPage = () => {
 
     try {
       const { imageFile, soatFile, tecnomecanicaFile, ...vehicleData } = data;
+
+      // Track which fields changed
+      const changedFields: string[] = [];
+      Object.keys(vehicleData).forEach((key) => {
+        const typedKey = key as keyof typeof vehicleData;
+        if (vehicleData[typedKey] !== editingVehicle[typedKey as keyof FirestoreVehicle]) {
+          changedFields.push(key);
+        }
+      });
+      if (imageFile) changedFields.push('photo');
+      if (soatFile) changedFields.push('soat_document');
+      if (tecnomecanicaFile) changedFields.push('tecnomecanica_document');
+      if (changedFields.length > 0) {
+        trackVehicleEdited(changedFields);
+      }
 
       // Update vehicle using the appropriate hook (now uses vehicleId only)
       if (isAdmin) {
@@ -220,6 +246,7 @@ export const VehiclesPage = () => {
   };
 
   const handleDeleteVehicle = async (vehicleId: string) => {
+    trackVehicleDeleted();
     // Both admin and driver now use the same simplified delete (vehicleId only)
     if (isAdmin) {
       await allVehiclesHook.deleteVehicle(vehicleId);
@@ -229,6 +256,7 @@ export const VehiclesPage = () => {
   };
 
   const handleSetPrimary = async (vehicleId: string) => {
+    trackVehicleSetPrimary();
     // Both use the same simplified set primary (vehicleId only)
     await driverVehiclesHook.setPrimaryVehicle(vehicleId);
   };

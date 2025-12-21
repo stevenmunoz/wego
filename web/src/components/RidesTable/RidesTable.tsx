@@ -8,6 +8,7 @@ import { type FC, useState, useMemo, useRef, useEffect } from 'react';
 import type { FirestoreInDriverRide, DriverWithUser, FirestoreVehicle } from '@/core/firebase';
 import type { StatusFilterOption } from '@/components/StatusFilter';
 import type { SourceFilterOption } from '@/components/SourceFilter';
+import { trackRideEdited, trackRidesPaginationChanged } from '@/core/analytics';
 import { RideDetailModal } from './RideDetailModal';
 import './RidesTable.css';
 
@@ -565,6 +566,7 @@ export const RidesTable: FC<RidesTableProps> = ({
       }
     }
 
+    trackRideEdited(field);
     onUpdateRide(ride.id, updates);
     stopEditing();
   };
@@ -627,12 +629,14 @@ export const RidesTable: FC<RidesTableProps> = ({
   }, [totalPages, currentPage]);
 
   const handlePageChange = (page: number) => {
+    trackRidesPaginationChanged(pageSize, page);
     setCurrentPage(page);
     // Scroll to top of table
     document.querySelector('.rides-table-container')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handlePageSizeChange = (newSize: number) => {
+    trackRidesPaginationChanged(newSize, 1);
     setPageSize(newSize);
     setCurrentPage(1); // Reset to first page when changing page size
   };

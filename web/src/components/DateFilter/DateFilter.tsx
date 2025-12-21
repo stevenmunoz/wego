@@ -4,6 +4,7 @@
  */
 
 import { type FC, useState, useRef, useEffect } from 'react';
+import { trackRidesDateFiltered } from '@/core/analytics';
 import './DateFilter.css';
 
 export type DateFilterOption =
@@ -126,6 +127,7 @@ export const DateFilter: FC<DateFilterProps> = ({ value, onChange }) => {
   }, []);
 
   const handleSelect = (option: FilterOptionConfig) => {
+    trackRidesDateFiltered(option.id);
     onChange(option.id, option.getRange());
     setIsOpen(false);
   };

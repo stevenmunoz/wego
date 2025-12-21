@@ -14,6 +14,7 @@ import { useAuthStore } from '@/core/store/auth-store';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useDriverVehicles } from '@/hooks/useDriverVehicles';
 import { useAllVehicles } from '@/hooks/useAllVehicles';
+import { trackImportCancelled } from '@/core/analytics';
 import { config } from '@/core/config';
 import './InDriverImportPage.css';
 
@@ -100,6 +101,7 @@ export const InDriverImportPage: FC = () => {
   }, [user?.id, isAdmin, selectedVehicleId, vehicles, importRides, clearFiles, clearExtracted]);
 
   const handleBackToUpload = useCallback(() => {
+    trackImportCancelled('review');
     setView('upload');
   }, []);
 

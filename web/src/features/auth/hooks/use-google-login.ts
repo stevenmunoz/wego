@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { FirebaseError } from 'firebase/app';
 import { signInWithGoogle, getCurrentUser } from '@/core/firebase';
 import { useAuthStore } from '@/core/store/auth-store';
+import { trackLogin } from '@/core/analytics';
 
 /**
  * Map Firebase Google auth errors to user-friendly Spanish messages
@@ -67,6 +68,7 @@ export const useGoogleLogin = () => {
         console.log('Google login: User email:', result.user.email);
         console.log('Google login: User UID:', result.user.uid);
         console.log('Google login: Provider:', result.providerId);
+        trackLogin('google');
         // Auth state listener will update the store and the useEffect above will navigate
         // But also try direct navigation as backup
         navigate('/dashboard');
