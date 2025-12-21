@@ -23,6 +23,7 @@ jobs:
       contents: read
       pull-requests: write
       issues: write
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -34,15 +35,9 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Use the project's CLAUDE.md for context
-          use_claude_files: true
-          # Model selection - claude-sonnet-4-20250514 for fast, quality reviews
-          model: claude-sonnet-4-20250514
-          # Timeout for the review (5 minutes)
-          timeout_minutes: 5
           # Custom prompt for WeGo-specific review
-          custom_instructions: |
-            You are reviewing code for WeGo, a transportation platform.
+          prompt: |
+            Review this pull request for WeGo, a transportation platform.
 
             Focus your review on:
             1. **Security**: Firebase/Firestore security rules, auth guards, data validation
@@ -72,6 +67,7 @@ jobs:
       contents: read
       pull-requests: write
       issues: write
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -83,12 +79,8 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          use_claude_files: true
-          # Use Claude Opus for comprehensive security analysis
-          model: claude-sonnet-4-20250514
-          timeout_minutes: 10
-          custom_instructions: |
-            Perform a comprehensive SECURITY REVIEW of this pull request.
+          prompt: |
+            Perform a comprehensive SECURITY REVIEW of this pull request for WeGo.
 
             Focus on WeGo-specific security concerns:
 
