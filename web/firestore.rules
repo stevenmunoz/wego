@@ -70,6 +70,20 @@ service cloud.firestore {
     }
 
     // ============================================================================
+    // REPORTING GOALS COLLECTION (admin only)
+    // ============================================================================
+    match /reporting_goals/{goalId} {
+      // Only admins can read reporting goals
+      allow read: if request.auth != null && isAdmin();
+
+      // Only admins can create goals
+      allow create: if request.auth != null && isAdmin();
+
+      // Only admins can update or delete goals
+      allow update, delete: if request.auth != null && isAdmin();
+    }
+
+    // ============================================================================
     // TOP-LEVEL VEHICLES COLLECTION (new structure)
     // ============================================================================
     match /vehicles/{vehicleId} {

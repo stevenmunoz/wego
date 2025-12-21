@@ -1,0 +1,198 @@
+/**
+ * Source Comparison Styles
+ */
+
+.source-comparison {
+  background: var(--color-white, #ffffff);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-gray-800, #1f2937);
+  margin: 0 0 1rem 0;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.charts-grid.loading {
+  min-height: 200px;
+}
+
+.chart-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-subtitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-gray-500, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.75rem 0;
+}
+
+.chart-placeholder {
+  height: 200px;
+  border-radius: 8px;
+}
+
+/* Donut Chart */
+.donut-wrapper {
+  position: relative;
+}
+
+.donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.donut-total {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--color-gray-800, #1f2937);
+}
+
+.donut-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-gray-500, #6b7280);
+}
+
+/* Custom Legend */
+.legend-custom {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legend-text {
+  font-size: 0.875rem;
+  color: var(--color-gray-700, #374151);
+}
+
+.legend-percent {
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--color-gray-800, #1f2937);
+}
+
+/* Revenue Summary */
+.revenue-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--color-gray-50, #f9fafb);
+  border-radius: 8px;
+  margin-top: 0.75rem;
+}
+
+.revenue-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-gray-600, #4b5563);
+}
+
+.revenue-value {
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--color-success-600, #16a34a);
+}
+
+/* Custom Tooltip */
+.chart-tooltip {
+  background: var(--color-white, #ffffff);
+  border: 1px solid var(--color-gray-200, #e5e7eb);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tooltip-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-gray-800, #1f2937);
+  margin: 0 0 0.25rem 0;
+}
+
+.tooltip-value {
+  font-size: 0.875rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--color-gray-700, #374151);
+  margin: 0 0 0.25rem 0;
+}
+
+.tooltip-revenue {
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--color-success-600, #16a34a);
+  margin: 0;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--color-gray-400, #9ca3af);
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/* Skeleton */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
