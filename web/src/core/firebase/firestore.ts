@@ -654,7 +654,7 @@ export async function getInDriverRides(
 export async function updateInDriverRide(
   driverId: string,
   rideId: string,
-  updates: Partial<Omit<FirestoreInDriverRide, 'id' | 'driver_id' | 'imported_at' | 'extracted_at'>>,
+  updates: Partial<Omit<FirestoreInDriverRide, 'id' | 'imported_at' | 'extracted_at'>>,
   docPath?: string
 ): Promise<{ success: boolean; error?: string }> {
   console.log('[Firestore] updateInDriverRide called:', { driverId, rideId, updates, docPath });
@@ -699,6 +699,69 @@ export async function updateInDriverRide(
     return { success: true };
   } catch (error) {
     console.error('[Firestore] Error updating ride:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Reassign a ride to a different driver
+ * This moves the document from one driver's subcollection to another
+ * @param oldDriverId - Current driver ID (where ride is stored)
+ * @param newDriverId - New driver ID (where ride should be moved)
+ * @param rideId - Ride document ID
+ * @param docPath - Optional full document path of the old document
+ */
+export async function reassignRideToDriver(
+  oldDriverId: string,
+  newDriverId: string,
+  rideId: string,
+  docPath?: string
+): Promise<{ success: boolean; error?: string }> {
+  console.log('[Firestore] reassignRideToDriver called:', { oldDriverId, newDriverId, rideId, docPath });
+
+  try {
+    // Get the old document reference
+    const oldDocRef = docPath
+      ? doc(db, docPath)
+      : doc(db, 'drivers', oldDriverId, 'driver_rides', rideId);
+
+    // Get the existing ride data
+    const oldDocSnap = await getDoc(oldDocRef);
+    if (!oldDocSnap.exists()) {
+      console.error('[Firestore] Original ride document not found');
+      return { success: false, error: 'Viaje no encontrado' };
+    }
+
+    const rideData = oldDocSnap.data() as FirestoreInDriverRide;
+    console.log('[Firestore] Retrieved ride data, moving to new driver');
+
+    // Create reference for new location
+    const newDocRef = doc(db, 'drivers', newDriverId, 'driver_rides', rideId);
+
+    // Use batch to ensure atomicity
+    const batch = writeBatch(db);
+
+    // Create document in new location with updated driver_id
+    const updatedRideData = {
+      ...rideData,
+      driver_id: newDriverId,
+    };
+    // Remove client-side only field
+    delete (updatedRideData as Record<string, unknown>)._docPath;
+
+    batch.set(newDocRef, updatedRideData);
+
+    // Delete from old location
+    batch.delete(oldDocRef);
+
+    // Commit the batch
+    await batch.commit();
+    console.log('[Firestore] Ride successfully moved to new driver');
+
+    return { success: true };
+  } catch (error) {
+    console.error('[Firestore] Error reassigning ride:', error);
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     return { success: false, error: errorMsg };
   }
