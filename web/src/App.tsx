@@ -9,39 +9,10 @@ import { useAuthStore } from '@/core/store/auth-store';
 import { useNotificationStore } from '@/core/store/notification-store';
 import { initAnalytics } from '@/core/firebase';
 import { VersionNotification } from '@/components/VersionNotification';
+import { MaintenanceMode } from '@/components/MaintenanceMode';
+import { useRemoteConfig } from '@/hooks/useRemoteConfig';
 import { router } from './routes';
 import './App.css';
-
-// Sentry test button - only shows in DEV environment
-const isDev = import.meta.env.VITE_FIREBASE_PROJECT_ID?.includes('dev');
-
-function SentryTestButton() {
-  if (!isDev) return null;
-
-  return (
-    <button
-      onClick={() => {
-        throw new Error('This is your first Sentry error!');
-      }}
-      style={{
-        position: 'fixed',
-        bottom: '80px',
-        right: '20px',
-        padding: '10px 16px',
-        backgroundColor: '#EF4444',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        zIndex: 9999,
-        fontSize: '14px',
-        fontWeight: 500,
-      }}
-    >
-      Test Sentry Error
-    </button>
-  );
-}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,6 +32,9 @@ function App() {
   const initNotificationListener = useNotificationStore((state) => state.initNotificationListener);
   const requestPermission = useNotificationStore((state) => state.requestPermission);
   const hasRequestedPermission = useNotificationStore((state) => state.hasRequestedPermission);
+
+  // Remote Config for maintenance mode
+  const { maintenanceMode, maintenanceTitle, maintenanceMessage, isLoading: isConfigLoading } = useRemoteConfig();
 
   useEffect(() => {
     // Initialize Firebase Auth listener
@@ -98,11 +72,20 @@ function App() {
     }
   }, [user?.id, userRole, setCurrentUserId, initNotificationListener, requestPermission, hasRequestedPermission]);
 
+  // Show maintenance mode if enabled (skip loading state to avoid flash)
+  if (maintenanceMode && !isConfigLoading) {
+    return (
+      <MaintenanceMode
+        title={maintenanceTitle}
+        message={maintenanceMessage}
+      />
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
       <VersionNotification />
-      <SentryTestButton />
     </QueryClientProvider>
   );
 }

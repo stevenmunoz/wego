@@ -118,6 +118,16 @@ jobs:
         working-directory: ./web/functions
         run: npm run build
 
+      - name: Enable Maintenance Mode
+        working-directory: ./web
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ steps.env.outputs.environment == 'production' && secrets.FIREBASE_SERVICE_ACCOUNT_PROD || secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
+        run: |
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/firebase-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-key.json
+          npx tsx scripts/toggle-maintenance.ts on ${{ steps.env.outputs.firebase_project_id }}
+          rm -f /tmp/firebase-key.json
+
       - name: Deploy Cloud Functions
         working-directory: ./web
         env:
@@ -148,6 +158,16 @@ jobs:
           npx firebase-tools deploy --only storage --project ${{ steps.env.outputs.firebase_project_id }} --non-interactive
           rm -f /tmp/firebase-key.json
 
+      - name: Deploy Remote Config
+        working-directory: ./web
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ steps.env.outputs.environment == 'production' && secrets.FIREBASE_SERVICE_ACCOUNT_PROD || secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
+        run: |
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/firebase-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-key.json
+          npx tsx scripts/deploy-remote-config.ts ${{ steps.env.outputs.firebase_project_id }}
+          rm -f /tmp/firebase-key.json
+
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -156,3 +176,14 @@ jobs:
           projectId: ${{ steps.env.outputs.firebase_project_id }}
           channelId: live
           entryPoint: ./web
+
+      - name: Disable Maintenance Mode
+        if: always()
+        working-directory: ./web
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ steps.env.outputs.environment == 'production' && secrets.FIREBASE_SERVICE_ACCOUNT_PROD || secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
+        run: |
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/firebase-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-key.json
+          npx tsx scripts/toggle-maintenance.ts off ${{ steps.env.outputs.firebase_project_id }}
+          rm -f /tmp/firebase-key.json
