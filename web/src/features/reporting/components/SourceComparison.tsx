@@ -72,7 +72,7 @@ export const SourceComparison: FC<SourceComparisonProps> = ({ data, isLoading })
   if (isLoading) {
     return (
       <div className="source-comparison">
-        <h3 className="section-title">Comparacion por Fuente</h3>
+        <h3 className="section-title">Comparación por Fuente</h3>
         <div className="charts-grid loading">
           <div className="chart-placeholder skeleton"></div>
           <div className="chart-placeholder skeleton"></div>
@@ -84,7 +84,7 @@ export const SourceComparison: FC<SourceComparisonProps> = ({ data, isLoading })
   if (!data) {
     return (
       <div className="source-comparison">
-        <h3 className="section-title">Comparacion por Fuente</h3>
+        <h3 className="section-title">Comparación por Fuente</h3>
         <div className="empty-state">
           <span className="empty-icon">📊</span>
           <p>No hay datos disponibles</p>
@@ -132,12 +132,12 @@ export const SourceComparison: FC<SourceComparisonProps> = ({ data, isLoading })
 
   return (
     <div className="source-comparison">
-      <h3 className="section-title">Comparacion por Fuente</h3>
+      <h3 className="section-title">Comparación por Fuente</h3>
 
       <div className="charts-grid">
         {/* Donut Chart */}
         <div className="chart-container">
-          <h4 className="chart-subtitle">Distribucion de Viajes</h4>
+          <h4 className="chart-subtitle">Distribución de Viajes</h4>
           <div className="donut-wrapper">
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
