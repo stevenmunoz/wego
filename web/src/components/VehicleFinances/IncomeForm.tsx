@@ -67,10 +67,7 @@ export const IncomeForm: FC<IncomeFormProps> = ({
   const validTypeKeys = useIncomeCategoryKeys();
 
   // Create schema with dynamic type validation
-  const incomeSchema = useMemo(
-    () => createIncomeSchema(validTypeKeys),
-    [validTypeKeys]
-  );
+  const incomeSchema = useMemo(() => createIncomeSchema(validTypeKeys), [validTypeKeys]);
 
   // Get default type (first active type or 'weekly_payment' as fallback)
   const defaultType = activeCategories.length > 0 ? activeCategories[0].key : 'weekly_payment';

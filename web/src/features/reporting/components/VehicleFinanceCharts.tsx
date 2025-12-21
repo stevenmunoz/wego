@@ -69,7 +69,8 @@ export const VehicleFinanceCharts: FC<VehicleFinanceChartsProps> = ({
   isLoading,
 }) => {
   // Get dynamic labels and colors from categories store
-  const { getIncomeLabel, getIncomeColor, getExpenseLabel, getExpenseColor } = useFinanceCategories();
+  const { getIncomeLabel, getIncomeColor, getExpenseLabel, getExpenseColor } =
+    useFinanceCategories();
 
   // Prepare income data for pie chart
   const incomeData = Object.entries(incomeByType)

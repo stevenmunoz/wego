@@ -68,14 +68,15 @@ export const ExpenseForm: FC<ExpenseFormProps> = ({
   error,
 }) => {
   // Get dynamic expense categories
-  const { activeCategories, labels: categoryLabels, isLoading: categoriesLoading } = useExpenseCategories();
+  const {
+    activeCategories,
+    labels: categoryLabels,
+    isLoading: categoriesLoading,
+  } = useExpenseCategories();
   const validCategoryKeys = useExpenseCategoryKeys();
 
   // Create schema with dynamic category validation
-  const expenseSchema = useMemo(
-    () => createExpenseSchema(validCategoryKeys),
-    [validCategoryKeys]
-  );
+  const expenseSchema = useMemo(() => createExpenseSchema(validCategoryKeys), [validCategoryKeys]);
 
   // Get default category (first active category or 'fuel' as fallback)
   const defaultCategory = activeCategories.length > 0 ? activeCategories[0].key : 'fuel';

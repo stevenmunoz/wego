@@ -41,13 +41,8 @@ export const FinanceCategoriesPage: FC = () => {
   const [isSeeding, setIsSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState<string | null>(null);
 
-  const {
-    expenseCategories,
-    incomeCategories,
-    isLoading,
-    error,
-    refreshCategories,
-  } = useFinanceCategories();
+  const { expenseCategories, incomeCategories, isLoading, error, refreshCategories } =
+    useFinanceCategories();
 
   // Redirect non-admins
   if (!isAdmin) {
@@ -163,7 +158,9 @@ export const FinanceCategoriesPage: FC = () => {
       const totalErrors = [...expenseResult.errors, ...incomeResult.errors];
 
       if (totalErrors.length > 0) {
-        setSeedResult(`Creadas: ${totalCreated}, Existentes: ${totalSkipped}, Errores: ${totalErrors.length}`);
+        setSeedResult(
+          `Creadas: ${totalCreated}, Existentes: ${totalSkipped}, Errores: ${totalErrors.length}`
+        );
       } else if (totalCreated === 0) {
         setSeedResult('Todas las categorías ya existen');
       } else {
@@ -208,11 +205,7 @@ export const FinanceCategoriesPage: FC = () => {
         </div>
 
         {/* Seed result message */}
-        {seedResult && (
-          <div className="seed-result-message">
-            {seedResult}
-          </div>
-        )}
+        {seedResult && <div className="seed-result-message">{seedResult}</div>}
 
         {/* Error */}
         {error && (

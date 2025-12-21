@@ -15,7 +15,10 @@ const categorySchema = z.object({
   key: z
     .string()
     .min(1, 'La clave es requerida')
-    .regex(/^[a-z][a-z0-9_]*$/, 'Solo letras minúsculas, números y guiones bajos. Debe iniciar con letra.'),
+    .regex(
+      /^[a-z][a-z0-9_]*$/,
+      'Solo letras minúsculas, números y guiones bajos. Debe iniciar con letra.'
+    ),
   label: z.string().min(1, 'La etiqueta es requerida'),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color hex inválido'),
   sort_order: z.coerce.number().min(0, 'El orden debe ser mayor o igual a 0'),
@@ -112,7 +115,9 @@ export const CategoryForm: FC<CategoryFormProps> = ({
   return (
     <div className="category-form-container">
       <div className="form-header">
-        <h2>{isEditing ? `Editar Categoría de ${typeLabel}` : `Nueva Categoría de ${typeLabel}`}</h2>
+        <h2>
+          {isEditing ? `Editar Categoría de ${typeLabel}` : `Nueva Categoría de ${typeLabel}`}
+        </h2>
         <button type="button" className="btn-close" onClick={onCancel} aria-label="Cerrar">
           &times;
         </button>
