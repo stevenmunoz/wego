@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   getAllDrivers,
   updateInDriverRide,
+  reassignRideToDriver,
   getAllVehicles,
   type FirestoreInDriverRide,
   type DriverWithUser,
@@ -114,6 +115,7 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
       // Use refs to get latest state (avoids stale closure issues)
       const currentRides = ridesRef.current;
       const currentVehicles = vehiclesRef.current;
+      const currentDrivers = drivers;
 
       // Find the ride to get the driver_id
       const ride = currentRides.find((r) => r.id === rideId);
@@ -124,6 +126,12 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
       }
 
       console.log('[useAdminRides] Found ride, driver_id:', ride.driver_id, '_docPath:', ride._docPath);
+
+      // Check if driver_id is being changed
+      const isDriverChange =
+        'driver_id' in updates &&
+        updates.driver_id !== undefined &&
+        updates.driver_id !== ride.driver_id;
 
       // Build optimistic update with derived fields
       const optimisticUpdate: Partial<RideWithDriver> = { ...updates };
@@ -140,20 +148,68 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
         }
       }
 
+      // If driver is being changed, also derive driver_name
+      if (isDriverChange && updates.driver_id) {
+        const newDriver = currentDrivers.find((d) => d.id === updates.driver_id);
+        optimisticUpdate.driver_name = newDriver?.name;
+        console.log('[useAdminRides] Derived driver_name:', newDriver?.name);
+      }
+
       // Optimistically update local state first
       setRides((prevRides) =>
         prevRides.map((r) => (r.id === rideId ? { ...r, ...optimisticUpdate } : r))
       );
 
       try {
-        console.log('[useAdminRides] Calling updateInDriverRide...');
-        // Pass _docPath for reliable document targeting (handles rides stored in different locations)
-        const result = await updateInDriverRide(ride.driver_id, rideId, updates, ride._docPath);
-        console.log('[useAdminRides] updateInDriverRide result:', result);
-        if (!result.success) {
-          // Revert on error
-          setError(result.error || 'Error al actualizar el viaje');
-          await fetchRides(); // Refetch to get correct state
+        if (isDriverChange && updates.driver_id) {
+          // Driver is being changed - need to move the document to new driver's subcollection
+          console.log('[useAdminRides] Driver change detected, calling reassignRideToDriver...');
+          const reassignResult = await reassignRideToDriver(
+            ride.driver_id,
+            updates.driver_id,
+            rideId,
+            ride._docPath
+          );
+          console.log('[useAdminRides] reassignRideToDriver result:', reassignResult);
+
+          if (!reassignResult.success) {
+            setError(reassignResult.error || 'Error al reasignar el viaje');
+            await fetchRides(); // Refetch to get correct state
+            return;
+          }
+
+          // If there are other updates besides driver_id, apply them to the new location
+          const otherUpdates = { ...updates };
+          delete otherUpdates.driver_id;
+
+          if (Object.keys(otherUpdates).length > 0) {
+            console.log('[useAdminRides] Applying additional updates to new location:', otherUpdates);
+            const newDocPath = `drivers/${updates.driver_id}/driver_rides/${rideId}`;
+            const updateResult = await updateInDriverRide(
+              updates.driver_id,
+              rideId,
+              otherUpdates,
+              newDocPath
+            );
+            if (!updateResult.success) {
+              setError(updateResult.error || 'Error al actualizar el viaje');
+              await fetchRides();
+              return;
+            }
+          }
+
+          console.log('[useAdminRides] Driver reassignment completed successfully');
+        } else {
+          // Normal update (no driver change)
+          console.log('[useAdminRides] Calling updateInDriverRide...');
+          // Pass _docPath for reliable document targeting (handles rides stored in different locations)
+          const result = await updateInDriverRide(ride.driver_id, rideId, updates, ride._docPath);
+          console.log('[useAdminRides] updateInDriverRide result:', result);
+          if (!result.success) {
+            // Revert on error
+            setError(result.error || 'Error al actualizar el viaje');
+            await fetchRides(); // Refetch to get correct state
+          }
         }
       } catch (err) {
         console.error('[useAdminRides] Error updating ride:', err);
@@ -162,7 +218,7 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
         await fetchRides(); // Refetch to get correct state
       }
     },
-    [fetchRides]
+    [fetchRides, drivers]
   );
 
   useEffect(() => {
