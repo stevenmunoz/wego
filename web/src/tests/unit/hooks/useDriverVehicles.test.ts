@@ -84,7 +84,6 @@ interface FirestoreVehicle {
   updated_at: { toDate: () => Date };
 }
 
-
 // Helper to create mock vehicle data
 const createMockVehicle = (overrides = {}): FirestoreVehicle => ({
   id: 'vehicle-1',
@@ -159,9 +158,7 @@ describe('useDriverVehicles', () => {
     it('passes options to getDriverVehicles', async () => {
       mockGetOwnerVehicles.mockResolvedValue([]);
 
-      const { result } = renderHook(() =>
-        useDriverVehicles('driver-1', { status: 'active' })
-      );
+      const { result } = renderHook(() => useDriverVehicles('driver-1', { status: 'active' }));
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -558,10 +555,9 @@ describe('useDriverVehicles', () => {
     it('refetches when driverId changes', async () => {
       mockGetOwnerVehicles.mockResolvedValue([]);
 
-      const { result, rerender } = renderHook(
-        ({ driverId }) => useDriverVehicles(driverId),
-        { initialProps: { driverId: 'driver-1' } }
-      );
+      const { result, rerender } = renderHook(({ driverId }) => useDriverVehicles(driverId), {
+        initialProps: { driverId: 'driver-1' },
+      });
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);

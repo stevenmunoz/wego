@@ -192,7 +192,9 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
                 <td className="cell-category">
                   {transaction.category}
                   {transaction.isRecurring && (
-                    <span className="recurring-badge" title="Recurrente">🔄</span>
+                    <span className="recurring-badge" title="Recurrente">
+                      🔄
+                    </span>
                   )}
                 </td>
                 <td className="cell-description">{transaction.description}</td>
@@ -237,9 +239,7 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
 
       {transactions.length === 0 && filter !== 'all' && (
         <div className="no-results">
-          <p>
-            No hay {filter === 'income' ? 'ingresos' : 'gastos'} registrados en este período
-          </p>
+          <p>No hay {filter === 'income' ? 'ingresos' : 'gastos'} registrados en este período</p>
         </div>
       )}
     </div>

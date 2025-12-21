@@ -273,10 +273,9 @@ describe('useDriverBySlug', () => {
 
       mockGetDriverBySlug.mockResolvedValueOnce(driver1);
 
-      const { result, rerender } = renderHook(
-        ({ slug }) => useDriverBySlug(slug),
-        { initialProps: { slug: 'slug-1' } }
-      );
+      const { result, rerender } = renderHook(({ slug }) => useDriverBySlug(slug), {
+        initialProps: { slug: 'slug-1' },
+      });
 
       await waitFor(() => {
         expect(result.current.driver?.name).toBe('Driver 1');

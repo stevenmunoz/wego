@@ -78,10 +78,7 @@ export function trackRideEdited(fieldName: RideEditableField): void {
   trackEvent('ride_edited', { field_name: fieldName });
 }
 
-export function trackRidesPaginationChanged(
-  pageSize: number,
-  pageNumber: number
-): void {
+export function trackRidesPaginationChanged(pageSize: number, pageNumber: number): void {
   trackEvent('pagination_changed', {
     page_size: pageSize,
     page_number: pageNumber,
@@ -99,10 +96,7 @@ export function trackImportStarted(fileCount: number, fileTypes: string[]): void
   });
 }
 
-export function trackExtractionCompleted(
-  ridesExtracted: number,
-  durationMs: number
-): void {
+export function trackExtractionCompleted(ridesExtracted: number, durationMs: number): void {
   trackEvent('extraction_completed', {
     rides_extracted: ridesExtracted,
     duration_ms: durationMs,
@@ -125,10 +119,7 @@ export function trackImportCancelled(step: ImportStep): void {
 
 type VehicleType = 'car' | 'suv' | 'van' | 'motorcycle';
 
-export function trackVehicleCreated(
-  vehicleType: VehicleType,
-  hasPhoto: boolean
-): void {
+export function trackVehicleCreated(vehicleType: VehicleType, hasPhoto: boolean): void {
   trackEvent('vehicle_created', {
     vehicle_type: vehicleType,
     has_photo: hasPhoto,
@@ -200,7 +191,11 @@ export function trackReportingRefreshed(isRealtime: boolean): void {
   trackEvent('reporting_refreshed', { is_realtime: isRealtime });
 }
 
-type GoalTargetType = 'rides_per_week' | 'rides_per_month' | 'revenue_per_week' | 'revenue_per_month';
+type GoalTargetType =
+  | 'rides_per_week'
+  | 'rides_per_month'
+  | 'revenue_per_week'
+  | 'revenue_per_month';
 
 export function trackReportingGoalCreated(targetType: GoalTargetType, targetValue: number): void {
   trackEvent('reporting_goal_created', {
@@ -215,7 +210,10 @@ export function trackReportingGoalDeleted(targetType: GoalTargetType): void {
 
 type ReportingChartType = 'source_comparison' | 'trend' | 'payment_method' | 'peak_hours';
 
-export function trackReportingChartInteraction(chartType: ReportingChartType, action: string): void {
+export function trackReportingChartInteraction(
+  chartType: ReportingChartType,
+  action: string
+): void {
   trackEvent('reporting_chart_interaction', {
     chart_type: chartType,
     action,

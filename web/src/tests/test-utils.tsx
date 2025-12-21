@@ -33,10 +33,7 @@ function AllProviders({ children }: AllProvidersProps) {
  *   expect(screen.getByText('Hello')).toBeInTheDocument();
  * });
  */
-function customRender(
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
-): RenderResult {
+function customRender(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>): RenderResult {
   return render(ui, { wrapper: AllProviders, ...options });
 }
 

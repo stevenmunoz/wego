@@ -18,10 +18,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import type { IncomeByTypeBreakdown, ExpensesByCategoryBreakdown } from '../types';
-import {
-  INCOME_TYPE_LABELS,
-  EXPENSE_CATEGORY_LABELS,
-} from '@/core/types/vehicle-finance.types';
+import { INCOME_TYPE_LABELS, EXPENSE_CATEGORY_LABELS } from '@/core/types/vehicle-finance.types';
 import './VehicleFinanceCharts.css';
 
 interface VehicleFinanceChartsProps {
@@ -65,7 +62,13 @@ const formatCurrency = (amount: number): string => {
 };
 
 // Custom tooltip for pie charts
-const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number; payload: { color: string } }> }) => {
+const CustomTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number; payload: { color: string } }>;
+}) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     return (
@@ -155,12 +158,7 @@ export const VehicleFinanceCharts: FC<VehicleFinanceChartsProps> = ({
                 tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                 tick={{ fontSize: 12 }}
               />
-              <YAxis
-                type="category"
-                dataKey="name"
-                tick={{ fontSize: 12 }}
-                width={70}
-              />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={70} />
               <Tooltip
                 formatter={(value) => [formatCurrency(Number(value) || 0), '']}
                 contentStyle={{
@@ -186,7 +184,9 @@ export const VehicleFinanceCharts: FC<VehicleFinanceChartsProps> = ({
             <span className="summary-label">Total Gastos</span>
             <span className="summary-value">{formatCurrency(totalExpenses)}</span>
           </div>
-          <div className={`summary-item net ${totalIncome - totalExpenses >= 0 ? 'positive' : 'negative'}`}>
+          <div
+            className={`summary-item net ${totalIncome - totalExpenses >= 0 ? 'positive' : 'negative'}`}
+          >
             <span className="summary-label">Balance</span>
             <span className="summary-value">{formatCurrency(totalIncome - totalExpenses)}</span>
           </div>

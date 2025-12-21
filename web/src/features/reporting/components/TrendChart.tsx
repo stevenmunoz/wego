@@ -195,11 +195,7 @@ export const TrendChart: FC<TrendChartProps> = ({ data, goal, isLoading }) => {
               tickFormatter={viewMode === 'revenue' ? formatCurrencyShort : (v) => String(v)}
             />
             <Tooltip content={createCustomTooltip(viewMode)} />
-            <Legend
-              wrapperStyle={{ paddingTop: '10px' }}
-              iconType="circle"
-              iconSize={8}
-            />
+            <Legend wrapperStyle={{ paddingTop: '10px' }} iconType="circle" iconSize={8} />
 
             {goalValue !== null && (
               <ReferenceLine

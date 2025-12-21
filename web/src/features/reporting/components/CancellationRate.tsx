@@ -40,11 +40,7 @@ export const CancellationRate: FC<CancellationRateProps> = ({ data, isLoading })
   }
 
   const rateStatus =
-    data.cancellationRate < 5
-      ? 'good'
-      : data.cancellationRate < 10
-        ? 'warning'
-        : 'bad';
+    data.cancellationRate < 5 ? 'good' : data.cancellationRate < 10 ? 'warning' : 'bad';
 
   return (
     <div className="cancellation-rate">

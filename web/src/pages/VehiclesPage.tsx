@@ -283,9 +283,7 @@ export const VehiclesPage = () => {
         <header className="page-header">
           <div className="page-header-top">
             <div className="page-header-title">
-              <h1 className="page-title">
-                {isAdmin ? 'Gestión de Vehículos' : 'Mis Vehículos'}
-              </h1>
+              <h1 className="page-title">{isAdmin ? 'Gestión de Vehículos' : 'Mis Vehículos'}</h1>
               <p className="page-subtitle">
                 {isAdmin
                   ? 'Administra todos los vehículos de la flota'

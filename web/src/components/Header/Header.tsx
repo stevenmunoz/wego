@@ -10,9 +10,7 @@ import './Header.css';
 export const Header: FC = () => {
   return (
     <header className="dashboard-header">
-      <div className="header-left">
-        {/* Placeholder for breadcrumb or page title if needed */}
-      </div>
+      <div className="header-left">{/* Placeholder for breadcrumb or page title if needed */}</div>
       <div className="header-right">
         <NotificationBell />
       </div>
