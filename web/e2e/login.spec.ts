@@ -133,7 +133,6 @@ test.describe('Login Page', () => {
       await page.getByRole('button', { name: /iniciar sesión/i }).click();
 
       // Button should show loading text or be disabled
-      const submitButton = page.getByRole('button', { name: /iniciando sesión/i });
       // This might be too fast to catch, so we check if form was submitted
       await expect(page.getByRole('button')).toBeTruthy();
     });

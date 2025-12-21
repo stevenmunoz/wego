@@ -90,7 +90,7 @@ test.describe('Authenticated Vehicle Operations', () => {
   test.describe.configure({ mode: 'serial' });
 
   // Helper to login (would need real credentials in a test environment)
-  const loginAsTestUser = async (page: any) => {
+  const loginAsTestUser = async (page: import('@playwright/test').Page) => {
     await page.goto('/login');
     await page.fill('[id="email"]', 'test@example.com');
     await page.fill('[id="password"]', 'testpassword123');
@@ -301,12 +301,6 @@ test.describe('Vehicle Page Accessibility', () => {
     // Should show error message (after API returns error)
     // Wait for either error message or loading state change
     await page.waitForTimeout(2000); // Wait for API response
-
-    // Check for error message in the page
-    const content = await page.content();
-    const hasError = content.toLowerCase().includes('error') ||
-                     content.toLowerCase().includes('inválid') ||
-                     content.toLowerCase().includes('credencial');
 
     // If there's no network/API, the form just won't navigate
     // So we check we're still on login

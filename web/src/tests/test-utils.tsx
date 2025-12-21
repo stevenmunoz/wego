@@ -3,6 +3,7 @@
  *
  * Provides a custom render function that wraps components with necessary providers.
  */
+/* eslint-disable react-refresh/only-export-components */
 
 import { render, RenderOptions, RenderResult } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';

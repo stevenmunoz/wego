@@ -8,6 +8,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { VehiclesTable } from '@/components/VehiclesTable/VehiclesTable';
 import type { FirestoreVehicle, DriverWithUser } from '@/core/firebase';
+import type { Timestamp } from 'firebase/firestore';
+
+// Helper to create mock Firestore Timestamp
+const createMockTimestamp = (date: Date): Timestamp =>
+  ({ toDate: () => date }) as Timestamp;
 
 // Mock vehicle data
 const createMockVehicle = (overrides: Partial<FirestoreVehicle> = {}): FirestoreVehicle => ({
@@ -23,10 +28,10 @@ const createMockVehicle = (overrides: Partial<FirestoreVehicle> = {}): Firestore
   status: 'active',
   is_primary: false,
   owner_id: 'owner-001',
-  created_at: { toDate: () => new Date('2024-01-01') } as any,
-  updated_at: { toDate: () => new Date('2024-01-01') } as any,
-  soat_expiry: { toDate: () => new Date('2025-06-15') } as any,
-  tecnomecanica_expiry: { toDate: () => new Date('2025-08-20') } as any,
+  created_at: createMockTimestamp(new Date('2024-01-01')),
+  updated_at: createMockTimestamp(new Date('2024-01-01')),
+  soat_expiry: createMockTimestamp(new Date('2025-06-15')),
+  tecnomecanica_expiry: createMockTimestamp(new Date('2025-08-20')),
   ...overrides,
 });
 
@@ -320,7 +325,7 @@ describe('VehiclesTable', () => {
     it('shows SOAT expiry date', () => {
       const vehicles = [
         createMockVehicle({
-          soat_expiry: { toDate: () => new Date('2025-06-15') } as any,
+          soat_expiry: createMockTimestamp(new Date('2025-06-15')),
         }),
       ];
       render(<VehiclesTable vehicles={vehicles} isLoading={false} />);
@@ -339,8 +344,8 @@ describe('VehiclesTable', () => {
     it('shows expired tag for expired SOAT', () => {
       const vehicles = [
         createMockVehicle({
-          soat_expiry: { toDate: () => new Date('2020-01-01') } as any,
-          tecnomecanica_expiry: { toDate: () => new Date('2030-01-01') } as any, // Not expired
+          soat_expiry: createMockTimestamp(new Date('2020-01-01')),
+          tecnomecanica_expiry: createMockTimestamp(new Date('2030-01-01')), // Not expired
         }),
       ];
       render(<VehiclesTable vehicles={vehicles} isLoading={false} />);
@@ -356,8 +361,8 @@ describe('VehiclesTable', () => {
 
       const vehicles = [
         createMockVehicle({
-          soat_expiry: { toDate: () => soon } as any,
-          tecnomecanica_expiry: { toDate: () => new Date('2030-01-01') } as any, // Not expiring
+          soat_expiry: createMockTimestamp(soon),
+          tecnomecanica_expiry: createMockTimestamp(new Date('2030-01-01')), // Not expiring
         }),
       ];
       render(<VehiclesTable vehicles={vehicles} isLoading={false} />);
@@ -369,7 +374,7 @@ describe('VehiclesTable', () => {
     it('shows dash for null expiry date', () => {
       const vehicles = [
         createMockVehicle({
-          soat_expiry: null as any,
+          soat_expiry: null as unknown as Timestamp,
         }),
       ];
       render(<VehiclesTable vehicles={vehicles} isLoading={false} />);
