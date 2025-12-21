@@ -169,8 +169,55 @@ type PageName =
   | 'conversations'
   | 'users'
   | 'finances'
-  | 'external_ride';
+  | 'external_ride'
+  | 'reporting';
 
 export function trackPageViewed(pageName: PageName): void {
   trackEvent('page_viewed', { page_name: pageName });
+}
+
+// ============================================================================
+// REPORTING EVENTS
+// ============================================================================
+
+type ReportingDateFilterValue =
+  | 'today'
+  | 'yesterday'
+  | 'last7days'
+  | 'last30days'
+  | 'thisMonth'
+  | 'lastMonth'
+  | 'custom';
+
+export function trackReportingDateFiltered(filterValue: ReportingDateFilterValue): void {
+  trackEvent('reporting_filtered', {
+    filter_type: 'date',
+    filter_value: filterValue,
+  });
+}
+
+export function trackReportingRefreshed(isRealtime: boolean): void {
+  trackEvent('reporting_refreshed', { is_realtime: isRealtime });
+}
+
+type GoalTargetType = 'rides_per_week' | 'rides_per_month' | 'revenue_per_week' | 'revenue_per_month';
+
+export function trackReportingGoalCreated(targetType: GoalTargetType, targetValue: number): void {
+  trackEvent('reporting_goal_created', {
+    target_type: targetType,
+    target_value: targetValue,
+  });
+}
+
+export function trackReportingGoalDeleted(targetType: GoalTargetType): void {
+  trackEvent('reporting_goal_deleted', { target_type: targetType });
+}
+
+type ReportingChartType = 'source_comparison' | 'trend' | 'payment_method' | 'peak_hours';
+
+export function trackReportingChartInteraction(chartType: ReportingChartType, action: string): void {
+  trackEvent('reporting_chart_interaction', {
+    chart_type: chartType,
+    action,
+  });
 }

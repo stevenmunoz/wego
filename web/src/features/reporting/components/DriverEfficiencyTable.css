@@ -1,0 +1,187 @@
+/**
+ * Driver Efficiency Table Styles
+ */
+
+.driver-efficiency-table {
+  background: var(--color-white, #ffffff);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-gray-800, #1f2937);
+  margin: 0 0 1rem 0;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+thead {
+  background: var(--color-gray-50, #f9fafb);
+}
+
+th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-gray-600, #4b5563);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-gray-200, #e5e7eb);
+  white-space: nowrap;
+}
+
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+th.sortable:hover {
+  background: var(--color-gray-100, #f3f4f6);
+}
+
+td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-gray-100, #f3f4f6);
+  color: var(--color-gray-700, #374151);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover td {
+  background: var(--color-gray-50, #f9fafb);
+}
+
+.align-right {
+  text-align: right;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Driver Name */
+.driver-name {
+  max-width: 200px;
+}
+
+.name-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  color: var(--color-gray-800, #1f2937);
+}
+
+/* Goal Badge */
+.goal-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.status-exceeded {
+  background: var(--color-success-100, #dcfce7);
+  color: var(--color-success-700, #15803d);
+}
+
+.status-met {
+  background: var(--color-success-50, #f0fdf4);
+  color: var(--color-success-600, #16a34a);
+}
+
+.status-warning {
+  background: var(--color-warning-100, #fef9c3);
+  color: var(--color-warning-700, #a16207);
+}
+
+.status-below {
+  background: var(--color-error-100, #fee2e2);
+  color: var(--color-error-700, #b91c1c);
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  color: var(--color-gray-400, #9ca3af);
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/* Skeleton Loading */
+.table-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.row-skeleton {
+  height: 48px;
+  border-radius: 6px;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  th,
+  td {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  th {
+    font-size: 0.6875rem;
+  }
+
+  .driver-name {
+    max-width: 120px;
+  }
+}
