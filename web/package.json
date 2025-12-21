@@ -12,7 +12,12 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "seed:driver": "npx tsx scripts/seed-test-driver.ts"
+    "seed:driver": "npx tsx scripts/seed-test-driver.ts",
+    "deploy:remoteconfig": "npx tsx scripts/deploy-remote-config.ts",
+    "deploy:remoteconfig:dev": "npx tsx scripts/deploy-remote-config.ts wego-dev-a5a13",
+    "deploy:remoteconfig:prod": "npx tsx scripts/deploy-remote-config.ts wego-bac88",
+    "maintenance:on": "npx tsx scripts/toggle-maintenance.ts on",
+    "maintenance:off": "npx tsx scripts/toggle-maintenance.ts off"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
