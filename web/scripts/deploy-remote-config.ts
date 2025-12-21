@@ -42,7 +42,7 @@ const template = {
 
     // Dynamic Content
     promo_banner_enabled: {
-      defaultValue: { value: 'true' },
+      defaultValue: { value: 'false' },
       description: 'Show promotional banner',
       valueType: 'BOOLEAN',
     },
