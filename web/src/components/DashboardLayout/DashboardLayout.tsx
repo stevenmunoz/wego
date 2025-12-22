@@ -106,7 +106,13 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
 
   const handleLogout = async () => {
     trackLogout();
-    await logout();
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Still navigate to login even if logout fails
+      // This ensures user isn't stuck on the dashboard
+    }
     navigate('/login');
   };
 

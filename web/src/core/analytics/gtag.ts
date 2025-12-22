@@ -30,17 +30,23 @@ export function initGA4(): void {
     window.dataLayer.push(args);
   };
 
-  // Load gtag.js script
+  // Load gtag.js script with error handling
   const script = document.createElement('script');
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+
+  script.onerror = () => {
+    console.warn('[GA4] Failed to load analytics script. Tracking will be disabled.');
+  };
+
+  script.onload = () => {
+    // Initialize gtag only after script loads successfully
+    window.gtag('js', new Date());
+    window.gtag('config', measurementId);
+    console.log(`[GA4] Initialized with measurement ID: ${measurementId}`);
+  };
+
   document.head.appendChild(script);
-
-  // Initialize gtag
-  window.gtag('js', new Date());
-  window.gtag('config', measurementId);
-
-  console.log(`[GA4] Initialized with measurement ID: ${measurementId}`);
 }
 
 /**

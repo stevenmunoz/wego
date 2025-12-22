@@ -27,8 +27,10 @@ googleProvider.setCustomParameters({
   prompt: 'select_account',
 });
 
-// Debug: Log Firebase config on load
-console.log('Firebase Auth initialized with domain:', firebaseAuth.config.authDomain);
+// Debug: Log Firebase config on load (dev only)
+if (import.meta.env.DEV) {
+  console.log('[Firebase] Auth initialized with domain:', firebaseAuth.config.authDomain);
+}
 
 export interface FirebaseAuthUser {
   uid: string;
@@ -69,9 +71,11 @@ export const signIn = async (email: string, password: string): Promise<UserCrede
  * Sign in with Google using popup
  */
 export const signInWithGoogle = (): Promise<UserCredential> => {
-  console.log('signInWithGoogle: Opening popup...');
-  console.log('signInWithGoogle: Auth domain:', firebaseAuth.config.authDomain);
-  console.log('signInWithGoogle: Current origin:', window.location.origin);
+  if (import.meta.env.DEV) {
+    console.log('[Firebase] signInWithGoogle: Opening popup...');
+    console.log('[Firebase] Auth domain:', firebaseAuth.config.authDomain);
+    console.log('[Firebase] Current origin:', window.location.origin);
+  }
 
   return signInWithPopup(firebaseAuth, googleProvider);
 };

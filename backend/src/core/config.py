@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Enterprise App"
     VERSION: str = "1.0.0"
     ENVIRONMENT: str = "development"
-    DEBUG: bool = True
+    DEBUG: bool = False  # SECURITY: Default to False, enable via env var for development
     API_V1_PREFIX: str = "/api/v1"
 
     # Security

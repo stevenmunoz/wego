@@ -25,17 +25,37 @@ interface AuthState {
 
 /**
  * Convert Firebase user to our app User type
+ * Role is set separately from Firestore profile, defaults to USER if not found
  */
-const convertFirebaseUser = (firebaseUser: FirebaseUser): User => ({
+const convertFirebaseUser = (
+  firebaseUser: FirebaseUser,
+  firestoreRole?: FirestoreUserRole | null
+): User => ({
   id: firebaseUser.uid,
   email: firebaseUser.email || '',
   full_name: firebaseUser.displayName || '',
-  role: UserRole.USER,
+  role: mapFirestoreRoleToUserRole(firestoreRole),
   status: UserStatus.ACTIVE,
   is_verified: firebaseUser.emailVerified,
   created_at: firebaseUser.metadata.creationTime || new Date().toISOString(),
   updated_at: firebaseUser.metadata.lastSignInTime || new Date().toISOString(),
 });
+
+/**
+ * Map Firestore role string to UserRole enum
+ * SECURITY: Default to USER role if role is unknown/missing
+ */
+const mapFirestoreRoleToUserRole = (role?: FirestoreUserRole | null): UserRole => {
+  switch (role) {
+    case 'admin':
+      return UserRole.ADMIN;
+    case 'driver':
+      return UserRole.DRIVER;
+    case 'user':
+    default:
+      return UserRole.USER;
+  }
+};
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
@@ -50,7 +70,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setFirebaseUser: (firebaseUser) => {
     if (firebaseUser) {
-      const user = convertFirebaseUser(firebaseUser);
+      // Use existing userRole if available, otherwise default to USER
+      const currentRole = get().userRole;
+      const user = convertFirebaseUser(firebaseUser, currentRole);
       set({ firebaseUser, user, isAuthenticated: true, isLoading: false });
     } else {
       set({
@@ -86,15 +108,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initAuth: () => {
     // Subscribe to Firebase auth state changes
     const unsubscribe = onAuthChange(async (firebaseUser) => {
-      console.log('Auth state changed:', firebaseUser?.email || 'null');
+      if (import.meta.env.DEV) {
+        console.log('[Auth] State changed:', firebaseUser ? 'authenticated' : 'not authenticated');
+      }
       if (firebaseUser) {
-        const user = convertFirebaseUser(firebaseUser);
-        console.log('User authenticated:', user.email);
-
-        // Fetch user role from Firestore
+        // Fetch user role from Firestore FIRST
         const userProfile = await getUserProfile(firebaseUser.uid);
         const userRole = userProfile?.role || null;
-        console.log('User role:', userRole);
+        if (import.meta.env.DEV) {
+          console.log('[Auth] User role:', userRole);
+        }
+
+        // Create user object with correct role from Firestore
+        const user = convertFirebaseUser(firebaseUser, userRole);
 
         set({
           firebaseUser,
@@ -104,7 +130,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isLoading: false,
         });
       } else {
-        console.log('No user authenticated');
         set({
           firebaseUser: null,
           user: null,

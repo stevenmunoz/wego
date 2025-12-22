@@ -1,22 +1,44 @@
 /**
  * Application routing configuration
+ * Uses React.lazy() for code splitting - pages are loaded on demand
  */
 
+import { lazy, Suspense, type ComponentType } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
-import { LoginPage } from '../pages/LoginPage';
-import { RegisterPage } from '../pages/RegisterPage';
-import { DashboardPage } from '../pages/DashboardPage';
-import { VehiclesPage } from '../pages/VehiclesPage';
-import { HomePage } from '../pages/HomePage';
-import { ChatPage } from '../pages/ChatPage';
-import { ConversationsPage } from '../pages/ConversationsPage';
-import { InDriverImportPage } from '../pages/InDriverImportPage';
-import { ExternalRideFormPage } from '../pages/ExternalRideFormPage';
-import { UserManagementPage } from '../pages/UserManagementPage';
-import { VehicleFinancesPage } from '../pages/VehicleFinancesPage';
-import { ReportingPage } from '../pages/ReportingPage';
-import { FinanceCategoriesPage } from '../pages/FinanceCategoriesPage';
+
+// Loading fallback component
+const PageLoader = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+    <div>Cargando...</div>
+  </div>
+);
+
+// Wrapper for lazy-loaded components with Suspense
+const withSuspense = <P extends object>(Component: ComponentType<P>) => {
+  return function SuspenseWrapper(props: P) {
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <Component {...props} />
+      </Suspense>
+    );
+  };
+};
+
+// Lazy-loaded pages for code splitting
+const HomePage = withSuspense(lazy(() => import('../pages/HomePage').then(m => ({ default: m.HomePage }))));
+const LoginPage = withSuspense(lazy(() => import('../pages/LoginPage').then(m => ({ default: m.LoginPage }))));
+const RegisterPage = withSuspense(lazy(() => import('../pages/RegisterPage').then(m => ({ default: m.RegisterPage }))));
+const DashboardPage = withSuspense(lazy(() => import('../pages/DashboardPage').then(m => ({ default: m.DashboardPage }))));
+const VehiclesPage = withSuspense(lazy(() => import('../pages/VehiclesPage').then(m => ({ default: m.VehiclesPage }))));
+const ChatPage = withSuspense(lazy(() => import('../pages/ChatPage').then(m => ({ default: m.ChatPage }))));
+const ConversationsPage = withSuspense(lazy(() => import('../pages/ConversationsPage').then(m => ({ default: m.ConversationsPage }))));
+const InDriverImportPage = withSuspense(lazy(() => import('../pages/InDriverImportPage').then(m => ({ default: m.InDriverImportPage }))));
+const ExternalRideFormPage = withSuspense(lazy(() => import('../pages/ExternalRideFormPage').then(m => ({ default: m.ExternalRideFormPage }))));
+const UserManagementPage = withSuspense(lazy(() => import('../pages/UserManagementPage').then(m => ({ default: m.UserManagementPage }))));
+const VehicleFinancesPage = withSuspense(lazy(() => import('../pages/VehicleFinancesPage').then(m => ({ default: m.VehicleFinancesPage }))));
+const ReportingPage = withSuspense(lazy(() => import('../pages/ReportingPage').then(m => ({ default: m.ReportingPage }))));
+const FinanceCategoriesPage = withSuspense(lazy(() => import('../pages/FinanceCategoriesPage').then(m => ({ default: m.FinanceCategoriesPage }))));
 
 export const router = createBrowserRouter([
   {

@@ -27,7 +27,7 @@
     "@hookform/resolvers": "^3.3.2",
     "@sentry/react": "^10.32.1",
     "@tanstack/react-query": "^5.12.2",
-    "axios": "^1.6.2",
+    "axios": "^1.7.9",
     "firebase": "^12.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -47,8 +47,8 @@
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
     "@vitejs/plugin-react": "^4.2.1",
-    "@vitest/coverage-v8": "^1.6.1",
-    "@vitest/ui": "^1.0.4",
+    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/ui": "^2.1.8",
     "eslint": "^8.55.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-react-hooks": "^4.6.0",
@@ -58,7 +58,7 @@
     "prettier": "^3.1.1",
     "tsx": "^4.19.2",
     "typescript": "^5.2.2",
-    "vite": "^5.0.8",
-    "vitest": "^1.0.4"
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
   }
 }

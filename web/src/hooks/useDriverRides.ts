@@ -74,6 +74,8 @@ export const useDriverRides = (
     } finally {
       setIsLoading(false);
     }
+    // Dependencies use individual properties rather than the options object to prevent
+    // unnecessary re-fetches when caller creates a new options object reference
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driverId, options?.startDate, options?.endDate, options?.status]);
 

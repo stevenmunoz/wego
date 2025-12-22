@@ -63,7 +63,8 @@ const toInputDateFormat = (timestamp: { toDate: () => Date } | string | null): s
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
-  } catch {
+  } catch (error) {
+    console.warn('[RidesTable] Failed to convert timestamp to date format:', error);
     return '';
   }
 };
@@ -233,14 +234,16 @@ const EditableCell: FC<EditableCellProps> = ({
   );
 };
 
-// Format helpers
+// Format helpers - create formatter once to avoid repeated instantiation
+const currencyFormatter = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
 const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
+  return currencyFormatter.format(value);
 };
 
 const formatDate = (timestamp: { toDate: () => Date } | string | null): string => {
@@ -622,7 +625,7 @@ export const RidesTable: FC<RidesTableProps> = ({
   const paginatedRides = sortedRides.slice(startIndex, endIndex);
 
   // Reset to page 1 when rides change and current page exceeds total
-  useMemo(() => {
+  useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
     }

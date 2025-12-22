@@ -30,6 +30,7 @@ export const ChatInterface = ({ conversationId, initialMessages = [] }: ChatInte
     if (!input.trim() || isLoading) return;
 
     const userMessage: Partial<Message> = {
+      id: `temp-${Date.now()}`, // Temporary ID for optimistic update
       role: 'user',
       content: input,
       created_at: new Date().toISOString(),
@@ -59,8 +60,8 @@ export const ChatInterface = ({ conversationId, initialMessages = [] }: ChatInte
   return (
     <div className="chat-interface">
       <div className="messages-container">
-        {messages.map((message, index) => (
-          <div key={index} className={`message message-${message.role}`}>
+        {messages.map((message) => (
+          <div key={message.id} className={`message message-${message.role}`}>
             <div className="message-role">{message.role}</div>
             <div className="message-content">{message.content}</div>
             <div className="message-timestamp">

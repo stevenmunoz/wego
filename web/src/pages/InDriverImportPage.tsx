@@ -4,7 +4,7 @@
  * Main page for importing ride data from InDriver screenshots/PDFs
  */
 
-import { type FC, useState, useCallback, useEffect } from 'react';
+import { type FC, useState, useCallback, useEffect, useRef } from 'react';
 import {
   InDriverUploader,
   InDriverReviewTable,
@@ -27,6 +27,16 @@ export const InDriverImportPage: FC = () => {
   const user = useAuthStore((state) => state.user);
   const userRole = useAuthStore((state) => state.userRole);
   const isAdmin = userRole === 'admin';
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timeout on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Fetch vehicles - use different hooks based on role
   const driverVehiclesHook = useDriverVehicles(user?.id);
@@ -90,8 +100,12 @@ export const InDriverImportPage: FC = () => {
     const success = await importRides(driverId, selectedVehicleId || undefined);
     if (success) {
       setImportSuccess(true);
+      // Clear any existing timeout before setting a new one
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
       // Clear state after short delay
-      setTimeout(() => {
+      successTimeoutRef.current = setTimeout(() => {
         clearFiles();
         clearExtracted();
         setView('upload');

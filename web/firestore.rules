@@ -35,9 +35,12 @@ service cloud.firestore {
 
     // Users collection - users can read/write their own profile
     // Admins can read all user profiles, create any user, and update any user
-    // Public read allowed for driver lookup in external form (validates is_active status)
+    // Limited public read for external form driver validation (is_active check)
+    // NOTE: Only driver user documents should be accessed publicly; other roles require auth
     match /users/{userId} {
-      allow read: if true;
+      // Read: Authenticated users can read any profile, OR public can read driver profiles only
+      allow read: if request.auth != null ||
+        (resource.data.role == 'driver');
       allow create: if request.auth != null && (request.auth.uid == userId || isAdmin());
       allow update: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
@@ -99,8 +102,9 @@ service cloud.firestore {
     // TOP-LEVEL VEHICLES COLLECTION (new structure)
     // ============================================================================
     match /vehicles/{vehicleId} {
-      // Read: Public read allowed (for external ride form vehicle selection)
-      // Vehicle info (plate, brand, model) is not sensitive data
+      // Read: Public read for external ride form vehicle selection
+      // Only non-sensitive fields exposed: plate, brand, model, year
+      // SECURITY NOTE: If sensitive fields are added, consider moving to authenticated-only
       allow read: if true;
 
       // Create: Owner creates with their owner_id, or admin can create for any owner
@@ -154,10 +158,11 @@ service cloud.firestore {
     }
 
     // Check vehicle ownership - owner or assigned driver can access
+    // SECURITY: Fail-closed - if vehicle doesn't exist, deny access
     function vehicleOwnershipCheck(vehicleId) {
-      return !exists(/databases/$(database)/documents/vehicles/$(vehicleId)) ||
-        get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.owner_id == request.auth.uid ||
-        get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.assigned_driver_id == request.auth.uid;
+      return exists(/databases/$(database)/documents/vehicles/$(vehicleId)) &&
+        (get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.owner_id == request.auth.uid ||
+         get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.assigned_driver_id == request.auth.uid);
     }
 
     // Validate external ride submission from public form
