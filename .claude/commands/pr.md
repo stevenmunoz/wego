@@ -112,6 +112,51 @@ EOF
   - If merging to `develop`: "Will deploy to DEV environment (wego-dev-a5a13)"
   - If merging to `main`: "Will deploy to PROD environment (wego-bac88)"
 
+### 8. Monitor CI/CD and Fix Failures
+
+**After PR is created, immediately monitor the GitHub Actions pipeline:**
+
+```bash
+# Get the latest workflow run for this PR
+gh run list --branch $(git branch --show-current) --limit 1
+
+# Watch the run status (get run ID from above)
+gh run watch <run-id>
+```
+
+**If pipeline fails:**
+
+1. **Get failed job logs:**
+   ```bash
+   gh run view <run-id> --log-failed | head -200
+   ```
+
+2. **Common failure types and fixes:**
+
+   | Failure | Fix |
+   |---------|-----|
+   | `npm ci` lock file mismatch | Run `npm install` in affected directory, commit `package-lock.json` |
+   | ESLint warnings (max-warnings 0) | Fix lint issues or add eslint-disable comment with justification |
+   | Prettier formatting | Run `npx prettier --write "src/**/*.{ts,tsx,css}"` |
+   | TypeScript errors | Fix type errors in reported files |
+   | Test failures | Fix failing tests or update snapshots |
+
+3. **Fix, commit, and push:**
+   ```bash
+   # Make fixes
+   git add -A
+   git commit -m "fix: resolve CI failures"
+   git push
+   ```
+
+4. **Re-monitor until pipeline passes:**
+   ```bash
+   gh run list --branch $(git branch --show-current) --limit 1
+   gh run watch <new-run-id>
+   ```
+
+**Continue fixing until all checks pass.** Do not leave the PR with failing checks.
+
 ## PR Body Template
 
 ```markdown
