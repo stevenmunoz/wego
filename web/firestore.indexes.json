@@ -1,6 +1,23 @@
 {
   "indexes": [
     {
+      "collectionGroup": "finance_categories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category_type", "order": "ASCENDING" },
+        { "fieldPath": "sort_order", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "finance_categories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category_type", "order": "ASCENDING" },
+        { "fieldPath": "is_active", "order": "ASCENDING" },
+        { "fieldPath": "sort_order", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "notifications",
       "queryScope": "COLLECTION",
       "fields": [

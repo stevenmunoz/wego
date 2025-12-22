@@ -64,26 +64,9 @@ export interface SourceBreakdown {
   };
 }
 
-// Vehicle finance breakdowns
-export interface IncomeByTypeBreakdown {
-  weekly_payment: number;
-  tip_share: number;
-  bonus: number;
-  other: number;
-}
-
-export interface ExpensesByCategoryBreakdown {
-  fuel: number;
-  maintenance: number;
-  insurance_soat: number;
-  tecnomecanica: number;
-  taxes: number;
-  fines: number;
-  parking: number;
-  car_wash: number;
-  accessories: number;
-  other: number;
-}
+// Vehicle finance breakdowns (dynamic - keys come from finance_categories collection)
+export type IncomeByTypeBreakdown = Record<string, number>;
+export type ExpensesByCategoryBreakdown = Record<string, number>;
 
 export interface DailyTrend {
   date: string; // YYYY-MM-DD format

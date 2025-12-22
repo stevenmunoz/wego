@@ -84,6 +84,18 @@ service cloud.firestore {
     }
 
     // ============================================================================
+    // FINANCE CATEGORIES COLLECTION (dynamic expense/income categories)
+    // ============================================================================
+    match /finance_categories/{categoryId} {
+      // Any authenticated user can read categories (needed for forms/charts)
+      allow read: if request.auth != null;
+
+      // Only admins can create, update, or delete categories
+      allow create: if request.auth != null && isAdmin();
+      allow update, delete: if request.auth != null && isAdmin();
+    }
+
+    // ============================================================================
     // TOP-LEVEL VEHICLES COLLECTION (new structure)
     // ============================================================================
     match /vehicles/{vehicleId} {

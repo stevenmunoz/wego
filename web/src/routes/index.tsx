@@ -16,6 +16,7 @@ import { ExternalRideFormPage } from '../pages/ExternalRideFormPage';
 import { UserManagementPage } from '../pages/UserManagementPage';
 import { VehicleFinancesPage } from '../pages/VehicleFinancesPage';
 import { ReportingPage } from '../pages/ReportingPage';
+import { FinanceCategoriesPage } from '../pages/FinanceCategoriesPage';
 
 export const router = createBrowserRouter([
   {
@@ -73,6 +74,10 @@ export const router = createBrowserRouter([
       {
         path: '/reporting',
         element: <ReportingPage />,
+      },
+      {
+        path: '/admin/categories',
+        element: <FinanceCategoriesPage />,
       },
     ],
   },
