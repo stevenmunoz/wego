@@ -595,6 +595,9 @@ export const useRidesStore = create<RidesState>((set) => ({
 | `web/firestore.rules` | Firestore security rules |
 | `web/firestore.indexes.json` | Firestore composite indexes |
 | `web/src/core/analytics/gtag.ts` | Google Analytics 4 initialization and tracking |
+| `docs/SECURITY_AUDIT_REPORT.md` | Security audit findings and remediation status |
+| `docs/TESTING_STRATEGY.md` | Testing patterns, coverage requirements, and best practices |
+| `docs/archive/FIREBASE_MIGRATION_SUMMARY.md` | Historical Firebase migration documentation |
 
 ---
 
