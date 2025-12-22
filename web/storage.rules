@@ -1,0 +1,67 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // ============================================================================
+    // UNIFIED VEHICLE STORAGE (new structure)
+    // All vehicle files stored under /vehicles/{vehicleId}/...
+    // ============================================================================
+
+    // Vehicle images (photos)
+    match /vehicles/{vehicleId}/{fileName} {
+      // Allow read if user is authenticated
+      allow read: if request.auth != null;
+
+      // Allow write for vehicle images (max 5MB)
+      allow write: if request.auth != null
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Vehicle documents subfolder (SOAT, Tecnomecánica PDFs)
+    match /vehicles/{vehicleId}/documents/{fileName} {
+      // Allow read if user is authenticated
+      allow read: if request.auth != null;
+
+      // Allow write for documents (images or PDF, max 10MB)
+      allow write: if request.auth != null
+                   && request.resource.size < 10 * 1024 * 1024
+                   && (request.resource.contentType.matches('image/.*')
+                       || request.resource.contentType == 'application/pdf');
+    }
+
+    // Vehicle expense receipts (now under vehicle, not expenses collection)
+    match /vehicles/{vehicleId}/receipts/{fileName} {
+      // Allow read if user is authenticated
+      allow read: if request.auth != null;
+
+      // Allow write for receipts (images or PDF, max 10MB)
+      allow write: if request.auth != null
+                   && request.resource.size < 10 * 1024 * 1024
+                   && (request.resource.contentType.matches('image/.*')
+                       || request.resource.contentType == 'application/pdf');
+    }
+
+    // ============================================================================
+    // LEGACY PATHS (read-only for backward compatibility)
+    // These will be removed once all files are migrated
+    // ============================================================================
+
+    // Legacy: /vehicles/{driverId}/{vehicleId}/...
+    match /vehicles/{driverId}/{vehicleId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if false; // No new writes to legacy paths
+    }
+
+    // Legacy: /expenses/{ownerId}/{vehicleId}/receipts/...
+    match /expenses/{ownerId}/{vehicleId}/receipts/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if false; // No new writes to legacy paths
+    }
+
+    // Default deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

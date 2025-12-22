@@ -550,14 +550,14 @@
 }
 
 /* Ensure date input text is visible in all states */
-input[type="date"].editable-input {
+input[type='date'].editable-input {
   color: #1e2a3a;
   -webkit-text-fill-color: #1e2a3a;
 }
 
 /* Time input styles */
 .editable-time,
-input[type="time"].editable-input {
+input[type='time'].editable-input {
   font-family: 'JetBrains Mono', monospace;
   min-width: 120px;
   width: 120px;
@@ -566,14 +566,14 @@ input[type="time"].editable-input {
   background-color: #fff !important;
 }
 
-input[type="time"].editable-input::-webkit-calendar-picker-indicator {
+input[type='time'].editable-input::-webkit-calendar-picker-indicator {
   cursor: pointer;
   padding: 4px;
   margin-left: 4px;
   opacity: 0.7;
 }
 
-input[type="time"].editable-input::-webkit-calendar-picker-indicator:hover {
+input[type='time'].editable-input::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
 }
 
@@ -606,6 +606,34 @@ input[type="time"].editable-input::-webkit-calendar-picker-indicator:hover {
   font-weight: 700;
   color: var(--color-success-600, #16a34a);
   font-size: 1rem;
+}
+
+/* Warning styles for suspicious values (0 or very low) */
+.value-warning {
+  background-color: rgba(234, 179, 8, 0.15) !important;
+  border-radius: 4px;
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+.value-warning::before {
+  content: '⚠️';
+  margin-right: 0.25rem;
+  font-size: 0.75rem;
+}
+
+@keyframes pulse-warning {
+  0%,
+  100% {
+    background-color: rgba(234, 179, 8, 0.15);
+  }
+  50% {
+    background-color: rgba(234, 179, 8, 0.3);
+  }
+}
+
+.editable-cell.value-warning:hover {
+  background-color: rgba(234, 179, 8, 0.3) !important;
+  outline-color: var(--color-warning-500, #eab308);
 }
 
 /* Responsive */

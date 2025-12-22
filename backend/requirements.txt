@@ -9,6 +9,7 @@ firebase-admin==6.5.0
 # Authentication
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+bcrypt==4.0.1  # Pinned for passlib compatibility (4.1+ has breaking changes)
 python-dotenv==1.0.0
 pydantic-settings==2.1.0
 

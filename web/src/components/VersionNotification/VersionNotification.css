@@ -1,0 +1,120 @@
+/**
+ * Version Notification Styles
+ * Fixed top bar for update notifications (full width)
+ */
+
+.version-notification {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-info-600, #0284c7);
+  color: white;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  animation: version-notification-slide-down 0.3s ease-out;
+}
+
+@keyframes version-notification-slide-down {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.version-notification-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.version-notification-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.version-notification-message {
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+.version-notification-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.version-notification-btn {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.version-notification-dismiss {
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.version-notification-dismiss:hover {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.version-notification-dismiss:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+.version-notification-update {
+  background-color: white;
+  color: var(--color-info-700, #0369a1);
+  border: 1px solid white;
+}
+
+.version-notification-update:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.version-notification-update:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* Mobile: stack vertically */
+@media (max-width: 768px) {
+  .version-notification {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .version-notification-content {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .version-notification-actions {
+    width: 100%;
+    justify-content: center;
+  }
+}

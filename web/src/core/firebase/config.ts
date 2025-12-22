@@ -5,10 +5,11 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, browserLocalPersistence, setPersistence } from 'firebase/auth';
 import { getAnalytics, isSupported } from 'firebase/analytics';
+import { getStorage } from 'firebase/storage';
 
 // Firebase config loaded from environment variables
 // NEVER hardcode API keys - they will be exposed and disabled by Google
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -30,8 +31,20 @@ export const firebaseApp = initializeApp(firebaseConfig);
 export const firebaseAuth = getAuth(firebaseApp);
 
 // Set persistence to local (persists even after browser close)
-setPersistence(firebaseAuth, browserLocalPersistence).catch((error) => {
-  console.error('Error setting auth persistence:', error);
+// Falls back gracefully if persistence fails (e.g., private browsing mode)
+setPersistence(firebaseAuth, browserLocalPersistence).catch((error: Error) => {
+  // Common in private/incognito mode where IndexedDB is restricted
+  const isQuotaError =
+    error.message?.includes('QuotaExceeded') || error.name === 'QuotaExceededError';
+  const isPrivateBrowsing = error.message?.includes('access') || error.message?.includes('denied');
+
+  if (isQuotaError || isPrivateBrowsing) {
+    console.warn(
+      '[Firebase] Auth persistence unavailable (private browsing mode). Session will not persist.'
+    );
+  } else {
+    console.error('[Firebase] Error setting auth persistence:', error.message);
+  }
 });
 
 // Initialize Analytics (only in browser and if supported)
@@ -41,3 +54,6 @@ export const initAnalytics = async () => {
   }
   return null;
 };
+
+// Initialize Firebase Storage
+export const firebaseStorage = getStorage(firebaseApp);

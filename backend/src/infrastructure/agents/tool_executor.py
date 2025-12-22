@@ -1,11 +1,18 @@
 """Tool executor implementation."""
 
+import ast
 import json
+import operator
+import re
 from typing import Any
 
 from src.core.logging import get_logger
 
 logger = get_logger(__name__)
+
+# Constants
+MAX_JSON_PARAMETER_SIZE = 1024 * 1024  # 1MB max for JSON parameters
+MAX_STRING_PARAMETER_LENGTH = 10000  # Max length for individual string params
 
 
 class ToolExecutor:
@@ -42,7 +49,21 @@ class ToolExecutor:
 
             # Parse parameters if they're a JSON string
             if isinstance(parameters, str):
+                # Check size before parsing to prevent memory exhaustion
+                if len(parameters) > MAX_JSON_PARAMETER_SIZE:
+                    return {
+                        "error": "Parameters too large",
+                        "success": False,
+                    }
                 parameters = json.loads(parameters)
+
+            # Validate string parameter lengths
+            for key, value in parameters.items():
+                if isinstance(value, str) and len(value) > MAX_STRING_PARAMETER_LENGTH:
+                    return {
+                        "error": f"Parameter '{key}' exceeds maximum length",
+                        "success": False,
+                    }
 
             result = await self._tools[tool_name](**parameters)
 
@@ -76,10 +97,9 @@ class ToolExecutor:
         }
 
     async def _calculator(self, expression: str) -> dict[str, Any]:
-        """Evaluate mathematical expression."""
+        """Evaluate mathematical expression safely using AST parsing."""
         try:
-            # Simple safe evaluation (in production, use a proper math parser)
-            result = eval(expression, {"__builtins__": {}}, {})
+            result = self._safe_eval_math(expression)
             return {
                 "expression": expression,
                 "result": result,
@@ -89,6 +109,68 @@ class ToolExecutor:
                 "expression": expression,
                 "error": str(e),
             }
+
+    def _safe_eval_math(self, expression: str) -> float | int:
+        """
+        Safely evaluate a mathematical expression using AST.
+
+        Supports: +, -, *, /, **, //, %, parentheses, and numeric literals.
+        Rejects any other operations or function calls.
+        """
+        # Validate expression contains only allowed characters
+        if not re.match(r'^[\d\s+\-*/().%]+$', expression):
+            raise ValueError("Expression contains invalid characters")
+
+        # Parse the expression into an AST
+        try:
+            tree = ast.parse(expression, mode='eval')
+        except SyntaxError as e:
+            raise ValueError(f"Invalid expression syntax: {e}") from e
+
+        # Define allowed operators
+        allowed_operators = {
+            ast.Add: operator.add,
+            ast.Sub: operator.sub,
+            ast.Mult: operator.mul,
+            ast.Div: operator.truediv,
+            ast.FloorDiv: operator.floordiv,
+            ast.Mod: operator.mod,
+            ast.Pow: operator.pow,
+            ast.USub: operator.neg,
+            ast.UAdd: operator.pos,
+        }
+
+        def _eval_node(node: ast.AST) -> float | int:
+            """Recursively evaluate AST nodes."""
+            if isinstance(node, ast.Expression):
+                return _eval_node(node.body)
+            elif isinstance(node, ast.Constant):
+                if isinstance(node.value, (int, float)):
+                    return node.value
+                raise ValueError(f"Unsupported constant type: {type(node.value)}")
+            elif isinstance(node, ast.BinOp):
+                op_type = type(node.op)
+                if op_type not in allowed_operators:
+                    raise ValueError(f"Unsupported operator: {op_type.__name__}")
+                left = _eval_node(node.left)
+                right = _eval_node(node.right)
+                # Prevent division by zero
+                if op_type in (ast.Div, ast.FloorDiv, ast.Mod) and right == 0:
+                    raise ValueError("Division by zero")
+                # Limit exponentiation to prevent DoS
+                if op_type == ast.Pow and (abs(left) > 1000 or abs(right) > 100):
+                    raise ValueError("Exponentiation values too large")
+                return allowed_operators[op_type](left, right)
+            elif isinstance(node, ast.UnaryOp):
+                op_type = type(node.op)
+                if op_type not in allowed_operators:
+                    raise ValueError(f"Unsupported unary operator: {op_type.__name__}")
+                operand = _eval_node(node.operand)
+                return allowed_operators[op_type](operand)
+            else:
+                raise ValueError(f"Unsupported expression type: {type(node).__name__}")
+
+        return _eval_node(tree)
 
     async def _get_current_weather(
         self,

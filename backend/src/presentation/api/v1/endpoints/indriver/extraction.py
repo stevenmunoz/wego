@@ -1,8 +1,11 @@
 """InDriver extraction API endpoints."""
 
 import logging
+import os
+import re
+from uuid import UUID
 
-from fastapi import APIRouter, File, HTTPException, Response, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
 
 from src.application.indriver import (
     ExportRequest,
@@ -17,18 +20,59 @@ from src.application.indriver.schemas import (
     ImportedRide,
     SkippedRide,
 )
+from src.presentation.dependencies import get_current_user_id
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/indriver", tags=["indriver"])
 
+# Constants
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10MB
+ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".pdf"}
+MAX_FILENAME_LENGTH = 255
+
 # Initialize extraction service
 extraction_service = InDriverExtractionService()
+
+
+def sanitize_filename(filename: str | None) -> str | None:
+    """
+    Sanitize and validate filename.
+    Returns None if filename is invalid or potentially dangerous.
+    """
+    if not filename:
+        return None
+
+    # Remove any path components (prevent directory traversal)
+    filename = os.path.basename(filename)
+
+    # Check length
+    if len(filename) > MAX_FILENAME_LENGTH:
+        return None
+
+    # Check for null bytes or other dangerous characters
+    if "\x00" in filename or ".." in filename:
+        return None
+
+    # Validate filename contains only safe characters
+    # Allow alphanumeric, dots, underscores, hyphens, and spaces
+    if not re.match(r"^[\w\-. ]+$", filename):
+        return None
+
+    return filename
+
+
+def get_file_extension(filename: str) -> str:
+    """Get lowercase file extension including the dot."""
+    if "." not in filename:
+        return ""
+    return "." + filename.rsplit(".", 1)[-1].lower()
 
 
 @router.post("/extract", response_model=ExtractResponse)
 async def extract_from_files(
     files: list[UploadFile] = File(..., description="Image or PDF files to extract from"),
+    current_user_id: UUID = Depends(get_current_user_id),
 ) -> ExtractResponse:
     """
     Extract ride data from uploaded InDriver screenshots or PDFs.
@@ -42,30 +86,41 @@ async def extract_from_files(
     if not files:
         raise HTTPException(status_code=400, detail="No files provided")
 
-    # Validate file types
-    allowed_extensions = {".png", ".jpg", ".jpeg", ".pdf"}
     file_data: list[tuple] = []
 
     for file in files:
-        if not file.filename:
-            continue
-
-        ext = "." + file.filename.split(".")[-1].lower() if "." in file.filename else ""
-        if ext not in allowed_extensions:
+        # Sanitize and validate filename
+        safe_filename = sanitize_filename(file.filename)
+        if not safe_filename:
             raise HTTPException(
                 status_code=400,
-                detail=f"Unsupported file type: {file.filename}. Allowed: {', '.join(allowed_extensions)}",
+                detail="Invalid filename provided",
             )
 
-        # Check file size (10MB max)
+        # Check file extension
+        ext = get_file_extension(safe_filename)
+        if ext not in ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported file type. Allowed: {', '.join(ALLOWED_EXTENSIONS)}",
+            )
+
+        # Check Content-Length header first if available (prevent memory exhaustion)
+        if file.size and file.size > MAX_FILE_SIZE_BYTES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File too large. Maximum size: {MAX_FILE_SIZE_BYTES // (1024 * 1024)}MB",
+            )
+
+        # Read file contents
         contents = await file.read()
-        if len(contents) > 10 * 1024 * 1024:
+        if len(contents) > MAX_FILE_SIZE_BYTES:
             raise HTTPException(
                 status_code=400,
-                detail=f"File too large: {file.filename}. Maximum size: 10MB",
+                detail=f"File too large. Maximum size: {MAX_FILE_SIZE_BYTES // (1024 * 1024)}MB",
             )
 
-        file_data.append((contents, file.filename))
+        file_data.append((contents, safe_filename))
 
     if not file_data:
         raise HTTPException(status_code=400, detail="No valid files provided")
@@ -75,12 +130,18 @@ async def extract_from_files(
         response = extraction_service.extract_batch(file_data)
         return response
     except Exception as e:
-        logger.exception("Extraction failed")
-        raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}") from e
+        logger.exception("Extraction failed", extra={"error": str(e)})
+        raise HTTPException(
+            status_code=500,
+            detail="An error occurred while processing the files. Please try again.",
+        ) from e
 
 
 @router.post("/import", response_model=ImportResponse)
-async def import_rides(request: ImportRequest) -> ImportResponse:
+async def import_rides(
+    request: ImportRequest,
+    current_user_id: UUID = Depends(get_current_user_id),
+) -> ImportResponse:
     """
     Import extracted rides into the database.
 
@@ -133,7 +194,10 @@ async def import_rides(request: ImportRequest) -> ImportResponse:
 
 
 @router.post("/export")
-async def export_rides(request: ExportRequest) -> Response:
+async def export_rides(
+    request: ExportRequest,
+    current_user_id: UUID = Depends(get_current_user_id),
+) -> Response:
     """
     Export extracted rides to specified format.
 
@@ -182,12 +246,17 @@ async def export_rides(request: ExportRequest) -> Response:
             )
 
     except Exception as e:
-        logger.exception("Export failed")
-        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}") from e
+        logger.exception("Export failed", extra={"error": str(e)})
+        raise HTTPException(
+            status_code=500,
+            detail="An error occurred while exporting the rides. Please try again.",
+        ) from e
 
 
 @router.get("/stats")
-async def get_extraction_stats() -> dict:
+async def get_extraction_stats(
+    current_user_id: UUID = Depends(get_current_user_id),
+) -> dict:
     """
     Get extraction statistics.
 
@@ -204,7 +273,10 @@ async def get_extraction_stats() -> dict:
 
 
 @router.post("/validate")
-async def validate_ride(ride: ExtractedInDriverRide) -> dict:
+async def validate_ride(
+    ride: ExtractedInDriverRide,
+    current_user_id: UUID = Depends(get_current_user_id),
+) -> dict:
     """
     Validate a single extracted ride's financial data.
 

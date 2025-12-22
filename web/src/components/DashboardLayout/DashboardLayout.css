@@ -166,12 +166,69 @@
   color: #fff;
 }
 
+/* Version Info */
+.version-info {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.6875rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'JetBrains Mono', monospace;
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  text-align: left;
+}
+
+.version-info-clickable {
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.version-info-clickable:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.version-info-clickable:hover .version-value {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.version-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.125rem 0;
+}
+
+.version-label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.version-value {
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Main Area (wraps header and content) */
+.main-area {
+  flex: 1;
+  margin-left: 260px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Main Content */
 .main-content {
   flex: 1;
-  margin-left: 260px;
   padding: 2rem;
-  min-height: 100vh;
 }
 
 /* Responsive */
@@ -182,8 +239,12 @@
     height: auto;
   }
 
-  .main-content {
+  .main-area {
     margin-left: 0;
+  }
+
+  .main-content {
+    padding: 1rem;
   }
 
   .dashboard-layout {

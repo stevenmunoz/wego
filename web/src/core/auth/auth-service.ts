@@ -47,6 +47,15 @@ class AuthService {
     return !!this.getAccessToken();
   }
 
+  /**
+   * Clears local authentication state.
+   *
+   * SECURITY NOTE: JWTs are stateless - the access token remains valid on the server
+   * until it expires. For high-security scenarios, consider implementing:
+   * - Short token expiry (15-30 min)
+   * - Server-side token blacklisting
+   * - Token rotation on sensitive actions
+   */
   logout(): void {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
@@ -55,7 +64,15 @@ class AuthService {
 
   decodeToken(token: string): Record<string, unknown> | null {
     try {
-      const base64Url = token.split('.')[1];
+      // Validate JWT format: header.payload.signature
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        return null;
+      }
+      const base64Url = parts[1];
+      if (!base64Url) {
+        return null;
+      }
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(
         atob(base64)

@@ -1,0 +1,142 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  # ============================================================================
+  # Claude AI Code Review
+  # Provides intelligent code review comments on PRs
+  # Uses OAuth token (Pro subscription) - no API credits needed
+  # ============================================================================
+  claude-review:
+    name: Claude Code Review
+    runs-on: ubuntu-latest
+    # Only run on PRs or when @claude is mentioned
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude'))
+
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      id-token: write
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Code Review
+        id: claude-review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          additional_permissions: |
+            actions: read
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Review this pull request for WeGo, a transportation platform.
+
+            Focus your review on:
+            1. **Security**: Firebase/Firestore security rules, auth guards, data validation
+            2. **TypeScript**: Strict typing, no `any` types, proper interfaces
+            3. **React Best Practices**: Hooks usage, component structure, state management
+            4. **Code Quality**: DRY principles, clear naming, proper error handling
+            5. **Design System**: Adherence to WeGo design system in design-system/
+            6. **i18n**: User-facing copy must be in Spanish (Colombia)
+            7. **Testing**: Adequate test coverage for new code
+
+            Be concise and actionable. Prioritize critical issues over style preferences.
+            Reference the CLAUDE.md file for project-specific conventions.
+
+            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+
+  # ============================================================================
+  # Claude Security Review (runs on PRs to main or develop)
+  # Deep security analysis - shift left to catch issues early
+  # ============================================================================
+  security-review:
+    name: Claude Security Review
+    runs-on: ubuntu-latest
+    # Run on PRs targeting main or develop branches
+    if: |
+      github.event_name == 'pull_request' &&
+      (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'develop')
+
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      id-token: write
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Security Review
+        id: claude-security
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          additional_permissions: |
+            actions: read
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Perform a comprehensive SECURITY REVIEW of this pull request for WeGo.
+
+            Focus on WeGo-specific security concerns:
+
+            **Firebase/Firestore Security:**
+            - Firestore security rules properly restrict access
+            - No sensitive data exposed in client-side code
+            - Auth guards on all protected routes
+            - Owner-based access control for vehicle finance data
+
+            **Authentication & Authorization:**
+            - JWT token handling
+            - Password hashing (bcrypt/passlib)
+            - Session management
+            - Role-based access control (UserRole enum)
+
+            **Data Validation:**
+            - Zod schemas at API boundaries
+            - Input sanitization
+            - No SQL/NoSQL injection vectors
+            - XSS prevention in React components
+
+            **Secrets & Configuration:**
+            - No hardcoded API keys or secrets
+            - Environment variables properly used
+            - Firebase config not exposing sensitive data
+
+            **Payment & Financial Data:**
+            - Vehicle finance data properly protected
+            - Transaction handling secure
+            - Commission calculations validated
+
+            Flag any CRITICAL, HIGH, MEDIUM, or LOW severity issues.
+            Provide specific file:line references and remediation steps.
+
+            Use `gh pr comment` with your Bash tool to leave your security review as a comment on the PR.
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'

@@ -4,9 +4,15 @@
  */
 
 import { type FC, useState, useRef, useEffect } from 'react';
+import { trackRidesStatusFiltered } from '@/core/analytics';
 import './StatusFilter.css';
 
-export type StatusFilterOption = 'all' | 'completed' | 'cancelled';
+export type StatusFilterOption =
+  | 'all'
+  | 'completed'
+  | 'cancelled'
+  | 'cancelled_by_passenger'
+  | 'cancelled_by_driver';
 
 interface StatusFilterProps {
   value: StatusFilterOption;
@@ -23,6 +29,8 @@ const filterOptions: FilterOptionConfig[] = [
   { id: 'all', label: 'Todos los viajes', icon: '📋' },
   { id: 'completed', label: 'Completados', icon: '✅' },
   { id: 'cancelled', label: 'Cancelados', icon: '❌' },
+  { id: 'cancelled_by_passenger', label: 'Cancelados (pasajero)', icon: '🚶' },
+  { id: 'cancelled_by_driver', label: 'Cancelados (conductor)', icon: '🚗' },
 ];
 
 export const StatusFilter: FC<StatusFilterProps> = ({ value, onChange }) => {
@@ -43,6 +51,7 @@ export const StatusFilter: FC<StatusFilterProps> = ({ value, onChange }) => {
   }, []);
 
   const handleSelect = (option: FilterOptionConfig) => {
+    trackRidesStatusFiltered(option.id);
     onChange(option.id);
     setIsOpen(false);
   };
