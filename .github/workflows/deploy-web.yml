@@ -1,20 +1,26 @@
 name: Deploy Web
 
 on:
-  push:
+  # Trigger after Web CI completes successfully
+  workflow_run:
+    workflows: ["Web CI"]
+    types:
+      - completed
     branches: [main, develop]
-    paths:
-      - 'web/**'
-      - '.github/workflows/deploy-web.yml'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Only deploy if CI succeeded (or manual trigger)
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # For workflow_run, checkout the branch that triggered CI
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -30,7 +36,11 @@ jobs:
       - name: Determine environment
         id: env
         run: |
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          # For workflow_run events, use head_branch; for workflow_dispatch, use ref
+          BRANCH="${{ github.event.workflow_run.head_branch || github.ref_name }}"
+          echo "Detected branch: $BRANCH"
+
+          if [ "$BRANCH" = "main" ]; then
             echo "environment=production" >> $GITHUB_OUTPUT
             echo "firebase_project_id=wego-bac88" >> $GITHUB_OUTPUT
             echo "app_name=WeGo" >> $GITHUB_OUTPUT
