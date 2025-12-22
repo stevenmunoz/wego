@@ -26,7 +26,7 @@ export const db = getFirestore(firebaseApp);
 // USER ROLES
 // ============================================================================
 
-export type UserRole = 'admin' | 'driver';
+export type UserRole = 'admin' | 'driver' | 'user';
 
 export interface FirestoreUser {
   id: string;
