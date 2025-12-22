@@ -30,6 +30,7 @@ interface Transaction {
   amount: number;
   isRecurring: boolean;
   receiptUrl?: string;
+  notes?: string;
   original: VehicleIncome | VehicleExpense;
 }
 
@@ -76,6 +77,7 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
       description: i.description,
       amount: i.amount,
       isRecurring: i.is_recurring,
+      notes: i.notes,
       original: i,
     }));
 
@@ -88,6 +90,7 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
       amount: e.amount,
       isRecurring: e.is_recurring,
       receiptUrl: e.receipt_url,
+      notes: e.notes,
       original: e,
     }));
 
@@ -177,7 +180,8 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
               <th>Tipo</th>
               <th>Categoría</th>
               <th>Descripción</th>
-              <th className="th-amount">Monto</th>
+              <th>Monto</th>
+              <th className="th-notes">Notas</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -204,6 +208,16 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
                 <td className={`cell-amount amount-${transaction.type}`}>
                   {transaction.type === 'expense' ? '-' : '+'}
                   {formatCurrency(transaction.amount)}
+                </td>
+                <td className="cell-notes">
+                  {transaction.notes ? (
+                    <span className="notes-indicator">
+                      💬
+                      <span className="notes-tooltip">{transaction.notes}</span>
+                    </span>
+                  ) : (
+                    <span className="notes-empty">—</span>
+                  )}
                 </td>
                 <td className="cell-actions">
                   {transaction.receiptUrl && (
