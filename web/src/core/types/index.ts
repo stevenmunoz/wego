@@ -18,6 +18,7 @@ export interface PaginatedResponse<T> {
 
 export enum UserRole {
   ADMIN = 'admin',
+  DRIVER = 'driver',
   USER = 'user',
   GUEST = 'guest',
 }
@@ -62,3 +63,6 @@ export interface UserUpdateRequest {
 }
 
 export * from './vehicle.types';
+export * from './vehicle-finance.types';
+export * from './finance-category.types';
+export * from './notification.types';

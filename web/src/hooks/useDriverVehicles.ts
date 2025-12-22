@@ -1,10 +1,14 @@
 /**
- * Hook for fetching and managing driver vehicles from Firebase
+ * Hook for fetching and managing vehicles from Firebase
+ *
+ * Unified vehicle model:
+ * - owner_id: who owns/pays for the vehicle
+ * - assigned_driver_id: who currently drives (optional)
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-  getDriverVehicles,
+  getOwnerVehicles,
   createVehicle,
   updateVehicle,
   deleteVehicle,
@@ -31,7 +35,7 @@ interface UseDriverVehiclesReturn {
 }
 
 export const useDriverVehicles = (
-  driverId: string | undefined,
+  ownerId: string | undefined,
   options?: UseDriverVehiclesOptions
 ): UseDriverVehiclesReturn => {
   const [vehicles, setVehicles] = useState<FirestoreVehicle[]>([]);
@@ -39,7 +43,7 @@ export const useDriverVehicles = (
   const [error, setError] = useState<string | null>(null);
 
   const fetchVehicles = useCallback(async () => {
-    if (!driverId) {
+    if (!ownerId) {
       setVehicles([]);
       setIsLoading(false);
       return;
@@ -49,7 +53,7 @@ export const useDriverVehicles = (
     setError(null);
 
     try {
-      const fetchedVehicles = await getDriverVehicles(driverId, options);
+      const fetchedVehicles = await getOwnerVehicles(ownerId, options);
       setVehicles(fetchedVehicles);
     } catch (err) {
       console.error('[useDriverVehicles] Error fetching vehicles:', err);
@@ -58,27 +62,29 @@ export const useDriverVehicles = (
     } finally {
       setIsLoading(false);
     }
+    // Dependencies use individual properties rather than the options object to prevent
+    // unnecessary re-fetches when caller creates a new options object reference
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [driverId, options?.status]);
+  }, [ownerId, options?.status]);
 
   const handleAddVehicle = useCallback(
     async (input: VehicleCreateInput) => {
-      if (!driverId) {
+      if (!ownerId) {
         return { success: false, error: 'Usuario no autenticado' };
       }
 
-      const result = await createVehicle(driverId, input);
+      const result = await createVehicle(ownerId, input);
       if (result.success) {
         await fetchVehicles();
       }
       return result;
     },
-    [driverId, fetchVehicles]
+    [ownerId, fetchVehicles]
   );
 
   const handleUpdateVehicle = useCallback(
     async (vehicleId: string, updates: VehicleUpdateInput) => {
-      if (!driverId) {
+      if (!ownerId) {
         setError('Usuario no autenticado');
         return;
       }
@@ -95,12 +101,17 @@ export const useDriverVehicles = (
           if (updates.color !== undefined) safeUpdates.color = updates.color;
           if (updates.vehicle_type !== undefined) safeUpdates.vehicle_type = updates.vehicle_type;
           if (updates.fuel_type !== undefined) safeUpdates.fuel_type = updates.fuel_type;
-          if (updates.passenger_capacity !== undefined) safeUpdates.passenger_capacity = updates.passenger_capacity;
-          if (updates.luggage_capacity !== undefined) safeUpdates.luggage_capacity = updates.luggage_capacity;
+          if (updates.passenger_capacity !== undefined)
+            safeUpdates.passenger_capacity = updates.passenger_capacity;
+          if (updates.luggage_capacity !== undefined)
+            safeUpdates.luggage_capacity = updates.luggage_capacity;
           if (updates.accepts_pets !== undefined) safeUpdates.accepts_pets = updates.accepts_pets;
-          if (updates.accepts_wheelchairs !== undefined) safeUpdates.accepts_wheelchairs = updates.accepts_wheelchairs;
-          if (updates.has_child_seat !== undefined) safeUpdates.has_child_seat = updates.has_child_seat;
-          if (updates.has_air_conditioning !== undefined) safeUpdates.has_air_conditioning = updates.has_air_conditioning;
+          if (updates.accepts_wheelchairs !== undefined)
+            safeUpdates.accepts_wheelchairs = updates.accepts_wheelchairs;
+          if (updates.has_child_seat !== undefined)
+            safeUpdates.has_child_seat = updates.has_child_seat;
+          if (updates.has_air_conditioning !== undefined)
+            safeUpdates.has_air_conditioning = updates.has_air_conditioning;
           if (updates.status !== undefined) safeUpdates.status = updates.status;
           if (updates.is_primary !== undefined) safeUpdates.is_primary = updates.is_primary;
           if (updates.notes !== undefined) safeUpdates.notes = updates.notes;
@@ -109,7 +120,7 @@ export const useDriverVehicles = (
       );
 
       try {
-        const result = await updateVehicle(driverId, vehicleId, updates);
+        const result = await updateVehicle(vehicleId, updates);
         if (!result.success) {
           setError(result.error || 'Error al actualizar el vehículo');
           await fetchVehicles();
@@ -121,12 +132,12 @@ export const useDriverVehicles = (
         await fetchVehicles();
       }
     },
-    [driverId, fetchVehicles]
+    [ownerId, fetchVehicles]
   );
 
   const handleDeleteVehicle = useCallback(
     async (vehicleId: string) => {
-      if (!driverId) {
+      if (!ownerId) {
         setError('Usuario no autenticado');
         return;
       }
@@ -135,7 +146,7 @@ export const useDriverVehicles = (
       setVehicles((prev) => prev.filter((v) => v.id !== vehicleId));
 
       try {
-        const result = await deleteVehicle(driverId, vehicleId);
+        const result = await deleteVehicle(vehicleId);
         if (!result.success) {
           setError(result.error || 'Error al eliminar el vehículo');
           await fetchVehicles();
@@ -147,12 +158,12 @@ export const useDriverVehicles = (
         await fetchVehicles();
       }
     },
-    [driverId, fetchVehicles]
+    [ownerId, fetchVehicles]
   );
 
   const handleSetPrimaryVehicle = useCallback(
     async (vehicleId: string) => {
-      if (!driverId) {
+      if (!ownerId) {
         setError('Usuario no autenticado');
         return;
       }
@@ -161,7 +172,7 @@ export const useDriverVehicles = (
       setVehicles((prev) => prev.map((v) => ({ ...v, is_primary: v.id === vehicleId })));
 
       try {
-        const result = await setVehicleAsPrimary(driverId, vehicleId);
+        const result = await setVehicleAsPrimary(ownerId, vehicleId);
         if (!result.success) {
           setError(result.error || 'Error al establecer vehículo principal');
           await fetchVehicles();
@@ -174,7 +185,7 @@ export const useDriverVehicles = (
         await fetchVehicles();
       }
     },
-    [driverId, fetchVehicles]
+    [ownerId, fetchVehicles]
   );
 
   useEffect(() => {

@@ -25,7 +25,10 @@ import './InDriverReviewTable.css';
 const MIN_EXPECTED_VALUE_COP = 100;
 
 // Helper to detect suspicious values that need attention
-const isSuspiciousValue = (value: number, fieldType: 'currency' | 'numeric' = 'currency'): boolean => {
+const isSuspiciousValue = (
+  value: number,
+  fieldType: 'currency' | 'numeric' = 'currency'
+): boolean => {
   if (value === 0) return true;
   if (fieldType === 'currency' && value > 0 && value < MIN_EXPECTED_VALUE_COP) return true;
   return false;

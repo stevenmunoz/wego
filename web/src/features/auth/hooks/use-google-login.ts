@@ -7,12 +7,15 @@ import { useNavigate } from 'react-router-dom';
 import { FirebaseError } from 'firebase/app';
 import { signInWithGoogle, getCurrentUser } from '@/core/firebase';
 import { useAuthStore } from '@/core/store/auth-store';
+import { trackLogin } from '@/core/analytics';
 
 /**
  * Map Firebase Google auth errors to user-friendly Spanish messages
  */
 const getGoogleErrorMessage = (error: FirebaseError): string => {
-  console.log('Firebase error code:', error.code);
+  if (import.meta.env.DEV) {
+    console.log('[GoogleLogin] Firebase error code:', error.code);
+  }
   switch (error.code) {
     case 'auth/popup-closed-by-user':
       return 'Inicio de sesión cancelado.';
@@ -46,7 +49,9 @@ export const useGoogleLogin = () => {
   // Watch for auth state changes and navigate when authenticated
   useEffect(() => {
     if (isAuthenticated && !isLoading && isPending) {
-      console.log('Google login: Auth state detected, navigating to dashboard...');
+      if (import.meta.env.DEV) {
+        console.log('[GoogleLogin] Auth state detected, navigating to dashboard...');
+      }
       setIsPending(false);
       navigate('/dashboard');
     }
@@ -54,8 +59,9 @@ export const useGoogleLogin = () => {
 
   // Use a regular function (not async) to ensure synchronous popup opening
   const mutate = useCallback(() => {
-    console.log('Google login: Starting...');
-    console.log('Google login: Current user before:', getCurrentUser()?.email || 'none');
+    if (import.meta.env.DEV) {
+      console.log('[GoogleLogin] Starting...');
+    }
     setError(null);
     setIsPending(true);
 
@@ -63,25 +69,26 @@ export const useGoogleLogin = () => {
     // Use .then()/.catch() instead of async/await to avoid microtask delays
     signInWithGoogle()
       .then((result) => {
-        console.log('Google login: Promise resolved!');
-        console.log('Google login: User email:', result.user.email);
-        console.log('Google login: User UID:', result.user.uid);
-        console.log('Google login: Provider:', result.providerId);
+        if (import.meta.env.DEV) {
+          console.log('[GoogleLogin] Success, provider:', result.providerId);
+        }
+        trackLogin('google');
         // Auth state listener will update the store and the useEffect above will navigate
         // But also try direct navigation as backup
         navigate('/dashboard');
       })
       .catch((err: unknown) => {
-        console.error('Google login: Error caught');
-        console.error('Google login: Error type:', typeof err);
-        console.error('Google login: Error details:', err);
+        if (import.meta.env.DEV) {
+          console.error('[GoogleLogin] Error:', err);
+        }
 
         // Check current user in case auth actually succeeded but promise rejected
         const currentUser = getCurrentUser();
-        console.log('Google login: Current user after error:', currentUser?.email || 'none');
 
         if (currentUser) {
-          console.log('Google login: User is actually signed in despite error, navigating...');
+          if (import.meta.env.DEV) {
+            console.log('[GoogleLogin] User signed in despite error, navigating...');
+          }
           navigate('/dashboard');
           return;
         }
@@ -98,8 +105,9 @@ export const useGoogleLogin = () => {
         }
       })
       .finally(() => {
-        console.log('Google login: Flow completed (finally block)');
-        console.log('Google login: Current user in finally:', getCurrentUser()?.email || 'none');
+        if (import.meta.env.DEV) {
+          console.log('[GoogleLogin] Flow completed');
+        }
       });
   }, [navigate]);
 

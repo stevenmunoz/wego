@@ -10,13 +10,23 @@
 /* Page Header */
 .page-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 1rem;
   margin-bottom: 1.5rem;
+  text-align: left;
 }
 
-.page-header-content {
+.page-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+}
+
+.page-header-title {
   flex: 1;
+  min-width: 0;
 }
 
 .page-title {
@@ -25,23 +35,24 @@
   font-weight: 700;
   color: var(--color-primary-800, #1e2a3a);
   margin: 0 0 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: flex-start;
 }
 
 .page-subtitle {
   color: #64748b;
   margin: 0;
   font-size: 0.9375rem;
+  text-align: left;
 }
 
 .page-header-actions {
   display: flex;
-  align-items: stretch;
-  gap: 0.75rem;
-}
-
-.page-header-actions > * {
-  display: flex;
   align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 /* Buttons */
@@ -135,9 +146,22 @@
 }
 
 .modal-content {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  width: 100%;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
   animation: modalSlideIn 0.2s ease-out;
+}
+
+/* Remove duplicate styling from VehicleForm when inside modal */
+.modal-content .vehicle-form-container {
+  box-shadow: none;
+  border-radius: 0;
+  max-height: none;
+  overflow-y: visible;
 }
 
 @keyframes modalSlideIn {
@@ -153,10 +177,9 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .page-header {
+  .page-header-top {
     flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
+    gap: 0.75rem;
   }
 
   .page-header-actions {
@@ -166,6 +189,7 @@
 
   .page-header-actions .btn {
     width: 100%;
+    justify-content: center;
   }
 
   .error-banner {
@@ -180,4 +204,111 @@
   .modal-overlay {
     padding: 0.5rem;
   }
+}
+
+/* Driver Selector (Admin modal) - styled as form section */
+.driver-selector {
+  padding: 1.5rem;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.driver-selector label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary-800, #1e2a3a);
+  margin-bottom: 0.5rem;
+}
+
+.driver-selector select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: var(--color-primary-800, #1e2a3a);
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.driver-selector select:focus {
+  outline: none;
+  border-color: var(--color-accent-600, #f05365);
+  box-shadow: 0 0 0 3px rgba(240, 83, 101, 0.1);
+}
+
+/* Driver selector header - replaces form header when shown */
+.driver-selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.driver-selector-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-primary-800, #1e2a3a);
+}
+
+.driver-selector-header .btn-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.5rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.driver-selector-header .btn-close:hover {
+  background: #f1f5f9;
+  color: var(--color-primary-800, #1e2a3a);
+}
+
+/* Adjust driver selector content padding when header present */
+.driver-selector-content {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.driver-selector-content label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary-800, #1e2a3a);
+  margin-bottom: 0.5rem;
+}
+
+.driver-selector-content select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: var(--color-primary-800, #1e2a3a);
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.driver-selector-content select:focus {
+  outline: none;
+  border-color: var(--color-accent-600, #f05365);
+  box-shadow: 0 0 0 3px rgba(240, 83, 101, 0.1);
+}
+
+/* Hide the VehicleForm header when driver selector is present */
+.modal-content:has(.driver-selector-header) .form-header {
+  display: none;
 }

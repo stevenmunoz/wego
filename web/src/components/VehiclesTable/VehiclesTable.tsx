@@ -2,20 +2,25 @@
  * Vehicles Table Component
  *
  * Displays vehicle data in a table format with edit/delete actions
+ * Supports admin view with driver assignment capabilities
  */
 
 import { type FC } from 'react';
-import type { FirestoreVehicle } from '@/core/firebase';
+import type { FirestoreVehicle, DriverWithUser } from '@/core/firebase';
 import type { VehicleStatus } from '@/core/types';
 import './VehiclesTable.css';
 
 interface VehiclesTableProps {
   vehicles: FirestoreVehicle[];
   isLoading: boolean;
+  isAdminView?: boolean;
+  drivers?: DriverWithUser[];
   onAddClick?: () => void;
   onEditVehicle?: (vehicle: FirestoreVehicle) => void;
   onDeleteVehicle?: (id: string) => void;
   onSetPrimary?: (id: string) => void;
+  onAssignDriver?: (vehicleId: string, driverId: string) => void;
+  onUnassignDriver?: (vehicleId: string) => void;
 }
 
 // Status helpers
@@ -67,7 +72,9 @@ const formatDate = (timestamp: { toDate: () => Date } | null): string => {
 };
 
 // Check if document is expiring soon (within 30 days) or expired
-const getExpiryStatus = (timestamp: { toDate: () => Date } | null): 'ok' | 'warning' | 'expired' => {
+const getExpiryStatus = (
+  timestamp: { toDate: () => Date } | null
+): 'ok' | 'warning' | 'expired' => {
   if (!timestamp) return 'ok';
   const date = timestamp.toDate();
   const now = new Date();
@@ -81,15 +88,40 @@ const getExpiryStatus = (timestamp: { toDate: () => Date } | null): 'ok' | 'warn
 export const VehiclesTable: FC<VehiclesTableProps> = ({
   vehicles,
   isLoading,
+  isAdminView = false,
+  drivers = [],
   onAddClick,
   onEditVehicle,
   onDeleteVehicle,
   onSetPrimary,
+  onAssignDriver,
+  onUnassignDriver,
 }) => {
   const handleDelete = (vehicleId: string) => {
     if (onDeleteVehicle && window.confirm('¿Estás seguro de eliminar este vehículo?')) {
       onDeleteVehicle(vehicleId);
     }
+  };
+
+  const handleDriverChange = (vehicleId: string, newDriverId: string) => {
+    if (!newDriverId) {
+      // Unassign driver
+      if (onUnassignDriver) {
+        onUnassignDriver(vehicleId);
+      }
+    } else {
+      // Assign new driver
+      if (onAssignDriver) {
+        onAssignDriver(vehicleId, newDriverId);
+      }
+    }
+  };
+
+  // Helper to get driver name by joining with drivers list
+  const getDriverName = (vehicle: FirestoreVehicle): string => {
+    if (!vehicle.assigned_driver_id) return 'Sin asignar';
+    const driver = drivers.find((d) => d.id === vehicle.assigned_driver_id);
+    return driver?.name || 'Sin asignar';
   };
 
   if (isLoading) {
@@ -125,8 +157,12 @@ export const VehiclesTable: FC<VehiclesTableProps> = ({
           <span className="summary-label">Vehículo{vehicles.length !== 1 ? 's' : ''}</span>
         </div>
         <div className="summary-item">
-          <span className="summary-count">{vehicles.filter((v) => v.status === 'active').length}</span>
-          <span className="summary-label">Activo{vehicles.filter((v) => v.status === 'active').length !== 1 ? 's' : ''}</span>
+          <span className="summary-count">
+            {vehicles.filter((v) => v.status === 'active').length}
+          </span>
+          <span className="summary-label">
+            Activo{vehicles.filter((v) => v.status === 'active').length !== 1 ? 's' : ''}
+          </span>
         </div>
       </div>
 
@@ -138,6 +174,7 @@ export const VehiclesTable: FC<VehiclesTableProps> = ({
               <th className="th-photo">Foto</th>
               <th>Placa</th>
               <th>Vehículo</th>
+              {isAdminView && <th>Conductor</th>}
               <th>Tipo</th>
               <th>Color</th>
               <th>Capacidad</th>
@@ -176,18 +213,70 @@ export const VehiclesTable: FC<VehiclesTableProps> = ({
                       <span className="vehicle-year">{vehicle.year}</span>
                     </div>
                   </td>
+                  {isAdminView && (
+                    <td className="cell-driver">
+                      {onAssignDriver ? (
+                        <select
+                          className="driver-select"
+                          value={vehicle.assigned_driver_id || ''}
+                          onChange={(e) => handleDriverChange(vehicle.id, e.target.value)}
+                        >
+                          <option value="">Sin asignar</option>
+                          {drivers.map((driver) => (
+                            <option key={driver.id} value={driver.id}>
+                              {driver.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span>{getDriverName(vehicle)}</span>
+                      )}
+                    </td>
+                  )}
                   <td className="cell-type">{getVehicleTypeLabel(vehicle.vehicle_type)}</td>
                   <td className="cell-color">{vehicle.color}</td>
                   <td className="cell-capacity">{vehicle.passenger_capacity} pasajeros</td>
                   <td className={`cell-document expiry-${soatStatus}`}>
-                    {formatDate(vehicle.soat_expiry)}
-                    {soatStatus === 'expired' && <span className="expiry-tag">Vencido</span>}
-                    {soatStatus === 'warning' && <span className="expiry-tag warning">Por vencer</span>}
+                    <div className="document-cell">
+                      <span className="document-date">{formatDate(vehicle.soat_expiry)}</span>
+                      {soatStatus === 'expired' && <span className="expiry-tag">Vencido</span>}
+                      {soatStatus === 'warning' && (
+                        <span className="expiry-tag warning">Por vencer</span>
+                      )}
+                      {vehicle.soat_document_url && (
+                        <a
+                          href={vehicle.soat_document_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="document-link"
+                          title="Ver documento SOAT"
+                        >
+                          📄
+                        </a>
+                      )}
+                    </div>
                   </td>
                   <td className={`cell-document expiry-${tecnoStatus}`}>
-                    {formatDate(vehicle.tecnomecanica_expiry)}
-                    {tecnoStatus === 'expired' && <span className="expiry-tag">Vencido</span>}
-                    {tecnoStatus === 'warning' && <span className="expiry-tag warning">Por vencer</span>}
+                    <div className="document-cell">
+                      <span className="document-date">
+                        {formatDate(vehicle.tecnomecanica_expiry)}
+                      </span>
+                      {tecnoStatus === 'expired' && <span className="expiry-tag">Vencido</span>}
+                      {tecnoStatus === 'warning' && (
+                        <span className="expiry-tag warning">Por vencer</span>
+                      )}
+                      {vehicle.tecnomecanica_document_url && (
+                        <a
+                          href={vehicle.tecnomecanica_document_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="document-link"
+                          title="Ver documento Tecnomecánica"
+                        >
+                          📄
+                        </a>
+                      )}
+                    </div>
                   </td>
                   <td className="cell-status">
                     <span className={`status-badge status-${getStatusColor(vehicle.status)}`}>

@@ -8,9 +8,11 @@ import { FirebaseError } from 'firebase/app';
 import { signIn } from '@/core/firebase';
 import { useAuthStore } from '@/core/store/auth-store';
 import { LoginRequest } from '@/core/types';
+import { trackLogin } from '@/core/analytics';
 
 /**
  * Map Firebase auth errors to user-friendly Spanish messages
+ * Note: Credential errors use a generic message to prevent email enumeration attacks
  */
 const getFirebaseErrorMessage = (error: FirebaseError): string => {
   switch (error.code) {
@@ -18,12 +20,11 @@ const getFirebaseErrorMessage = (error: FirebaseError): string => {
       return 'El correo electrónico no es válido.';
     case 'auth/user-disabled':
       return 'Esta cuenta ha sido deshabilitada.';
+    // Use generic message for credential errors to prevent email enumeration
     case 'auth/user-not-found':
-      return 'No existe una cuenta con este correo electrónico.';
     case 'auth/wrong-password':
-      return 'La contraseña es incorrecta.';
     case 'auth/invalid-credential':
-      return 'Credenciales inválidas. Verifica tu correo y contraseña.';
+      return 'Correo o contraseña incorrectos.';
     case 'auth/too-many-requests':
       return 'Demasiados intentos fallidos. Intenta de nuevo más tarde.';
     case 'auth/network-request-failed':
@@ -43,6 +44,7 @@ export const useLogin = () => {
       return userCredential.user;
     },
     onSuccess: (user) => {
+      trackLogin('email');
       setFirebaseUser(user);
       navigate('/dashboard');
     },

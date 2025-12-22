@@ -3,7 +3,13 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { getInDriverRides, updateInDriverRide, type FirestoreInDriverRide } from '@/core/firebase';
+import {
+  getInDriverRides,
+  updateInDriverRide,
+  getOwnerVehicles,
+  type FirestoreInDriverRide,
+  type FirestoreVehicle,
+} from '@/core/firebase';
 
 interface UseDriverRidesOptions {
   startDate?: Date;
@@ -11,8 +17,12 @@ interface UseDriverRidesOptions {
   status?: string;
 }
 
+export type RideWithVehicle = FirestoreInDriverRide & {
+  vehicle_plate?: string;
+};
+
 interface UseDriverRidesReturn {
-  rides: FirestoreInDriverRide[];
+  rides: RideWithVehicle[];
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -23,7 +33,7 @@ export const useDriverRides = (
   driverId: string | undefined,
   options?: UseDriverRidesOptions
 ): UseDriverRidesReturn => {
-  const [rides, setRides] = useState<FirestoreInDriverRide[]>([]);
+  const [rides, setRides] = useState<RideWithVehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,8 +48,25 @@ export const useDriverRides = (
     setError(null);
 
     try {
-      const fetchedRides = await getInDriverRides(driverId, options);
-      setRides(fetchedRides);
+      // Fetch rides and vehicles in parallel
+      const [fetchedRides, fetchedVehicles] = await Promise.all([
+        getInDriverRides(driverId, options),
+        getOwnerVehicles(driverId),
+      ]);
+
+      // Create a map of vehicle_id -> plate for quick lookup
+      const vehicleMap = new Map<string, string>();
+      fetchedVehicles.forEach((vehicle: FirestoreVehicle) => {
+        vehicleMap.set(vehicle.id, vehicle.plate);
+      });
+
+      // Enrich rides with vehicle plate
+      const enrichedRides: RideWithVehicle[] = fetchedRides.map((ride) => ({
+        ...ride,
+        vehicle_plate: ride.vehicle_id ? vehicleMap.get(ride.vehicle_id) : undefined,
+      }));
+
+      setRides(enrichedRides);
     } catch (err) {
       console.error('[useDriverRides] Error fetching rides:', err);
       const message = err instanceof Error ? err.message : 'Error al cargar los viajes';
@@ -47,6 +74,8 @@ export const useDriverRides = (
     } finally {
       setIsLoading(false);
     }
+    // Dependencies use individual properties rather than the options object to prevent
+    // unnecessary re-fetches when caller creates a new options object reference
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driverId, options?.startDate, options?.endDate, options?.status]);
 

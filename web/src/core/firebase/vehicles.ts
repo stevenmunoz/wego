@@ -1,5 +1,10 @@
 /**
  * Firestore vehicle service for WeGo
+ *
+ * Unified vehicle collection: vehicles/{vehicleId}
+ * - owner_id: who owns/pays for the vehicle
+ * - assigned_driver_id: who currently drives (optional)
+ * - Income/expenses stored as subcollections
  */
 
 import {
@@ -15,6 +20,7 @@ import {
   orderBy,
   Timestamp,
   serverTimestamp,
+  writeBatch,
 } from 'firebase/firestore';
 import { db } from './firestore';
 import type {
@@ -30,7 +36,9 @@ import type {
  */
 export interface FirestoreVehicle {
   id: string;
-  driver_id: string;
+  owner_id: string;
+  assigned_driver_id?: string;
+  weekly_rental_amount?: number;
   plate: string;
   brand: string;
   model: string;
@@ -46,6 +54,8 @@ export interface FirestoreVehicle {
   has_air_conditioning: boolean;
   soat_expiry: Timestamp | null;
   tecnomecanica_expiry: Timestamp | null;
+  soat_document_url?: string;
+  tecnomecanica_document_url?: string;
   status: VehicleStatus;
   is_primary: boolean;
   created_at: Timestamp;
@@ -54,21 +64,42 @@ export interface FirestoreVehicle {
   notes?: string;
 }
 
-// Collection path: drivers/{driverId}/vehicles/{vehicleId}
+// Collection path: vehicles/{vehicleId}
 
 /**
- * Get all vehicles for a driver
+ * Get ALL vehicles (admin only)
  */
-export async function getDriverVehicles(
-  driverId: string,
+export async function getAllVehicles(): Promise<FirestoreVehicle[]> {
+  const vehiclesCollection = collection(db, 'vehicles');
+  const q = query(vehiclesCollection, orderBy('created_at', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => doc.data() as FirestoreVehicle);
+}
+
+/**
+ * Get all vehicles for an owner
+ */
+export async function getOwnerVehicles(
+  ownerId: string,
   options?: { status?: VehicleStatus }
 ): Promise<FirestoreVehicle[]> {
-  const vehiclesCollection = collection(db, 'drivers', driverId, 'vehicles');
+  const vehiclesCollection = collection(db, 'vehicles');
 
-  let q = query(vehiclesCollection, orderBy('is_primary', 'desc'), orderBy('created_at', 'desc'));
+  let q = query(
+    vehiclesCollection,
+    where('owner_id', '==', ownerId),
+    orderBy('is_primary', 'desc'),
+    orderBy('created_at', 'desc')
+  );
 
   if (options?.status) {
-    q = query(vehiclesCollection, where('status', '==', options.status), orderBy('is_primary', 'desc'), orderBy('created_at', 'desc'));
+    q = query(
+      vehiclesCollection,
+      where('owner_id', '==', ownerId),
+      where('status', '==', options.status),
+      orderBy('is_primary', 'desc'),
+      orderBy('created_at', 'desc')
+    );
   }
 
   const snapshot = await getDocs(q);
@@ -78,11 +109,8 @@ export async function getDriverVehicles(
 /**
  * Get a single vehicle by ID
  */
-export async function getVehicle(
-  driverId: string,
-  vehicleId: string
-): Promise<FirestoreVehicle | null> {
-  const vehicleRef = doc(db, 'drivers', driverId, 'vehicles', vehicleId);
+export async function getVehicle(vehicleId: string): Promise<FirestoreVehicle | null> {
+  const vehicleRef = doc(db, 'vehicles', vehicleId);
   const snapshot = await getDoc(vehicleRef);
 
   if (!snapshot.exists()) return null;
@@ -93,17 +121,17 @@ export async function getVehicle(
  * Create a new vehicle
  */
 export async function createVehicle(
-  driverId: string,
+  ownerId: string,
   input: VehicleCreateInput
 ): Promise<{ success: boolean; vehicleId?: string; error?: string }> {
   try {
-    const vehiclesCollection = collection(db, 'drivers', driverId, 'vehicles');
+    const vehiclesCollection = collection(db, 'vehicles');
     const vehicleRef = doc(vehiclesCollection);
 
     const now = Timestamp.now();
     const vehicle: FirestoreVehicle = {
       id: vehicleRef.id,
-      driver_id: driverId,
+      owner_id: ownerId,
       plate: input.plate.toUpperCase().replace(/[^A-Z0-9]/g, ''),
       brand: input.brand,
       model: input.model,
@@ -128,6 +156,14 @@ export async function createVehicle(
       notes: input.notes,
     };
 
+    // Add optional fleet management fields
+    if (input.weekly_rental_amount !== undefined) {
+      vehicle.weekly_rental_amount = input.weekly_rental_amount;
+    }
+    if (input.assigned_driver_id) {
+      vehicle.assigned_driver_id = input.assigned_driver_id;
+    }
+
     await setDoc(vehicleRef, vehicle);
 
     return { success: true, vehicleId: vehicleRef.id };
@@ -142,12 +178,11 @@ export async function createVehicle(
  * Update an existing vehicle
  */
 export async function updateVehicle(
-  driverId: string,
   vehicleId: string,
   updates: VehicleUpdateInput
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const vehicleRef = doc(db, 'drivers', driverId, 'vehicles', vehicleId);
+    const vehicleRef = doc(db, 'vehicles', vehicleId);
 
     const firestoreUpdates: Record<string, unknown> = {
       ...updates,
@@ -171,6 +206,11 @@ export async function updateVehicle(
         : null;
     }
 
+    // Remove file objects from updates (handled separately)
+    delete firestoreUpdates.imageFile;
+    delete firestoreUpdates.soatFile;
+    delete firestoreUpdates.tecnomecanicaFile;
+
     await updateDoc(vehicleRef, firestoreUpdates);
 
     return { success: true };
@@ -185,11 +225,10 @@ export async function updateVehicle(
  * Delete a vehicle
  */
 export async function deleteVehicle(
-  driverId: string,
   vehicleId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const vehicleRef = doc(db, 'drivers', driverId, 'vehicles', vehicleId);
+    const vehicleRef = doc(db, 'vehicles', vehicleId);
     await deleteDoc(vehicleRef);
 
     return { success: true };
@@ -201,28 +240,72 @@ export async function deleteVehicle(
 }
 
 /**
- * Set a vehicle as primary (and unset others)
+ * Set a vehicle as primary (and unset others for the same owner)
  */
 export async function setVehicleAsPrimary(
-  driverId: string,
+  ownerId: string,
   vehicleId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Get all vehicles
-    const vehicles = await getDriverVehicles(driverId);
+    const vehicles = await getOwnerVehicles(ownerId);
+    const batch = writeBatch(db);
 
-    // Update all vehicles
     for (const vehicle of vehicles) {
-      const vehicleRef = doc(db, 'drivers', driverId, 'vehicles', vehicle.id);
-      await updateDoc(vehicleRef, {
+      const vehicleRef = doc(db, 'vehicles', vehicle.id);
+      batch.update(vehicleRef, {
         is_primary: vehicle.id === vehicleId,
         updated_at: serverTimestamp(),
       });
     }
 
+    await batch.commit();
+
     return { success: true };
   } catch (error) {
     console.error('[Firestore] Error setting primary vehicle:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Assign a driver to a vehicle
+ */
+export async function assignDriver(
+  vehicleId: string,
+  driverId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const vehicleRef = doc(db, 'vehicles', vehicleId);
+    await updateDoc(vehicleRef, {
+      assigned_driver_id: driverId,
+      updated_at: serverTimestamp(),
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('[Firestore] Error assigning driver:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Unassign the current driver from a vehicle
+ */
+export async function unassignDriver(
+  vehicleId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const vehicleRef = doc(db, 'vehicles', vehicleId);
+    await updateDoc(vehicleRef, {
+      assigned_driver_id: null,
+      updated_at: serverTimestamp(),
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('[Firestore] Error unassigning driver:', error);
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     return { success: false, error: errorMsg };
   }

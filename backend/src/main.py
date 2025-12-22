@@ -13,7 +13,11 @@ from src.infrastructure.container import Container
 from src.infrastructure.database import close_firebase, initialize_firebase
 from src.presentation.api.v1.router import api_router
 from src.presentation.exception_handlers import app_exception_handler, unhandled_exception_handler
-from src.presentation.middleware import CorrelationIdMiddleware, LoggingMiddleware
+from src.presentation.middleware import (
+    CorrelationIdMiddleware,
+    LoggingMiddleware,
+    SecurityHeadersMiddleware,
+)
 
 
 @asynccontextmanager
@@ -55,6 +59,7 @@ app.add_middleware(
 )
 
 # Custom middleware
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(LoggingMiddleware)
 

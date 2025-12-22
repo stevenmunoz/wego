@@ -1,11 +1,13 @@
 name: Deploy Backend
 
 on:
-  push:
+  # Trigger after Backend CI completes successfully
+  workflow_run:
+    workflows: ["Backend CI"]
+    types:
+      - completed
     branches: [main, develop]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch: # Allow manual trigger
 
 env:
   REGION: us-central1
@@ -13,6 +15,8 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Only deploy if CI succeeded (or manual trigger)
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     permissions:
       contents: read
@@ -21,11 +25,18 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # For workflow_run, checkout the branch that triggered CI
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
 
       - name: Determine environment
         id: env
         run: |
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          # For workflow_run events, use head_branch; for workflow_dispatch, use ref
+          BRANCH="${{ github.event.workflow_run.head_branch || github.ref_name }}"
+          echo "Detected branch: $BRANCH"
+
+          if [ "$BRANCH" = "main" ]; then
             echo "environment=production" >> $GITHUB_OUTPUT
             echo "gcp_project_id=${{ secrets.GCP_PROJECT_ID_PROD }}" >> $GITHUB_OUTPUT
             echo "service_name=wego-backend-prod" >> $GITHUB_OUTPUT

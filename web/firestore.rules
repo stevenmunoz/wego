@@ -1,25 +1,187 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Driver data - users can only access their own data
+    // Driver data - linked to /users collection
+    // Driver documents store driver-specific data (phone, unique_slug)
+    // User data (name, email, is_active) is in /users collection
     match /drivers/{driverId} {
-      // Allow authenticated users to read/write their own driver document
-      allow read, write: if request.auth != null && request.auth.uid == driverId;
+      // Public read: Allow anyone to read driver data (for slug validation in public form)
+      // Active status is checked via /users/{user_id}.is_active in application code
+      allow read: if true;
 
-      // Driver rides subcollection (supports multiple sources: InDriver, manual, etc.)
+      // Create: Admin can create driver profiles, or user can create their own if they have driver role
+      allow create: if request.auth != null
+        && (isAdmin() || (request.auth.uid == driverId && isDriver(request.auth.uid)));
+
+      // Update: Owner or admin can update driver-specific fields
+      allow update: if request.auth != null && (request.auth.uid == driverId || isAdmin());
+
+      // Driver rides subcollection (supports multiple sources: InDriver, external, etc.)
       match /driver_rides/{rideId} {
-        allow read, write: if request.auth != null && request.auth.uid == driverId;
+        // Read: Authenticated driver can read their rides, admins can read all
+        allow read: if request.auth != null && (request.auth.uid == driverId || isAdmin());
+
+        // Write for authenticated driver (full access), admins can also write
+        allow write: if request.auth != null && (request.auth.uid == driverId || isAdmin());
+
+        // Public create: Allow external ride submissions from public form
+        // Strict validation ensures only valid external rides can be created
+        allow create: if isValidExternalRideSubmission(request.resource.data);
       }
 
-      // Driver vehicles subcollection
-      match /vehicles/{vehicleId} {
-        allow read, write: if request.auth != null && request.auth.uid == driverId;
-      }
+      // Legacy driver vehicles subcollection removed
+      // All vehicles are now in top-level /vehicles collection
     }
 
     // Users collection - users can read/write their own profile
+    // Admins can read all user profiles, create any user, and update any user
+    // Limited public read for external form driver validation (is_active check)
+    // NOTE: Only driver user documents should be accessed publicly; other roles require auth
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Read: Authenticated users can read any profile, OR public can read driver profiles only
+      allow read: if request.auth != null ||
+        (resource.data.role == 'driver');
+      allow create: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow update: if request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
+
+    // Collection group query for vehicles removed
+    // All vehicles are now in top-level /vehicles collection only
+
+    // Collection group query for driver_rides (admin only)
+    // Allows admins to query all rides across all drivers
+    match /{path=**}/driver_rides/{rideId} {
+      allow read: if request.auth != null && isAdmin();
+    }
+
+    // ============================================================================
+    // NOTIFICATIONS COLLECTION
+    // ============================================================================
+    match /notifications/{notificationId} {
+      // Admins can read all notifications
+      allow read: if isAdmin();
+
+      // Only Cloud Functions can create notifications (no client writes)
+      allow create: if false;
+
+      // Admins can update read_by field only (to mark as read)
+      allow update: if isAdmin() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read_by']);
+
+      // Admins can delete notifications
+      allow delete: if isAdmin();
+    }
+
+    // ============================================================================
+    // REPORTING GOALS COLLECTION (admin only)
+    // ============================================================================
+    match /reporting_goals/{goalId} {
+      // Only admins can read reporting goals
+      allow read: if request.auth != null && isAdmin();
+
+      // Only admins can create goals
+      allow create: if request.auth != null && isAdmin();
+
+      // Only admins can update or delete goals
+      allow update, delete: if request.auth != null && isAdmin();
+    }
+
+    // ============================================================================
+    // FINANCE CATEGORIES COLLECTION (dynamic expense/income categories)
+    // ============================================================================
+    match /finance_categories/{categoryId} {
+      // Any authenticated user can read categories (needed for forms/charts)
+      allow read: if request.auth != null;
+
+      // Only admins can create, update, or delete categories
+      allow create: if request.auth != null && isAdmin();
+      allow update, delete: if request.auth != null && isAdmin();
+    }
+
+    // ============================================================================
+    // TOP-LEVEL VEHICLES COLLECTION (new structure)
+    // ============================================================================
+    match /vehicles/{vehicleId} {
+      // Read: Public read for external ride form vehicle selection
+      // Only non-sensitive fields exposed: plate, brand, model, year
+      // SECURITY NOTE: If sensitive fields are added, consider moving to authenticated-only
+      allow read: if true;
+
+      // Create: Owner creates with their owner_id, or admin can create for any owner
+      allow create: if request.auth != null &&
+        (request.resource.data.owner_id == request.auth.uid || isAdmin());
+
+      // Update/Delete: Owner, assigned driver, or admin
+      allow update, delete: if request.auth != null &&
+        (resource.data.owner_id == request.auth.uid ||
+         resource.data.assigned_driver_id == request.auth.uid ||
+         isAdmin());
+
+      // Vehicle income subcollection
+      // For read: check parent vehicle ownership or admin
+      // For write: check that owner_id in the data matches the authenticated user, or admin
+      match /income/{incomeId} {
+        allow read: if request.auth != null &&
+          (vehicleOwnershipCheck(vehicleId) || isAdmin());
+        allow create: if request.auth != null &&
+          (request.resource.data.owner_id == request.auth.uid || isAdmin());
+        allow update, delete: if request.auth != null &&
+          (resource.data.owner_id == request.auth.uid || isAdmin());
+      }
+
+      // Vehicle expenses subcollection
+      match /expenses/{expenseId} {
+        allow read: if request.auth != null &&
+          (vehicleOwnershipCheck(vehicleId) || isAdmin());
+        allow create: if request.auth != null &&
+          (request.resource.data.owner_id == request.auth.uid || isAdmin());
+        allow update, delete: if request.auth != null &&
+          (resource.data.owner_id == request.auth.uid || isAdmin());
+      }
+    }
+
+    // ============================================================================
+    // HELPER FUNCTIONS
+    // ============================================================================
+
+    // Check if the authenticated user is an admin
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Check if the user has driver role
+    function isDriver(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId))
+        && get(/databases/$(database)/documents/users/$(userId)).data.role == 'driver';
+    }
+
+    // Check vehicle ownership - owner or assigned driver can access
+    // SECURITY: Fail-closed - if vehicle doesn't exist, deny access
+    function vehicleOwnershipCheck(vehicleId) {
+      return exists(/databases/$(database)/documents/vehicles/$(vehicleId)) &&
+        (get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.owner_id == request.auth.uid ||
+         get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.assigned_driver_id == request.auth.uid);
+    }
+
+    // Validate external ride submission from public form
+    function isValidExternalRideSubmission(data) {
+      return data.category == 'external'
+        && data.source_type == 'public_form'
+        && data.status == 'completed'
+        && data.keys().hasAll([
+          'id', 'driver_id', 'date', 'time', 'origin_address', 'destination_address',
+          'request_source', 'trip_reason', 'time_of_day', 'is_recurring',
+          'total_received', 'payment_method', 'payment_method_label',
+          'tip_received', 'base_fare', 'net_earnings', 'created_at'
+        ])
+        && data.total_received >= 1000
+        && data.total_received <= 10000000
+        && data.request_source in ['whatsapp', 'phone', 'referral', 'other']
+        && data.trip_reason in ['personal', 'work', 'emergency', 'other']
+        && data.time_of_day in ['morning', 'afternoon', 'evening', 'night']
+        && data.payment_method in ['cash', 'nequi', 'daviplata', 'bancolombia', 'other'];
     }
   }
 }

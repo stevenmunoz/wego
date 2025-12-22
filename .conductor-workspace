@@ -1,8 +1,8 @@
 # Conductor Workspace Configuration
-WORKSPACE_NAME=copenhagen
-WORKSPACE_PATH=/Users/stevenmunoz/conductor/wego/.conductor/copenhagen
-PROJECT_ROOT=/Users/stevenmunoz/conductor/wego/.conductor/copenhagen
-SETUP_DATE=2025-12-12T02:13:40Z
+WORKSPACE_NAME=columbia
+WORKSPACE_PATH=/Users/stevenmunoz/conductor/wego/.conductor/columbia
+PROJECT_ROOT=/Users/stevenmunoz/conductor/wego/.conductor/columbia
+SETUP_DATE=2025-12-22T15:59:21Z
 ROOT_PATH=/Users/stevenmunoz/conductor/wego
 PYTHON_VERSION=3.11
-NODE_VERSION=21.2
+NODE_VERSION=22.17

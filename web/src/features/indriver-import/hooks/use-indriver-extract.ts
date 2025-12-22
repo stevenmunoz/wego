@@ -5,6 +5,11 @@
 import { useState, useCallback } from 'react';
 import { indriverApi, downloadExport } from '../services/indriver-api';
 import { saveInDriverRides } from '@/core/firebase';
+import {
+  trackImportStarted,
+  trackExtractionCompleted,
+  trackImportCompleted,
+} from '@/core/analytics';
 import type {
   ExtractedInDriverRide,
   UploadedFile,
@@ -29,7 +34,7 @@ interface UseInDriverExtractReturn {
   extractAll: () => Promise<void>;
   updateRide: (id: string, updates: Partial<ExtractedInDriverRide>) => void;
   removeRide: (id: string) => void;
-  importRides: (driverId: string) => Promise<boolean>;
+  importRides: (driverId: string, vehicleId?: string) => Promise<boolean>;
   exportRides: (format: ExportFormat) => Promise<void>;
   clearExtracted: () => void;
 }
@@ -93,6 +98,11 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
     setIsExtracting(true);
     setError(null);
 
+    // Track import started
+    const fileTypes = [...new Set(files.map((f) => f.file.type.split('/')[1] || 'unknown'))];
+    trackImportStarted(files.length, fileTypes);
+    const startTime = Date.now();
+
     // Mark all files as processing
     setFiles((prev) => prev.map((f) => ({ ...f, status: 'processing' as const })));
 
@@ -117,6 +127,9 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
 
       setExtractedRides(response.results);
       setSummary(response.summary);
+
+      // Track extraction completed
+      trackExtractionCompleted(response.results.length, Date.now() - startTime);
 
       if (!response.success && response.errors.length > 0) {
         setError(`${response.errors.length} archivo(s) no pudieron ser procesados`);
@@ -150,7 +163,7 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
    * Import extracted rides to Firebase
    */
   const importRides = useCallback(
-    async (driverId: string): Promise<boolean> => {
+    async (driverId: string, vehicleId?: string): Promise<boolean> => {
       if (extractedRides.length === 0) {
         setError('No hay viajes para importar');
         return false;
@@ -165,10 +178,13 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
       setError(null);
 
       try {
-        // Save to Firebase Firestore
-        const result = await saveInDriverRides(driverId, extractedRides);
+        // Save to Firebase Firestore with vehicle tracking
+        const result = await saveInDriverRides(driverId, extractedRides, vehicleId);
 
         if (result.success) {
+          // Track import completed
+          trackImportCompleted(result.savedCount || extractedRides.length);
+
           // Clear rides after successful import
           setExtractedRides([]);
 
