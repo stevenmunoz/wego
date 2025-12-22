@@ -151,8 +151,9 @@
   background: #f8fafc;
 }
 
-.th-amount {
-  text-align: right;
+.th-notes {
+  text-align: center;
+  width: 60px;
 }
 
 /* Cell Styles */
@@ -210,7 +211,7 @@
 .cell-amount {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
-  text-align: right;
+  text-align: left;
   white-space: nowrap;
 }
 
@@ -220,6 +221,71 @@
 
 .cell-amount.amount-expense {
   color: var(--color-error-500, #ef4444);
+}
+
+/* Notes */
+.cell-notes {
+  text-align: center;
+  width: 80px;
+  position: relative;
+}
+
+.notes-indicator {
+  position: relative;
+  display: inline-block;
+  font-size: 1rem;
+  cursor: help;
+  opacity: 0.8;
+  transition: opacity 0.15s ease;
+}
+
+.notes-indicator:hover {
+  opacity: 1;
+}
+
+.notes-indicator .notes-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: 125%;
+  right: 0;
+  min-width: 200px;
+  max-width: 300px;
+  padding: 0.75rem;
+  background: var(--color-primary-800, #1e2a3a);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.4;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s ease;
+  text-align: left;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.notes-indicator .notes-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 12px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--color-primary-800, #1e2a3a) transparent transparent transparent;
+}
+
+.notes-indicator:hover .notes-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.notes-empty {
+  color: #cbd5e1;
+  font-size: 0.875rem;
 }
 
 /* Actions */
