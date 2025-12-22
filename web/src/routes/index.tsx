@@ -3,6 +3,7 @@
  * Uses React.lazy() for code splitting - pages are loaded on demand
  */
 
+/* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense, type ComponentType } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
