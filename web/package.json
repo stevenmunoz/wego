@@ -16,6 +16,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
     "seed:driver": "npx tsx scripts/seed-test-driver.ts",
+    "seed:categories": "npx tsx scripts/seed-finance-categories.ts",
     "deploy:remoteconfig": "npx tsx scripts/deploy-remote-config.ts",
     "deploy:remoteconfig:dev": "npx tsx scripts/deploy-remote-config.ts wego-dev-a5a13",
     "deploy:remoteconfig:prod": "npx tsx scripts/deploy-remote-config.ts wego-bac88",

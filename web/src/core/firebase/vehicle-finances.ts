@@ -409,31 +409,21 @@ export function calculatePLSummary(
   const netProfit = totalIncome - totalExpenses;
   const profitMargin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0;
 
-  // Group income by type
-  const incomeByType: Record<IncomeType, number> = {
-    weekly_payment: 0,
-    tip_share: 0,
-    bonus: 0,
-    other: 0,
-  };
+  // Group income by type (dynamic - aggregates whatever types exist in data)
+  const incomeByType: Record<string, number> = {};
   income.forEach((i) => {
+    if (!incomeByType[i.type]) {
+      incomeByType[i.type] = 0;
+    }
     incomeByType[i.type] += i.amount;
   });
 
-  // Group expenses by category
-  const expensesByCategory: Record<ExpenseCategory, number> = {
-    fuel: 0,
-    maintenance: 0,
-    insurance_soat: 0,
-    tecnomecanica: 0,
-    taxes: 0,
-    fines: 0,
-    parking: 0,
-    car_wash: 0,
-    accessories: 0,
-    other: 0,
-  };
+  // Group expenses by category (dynamic - aggregates whatever categories exist in data)
+  const expensesByCategory: Record<string, number> = {};
   expenses.forEach((e) => {
+    if (!expensesByCategory[e.category]) {
+      expensesByCategory[e.category] = 0;
+    }
     expensesByCategory[e.category] += e.amount;
   });
 

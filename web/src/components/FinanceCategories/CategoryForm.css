@@ -1,0 +1,273 @@
+/**
+ * Category Form Styles
+ */
+
+.category-form-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.category-form-container .form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.category-form-container .form-header h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-primary-800);
+  margin: 0;
+}
+
+.category-form-container .btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--color-neutral-500);
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.category-form-container .btn-close:hover {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-700);
+}
+
+.category-form {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.category-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.category-form .form-group > label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-neutral-700);
+}
+
+.category-form input[type='text'],
+.category-form input[type='number'] {
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--color-neutral-300);
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.category-form input[type='text']:focus,
+.category-form input[type='number']:focus {
+  outline: none;
+  border-color: var(--color-accent-600);
+  box-shadow: 0 0 0 3px rgba(240, 83, 101, 0.1);
+}
+
+.category-form input.error {
+  border-color: var(--color-error-500);
+}
+
+.category-form input:disabled {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-500);
+  cursor: not-allowed;
+}
+
+.category-form .error-message {
+  font-size: 0.8125rem;
+  color: var(--color-error-500);
+}
+
+.category-form .help-text {
+  font-size: 0.8125rem;
+  color: var(--color-neutral-500);
+}
+
+/* Color picker */
+.color-picker-wrapper {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.color-text-input {
+  flex: 1;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem !important;
+  background-color: white !important;
+  color: var(--color-neutral-800) !important;
+}
+
+.color-preview-swatch {
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--color-neutral-300);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.color-input {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.color-picker-btn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+/* Color presets */
+.color-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.color-preset {
+  width: 28px;
+  height: 28px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    border-color 0.2s;
+}
+
+.color-preset:hover {
+  transform: scale(1.1);
+}
+
+.color-preset.selected {
+  border-color: var(--color-primary-800);
+  box-shadow:
+    0 0 0 2px white,
+    0 0 0 4px var(--color-primary-800);
+}
+
+/* Checkbox */
+.category-form .checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: normal !important;
+  line-height: 1;
+}
+
+.category-form .checkbox-label input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.category-form .checkbox-label span {
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* Error banner */
+.form-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-error-50, #fef2f2);
+  border: 1px solid var(--color-error-200, #fecaca);
+  border-radius: 8px;
+  color: var(--color-error-700, #b91c1c);
+  font-size: 0.875rem;
+}
+
+.form-error-banner .error-icon {
+  width: 20px;
+  height: 20px;
+  background: var(--color-error-500);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+.form-actions .btn {
+  padding: 0.625rem 1.25rem;
+  font-size: 0.9375rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.form-actions .btn-secondary {
+  background: white;
+  border: 1px solid var(--color-neutral-300);
+  color: var(--color-neutral-700);
+}
+
+.form-actions .btn-secondary:hover {
+  background: var(--color-primary-800);
+  border-color: var(--color-primary-800);
+  color: white;
+}
+
+.form-actions .btn-secondary:focus {
+  outline: 2px solid var(--color-neutral-400);
+  outline-offset: 2px;
+}
+
+.form-actions .btn-primary {
+  background: var(--color-accent-600);
+  border: 1px solid var(--color-accent-600);
+  color: white;
+}
+
+.form-actions .btn-primary:hover:not(:disabled) {
+  background: var(--color-accent-500);
+  border-color: var(--color-accent-500);
+}
+
+.form-actions .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
