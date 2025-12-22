@@ -6,7 +6,7 @@
 
 import { type FC, useState, useMemo } from 'react';
 import type { VehicleIncome, VehicleExpense } from '@/core/types';
-import { INCOME_TYPE_LABELS, EXPENSE_CATEGORY_LABELS } from '@/core/types';
+import { useFinanceCategories } from '@/hooks/useFinanceCategories';
 import './TransactionsTable.css';
 
 interface TransactionsTableProps {
@@ -63,13 +63,16 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
 }) => {
   const [filter, setFilter] = useState<TransactionType>('all');
 
+  // Get dynamic labels from categories store
+  const { getIncomeLabel, getExpenseLabel } = useFinanceCategories();
+
   // Combine and sort transactions
   const transactions = useMemo(() => {
     const incomeTransactions: Transaction[] = income.map((i) => ({
       id: i.id,
       type: 'income' as const,
       date: i.date,
-      category: INCOME_TYPE_LABELS[i.type],
+      category: getIncomeLabel(i.type),
       description: i.description,
       amount: i.amount,
       isRecurring: i.is_recurring,
@@ -80,7 +83,7 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
       id: e.id,
       type: 'expense' as const,
       date: e.date,
-      category: EXPENSE_CATEGORY_LABELS[e.category],
+      category: getExpenseLabel(e.category),
       description: e.description,
       amount: e.amount,
       isRecurring: e.is_recurring,
@@ -99,7 +102,7 @@ export const TransactionsTable: FC<TransactionsTableProps> = ({
 
     // Sort by date descending
     return combined.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [income, expenses, filter]);
+  }, [income, expenses, filter, getIncomeLabel, getExpenseLabel]);
 
   const handleEdit = (transaction: Transaction) => {
     if (transaction.type === 'income' && onEditIncome) {

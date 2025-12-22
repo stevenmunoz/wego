@@ -5,38 +5,51 @@ on:
     types: [opened, synchronize]
   issue_comment:
     types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
 
 jobs:
   # ============================================================================
   # Claude AI Code Review
   # Provides intelligent code review comments on PRs
+  # Uses OAuth token (Pro subscription) - no API credits needed
   # ============================================================================
   claude-review:
     name: Claude Code Review
     runs-on: ubuntu-latest
-    # Only run on PRs or when @claude is mentioned in comments
+    # Only run on PRs or when @claude is mentioned
     if: |
       (github.event_name == 'pull_request') ||
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude'))
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude'))
 
     permissions:
       contents: read
-      pull-requests: write
-      issues: write
+      pull-requests: read
+      issues: read
       id-token: write
+      actions: read
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Run Claude Code Review
+        id: claude-review
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Custom prompt for WeGo-specific review
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          additional_permissions: |
+            actions: read
           prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
             Review this pull request for WeGo, a transportation platform.
 
             Focus your review on:
@@ -50,6 +63,9 @@ jobs:
 
             Be concise and actionable. Prioritize critical issues over style preferences.
             Reference the CLAUDE.md file for project-specific conventions.
+
+            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   # ============================================================================
   # Claude Security Review (runs on PRs to main or develop)
@@ -65,21 +81,28 @@ jobs:
 
     permissions:
       contents: read
-      pull-requests: write
-      issues: write
+      pull-requests: read
+      issues: read
       id-token: write
+      actions: read
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Run Claude Security Review
+        id: claude-security
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          additional_permissions: |
+            actions: read
           prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
             Perform a comprehensive SECURITY REVIEW of this pull request for WeGo.
 
             Focus on WeGo-specific security concerns:
@@ -114,3 +137,6 @@ jobs:
 
             Flag any CRITICAL, HIGH, MEDIUM, or LOW severity issues.
             Provide specific file:line references and remediation steps.
+
+            Use `gh pr comment` with your Bash tool to leave your security review as a comment on the PR.
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'

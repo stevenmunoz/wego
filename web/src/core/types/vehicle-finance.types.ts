@@ -33,7 +33,7 @@ export interface VehicleIncome {
   id: string;
   vehicle_id: string;
   owner_id: string;
-  type: IncomeType;
+  type: string; // Dynamic - loaded from finance_categories collection
   amount: number;
   description: string;
   date: Date;
@@ -51,7 +51,7 @@ export interface VehicleExpense {
   id: string;
   vehicle_id: string;
   owner_id: string;
-  category: ExpenseCategory;
+  category: string; // Dynamic - loaded from finance_categories collection
   amount: number;
   description: string;
   date: Date;
@@ -68,7 +68,7 @@ export interface VehicleExpense {
 // ============ Input Types ============
 
 export interface VehicleIncomeCreateInput {
-  type: IncomeType;
+  type: string; // Dynamic - loaded from finance_categories collection
   amount: number;
   description: string;
   date: string; // YYYY-MM-DD
@@ -86,7 +86,7 @@ export interface VehicleIncomeCreateInput {
 export interface VehicleIncomeUpdateInput extends Partial<VehicleIncomeCreateInput> {}
 
 export interface VehicleExpenseCreateInput {
-  category: ExpenseCategory;
+  category: string; // Dynamic - loaded from finance_categories collection
   amount: number;
   description: string;
   date: string; // YYYY-MM-DD
@@ -118,8 +118,8 @@ export interface VehiclePLSummary {
   total_expenses: number;
   net_profit: number;
   profit_margin: number;
-  income_by_type: Record<IncomeType, number>;
-  expenses_by_category: Record<ExpenseCategory, number>;
+  income_by_type: Record<string, number>; // Dynamic keys from finance_categories
+  expenses_by_category: Record<string, number>; // Dynamic keys from finance_categories
   income_count: number;
   expense_count: number;
 }

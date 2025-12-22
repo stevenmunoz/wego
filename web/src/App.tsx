@@ -7,6 +7,7 @@ import { RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '@/core/store/auth-store';
 import { useNotificationStore } from '@/core/store/notification-store';
+import { useFinanceCategoriesStore } from '@/core/store/finance-categories-store';
 import { initAnalytics } from '@/core/firebase';
 import { VersionNotification } from '@/components/VersionNotification';
 import { MaintenanceMode } from '@/components/MaintenanceMode';
@@ -33,6 +34,8 @@ function App() {
   const requestPermission = useNotificationStore((state) => state.requestPermission);
   const hasRequestedPermission = useNotificationStore((state) => state.hasRequestedPermission);
 
+  const loadFinanceCategories = useFinanceCategoriesStore((state) => state.loadCategories);
+
   // Remote Config for maintenance mode
   const {
     maintenanceMode,
@@ -48,11 +51,14 @@ function App() {
     // Initialize Firebase Analytics
     initAnalytics();
 
+    // Load finance categories (expense/income types) from Firestore
+    loadFinanceCategories();
+
     // Cleanup subscription on unmount
     return () => {
       unsubscribe();
     };
-  }, [initAuth]);
+  }, [initAuth, loadFinanceCategories]);
 
   // Initialize notifications when admin user is authenticated
   useEffect(() => {
