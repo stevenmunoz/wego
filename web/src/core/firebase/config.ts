@@ -34,11 +34,14 @@ export const firebaseAuth = getAuth(firebaseApp);
 // Falls back gracefully if persistence fails (e.g., private browsing mode)
 setPersistence(firebaseAuth, browserLocalPersistence).catch((error: Error) => {
   // Common in private/incognito mode where IndexedDB is restricted
-  const isQuotaError = error.message?.includes('QuotaExceeded') || error.name === 'QuotaExceededError';
+  const isQuotaError =
+    error.message?.includes('QuotaExceeded') || error.name === 'QuotaExceededError';
   const isPrivateBrowsing = error.message?.includes('access') || error.message?.includes('denied');
 
   if (isQuotaError || isPrivateBrowsing) {
-    console.warn('[Firebase] Auth persistence unavailable (private browsing mode). Session will not persist.');
+    console.warn(
+      '[Firebase] Auth persistence unavailable (private browsing mode). Session will not persist.'
+    );
   } else {
     console.error('[Firebase] Error setting auth persistence:', error.message);
   }
