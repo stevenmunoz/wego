@@ -327,6 +327,17 @@ FIREBASE_CREDENTIALS_PATH=./service-account.json
 USE_FIREBASE_EMULATOR=false
 ```
 
+### Issue: CORS Errors on dev.wegocol.com
+
+**Symptoms:** Requests from `dev.wegocol.com` to the backend are blocked with "No 'Access-Control-Allow-Origin' header"
+
+**Root Cause:** The CORS middleware uses localhost-only regex when `ENVIRONMENT=development`. The DEV Cloud Run deployment was incorrectly using this environment value.
+
+**Solution:** DEV Cloud Run deployments now use `ENVIRONMENT=staging` which enables the full `CORS_ORIGINS` list (including `dev.wegocol.com`). Environment values:
+- `development`: Reserved for local development (localhost-only CORS)
+- `staging`: DEV Cloud Run deployment (full CORS_ORIGINS list)
+- `production`: PROD Cloud Run deployment (full CORS_ORIGINS list)
+
 ### Issue: Tesseract Not Available
 
 **Symptoms:** Extraction fails with "Tesseract OCR not available" error
@@ -373,6 +384,24 @@ brew install poppler
 - Avoid screenshots with overlays or notifications
 - User should review and manually correct low-confidence fields
 
+### Issue: Integration Tests Failing with StreamGenerator Error
+
+**Symptoms:** Tests fail with `TypeError: 'async for' requires an object with __aiter__ method, got StreamGenerator`
+
+**Root Cause:** The Firestore repository code was using `AsyncClient` type hints and `async for` loops, but `firebase-admin`'s `firestore.client()` returns a synchronous `Client`. This mismatch caused:
+- mypy type errors (expected `AsyncStreamGenerator`, got `StreamGenerator`)
+- Runtime errors when using `async for` with sync generators
+
+**Solution:** Updated all Firestore repository implementations to use synchronous patterns:
+- Changed import from `AsyncClient` to `Client`
+- Changed `async for doc in query.stream()` to `list(query.stream())`
+- Removed `await` from synchronous Firestore operations (`.set()`, `.get()`, `.update()`, `.delete()`)
+- Added `cast(DocumentSnapshot, ...)` for proper type annotations
+
+Files modified:
+- `backend/src/infrastructure/repositories.py`
+- `backend/src/infrastructure/agents/repositories.py`
+
 ## Testing
 
 ### Unit Tests
@@ -413,7 +442,9 @@ brew install poppler
 | 1.0 | 2024-12-02 | Initial implementation |
 | 1.1 | 2024-12-23 | Fixed Colombian currency parsing bug |
 | 1.2 | 2024-12-23 | Added comprehensive auth tests |
+| 1.3 | 2024-12-24 | Fixed Firestore sync/async client mismatch in repositories |
+| 1.4 | 2024-12-24 | Fixed CORS for dev.wegocol.com (use staging environment for DEV Cloud Run) |
 
 ---
 
-**Last Updated**: 2024-12-23
+**Last Updated**: 2024-12-24
