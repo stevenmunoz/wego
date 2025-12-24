@@ -213,7 +213,7 @@ class InDriverExtractionService:
             if not images:
                 return [(None, "No pages found in PDF")]
 
-            results = []
+            results: list[tuple[ExtractedInDriverRide | None, str | None]] = []
 
             # Process each page as a separate ride
             for page_num, image in enumerate(images, start=1):

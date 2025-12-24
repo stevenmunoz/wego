@@ -21,7 +21,7 @@ class IConversationRepository(ABC):
 
     @abstractmethod
     async def get_by_user_id(
-        self, user_id: UUID, skip: int = 0, limit: int = 100
+        self, user_id: UUID | str, skip: int = 0, limit: int = 100
     ) -> list[Conversation]:
         """Get conversations for a user."""
         pass

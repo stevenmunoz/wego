@@ -3,7 +3,6 @@
 import logging
 import os
 import re
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
 
@@ -72,7 +71,7 @@ def get_file_extension(filename: str) -> str:
 @router.post("/extract", response_model=ExtractResponse)
 async def extract_from_files(
     files: list[UploadFile] = File(..., description="Image or PDF files to extract from"),
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
 ) -> ExtractResponse:
     """
     Extract ride data from uploaded InDriver screenshots or PDFs.
@@ -140,7 +139,7 @@ async def extract_from_files(
 @router.post("/import", response_model=ImportResponse)
 async def import_rides(
     request: ImportRequest,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
 ) -> ImportResponse:
     """
     Import extracted rides into the database.
@@ -196,7 +195,7 @@ async def import_rides(
 @router.post("/export")
 async def export_rides(
     request: ExportRequest,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
 ) -> Response:
     """
     Export extracted rides to specified format.
@@ -255,7 +254,7 @@ async def export_rides(
 
 @router.get("/stats")
 async def get_extraction_stats(
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
 ) -> dict:
     """
     Get extraction statistics.
@@ -275,7 +274,7 @@ async def get_extraction_stats(
 @router.post("/validate")
 async def validate_ride(
     ride: ExtractedInDriverRide,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
 ) -> dict:
     """
     Validate a single extracted ride's financial data.

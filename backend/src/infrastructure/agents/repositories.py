@@ -1,10 +1,11 @@
 """Firestore repository implementations for agent domain."""
 
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
-from google.cloud.firestore_v1 import AsyncClient
+from google.cloud.firestore_v1 import Client
+from google.cloud.firestore_v1.base_document import DocumentSnapshot
 
 from src.domain.agents.entities import (
     AgentExecution,
@@ -157,19 +158,19 @@ class ConversationRepository(IConversationRepository):
 
     COLLECTION_NAME = "conversations"
 
-    def __init__(self, db: AsyncClient) -> None:
+    def __init__(self, db: Client) -> None:
         self._db = db
         self._collection = db.collection(self.COLLECTION_NAME)
 
     async def create(self, conversation: Conversation) -> Conversation:
         """Create a new conversation."""
         conv_dict = FirestoreConversationMapper.to_dict(conversation)
-        await self._collection.document(str(conversation.id)).set(conv_dict)
+        self._collection.document(str(conversation.id)).set(conv_dict)
         return conversation
 
     async def get_by_id(self, conversation_id: UUID) -> Conversation | None:
         """Get conversation by ID."""
-        doc = await self._collection.document(str(conversation_id)).get()
+        doc = cast(DocumentSnapshot, self._collection.document(str(conversation_id)).get())
         if not doc.exists:
             return None
 
@@ -180,7 +181,7 @@ class ConversationRepository(IConversationRepository):
         return FirestoreConversationMapper.from_dict(doc.to_dict(), messages)
 
     async def get_by_user_id(
-        self, user_id: UUID, skip: int = 0, limit: int = 100
+        self, user_id: UUID | str, skip: int = 0, limit: int = 100
     ) -> list[Conversation]:
         """Get conversations for a user."""
         query = (
@@ -189,7 +190,7 @@ class ConversationRepository(IConversationRepository):
             .offset(skip)
             .limit(limit)
         )
-        docs = [doc async for doc in query.stream()]
+        docs = list(query.stream())
 
         conversations = []
         for doc in docs:
@@ -204,13 +205,13 @@ class ConversationRepository(IConversationRepository):
         """Update existing conversation."""
         conversation.updated_at = datetime.utcnow()
         conv_dict = FirestoreConversationMapper.to_dict(conversation)
-        await self._collection.document(str(conversation.id)).update(conv_dict)
+        self._collection.document(str(conversation.id)).update(conv_dict)
         return conversation
 
     async def delete(self, conversation_id: UUID) -> bool:
         """Delete conversation."""
         doc_ref = self._collection.document(str(conversation_id))
-        doc = await doc_ref.get()
+        doc = cast(DocumentSnapshot, doc_ref.get())
 
         if not doc.exists:
             return False
@@ -219,7 +220,7 @@ class ConversationRepository(IConversationRepository):
         message_repo = MessageRepository(self._db)
         await message_repo.delete_by_conversation_id(conversation_id)
 
-        await doc_ref.delete()
+        doc_ref.delete()
         return True
 
 
@@ -228,14 +229,14 @@ class MessageRepository(IMessageRepository):
 
     COLLECTION_NAME = "messages"
 
-    def __init__(self, db: AsyncClient) -> None:
+    def __init__(self, db: Client) -> None:
         self._db = db
         self._collection = db.collection(self.COLLECTION_NAME)
 
     async def create(self, message: Message) -> Message:
         """Create a new message."""
         msg_dict = FirestoreMessageMapper.to_dict(message)
-        await self._collection.document(str(message.id)).set(msg_dict)
+        self._collection.document(str(message.id)).set(msg_dict)
         return message
 
     async def get_by_conversation_id(
@@ -248,17 +249,17 @@ class MessageRepository(IMessageRepository):
             .offset(skip)
             .limit(limit)
         )
-        docs = [doc async for doc in query.stream()]
+        docs = list(query.stream())
         return [FirestoreMessageMapper.from_dict(doc.to_dict()) for doc in docs]
 
     async def delete_by_conversation_id(self, conversation_id: UUID) -> bool:
         """Delete all messages in a conversation."""
         query = self._collection.where("conversation_id", "==", str(conversation_id))
-        docs = [doc async for doc in query.stream()]
+        docs = list(query.stream())
 
         # Batch delete messages
         for doc in docs:
-            await doc.reference.delete()
+            doc.reference.delete()
 
         return True
 
@@ -268,19 +269,19 @@ class ToolRepository(IToolRepository):
 
     COLLECTION_NAME = "tools"
 
-    def __init__(self, db: AsyncClient) -> None:
+    def __init__(self, db: Client) -> None:
         self._db = db
         self._collection = db.collection(self.COLLECTION_NAME)
 
     async def create(self, tool: Tool) -> Tool:
         """Create a new tool."""
         tool_dict = FirestoreToolMapper.to_dict(tool)
-        await self._collection.document(str(tool.id)).set(tool_dict)
+        self._collection.document(str(tool.id)).set(tool_dict)
         return tool
 
     async def get_by_id(self, tool_id: UUID) -> Tool | None:
         """Get tool by ID."""
-        doc = await self._collection.document(str(tool_id)).get()
+        doc = cast(DocumentSnapshot, self._collection.document(str(tool_id)).get())
         if not doc.exists:
             return None
         return FirestoreToolMapper.from_dict(doc.to_dict())
@@ -288,7 +289,7 @@ class ToolRepository(IToolRepository):
     async def get_by_name(self, name: str) -> Tool | None:
         """Get tool by name."""
         query = self._collection.where("name", "==", name).limit(1)
-        docs = [doc async for doc in query.stream()]
+        docs = list(query.stream())
 
         if not docs:
             return None
@@ -298,13 +299,13 @@ class ToolRepository(IToolRepository):
     async def list_enabled(self) -> list[Tool]:
         """List all enabled tools."""
         query = self._collection.where("enabled", "==", True)
-        docs = [doc async for doc in query.stream()]
+        docs = list(query.stream())
         return [FirestoreToolMapper.from_dict(doc.to_dict()) for doc in docs]
 
     async def update(self, tool: Tool) -> Tool:
         """Update existing tool."""
         tool_dict = FirestoreToolMapper.to_dict(tool)
-        await self._collection.document(str(tool.id)).update(tool_dict)
+        self._collection.document(str(tool.id)).update(tool_dict)
         return tool
 
 
@@ -313,19 +314,19 @@ class AgentExecutionRepository(IAgentExecutionRepository):
 
     COLLECTION_NAME = "agent_executions"
 
-    def __init__(self, db: AsyncClient) -> None:
+    def __init__(self, db: Client) -> None:
         self._db = db
         self._collection = db.collection(self.COLLECTION_NAME)
 
     async def create(self, execution: AgentExecution) -> AgentExecution:
         """Create a new execution record."""
         exec_dict = FirestoreAgentExecutionMapper.to_dict(execution)
-        await self._collection.document(str(execution.id)).set(exec_dict)
+        self._collection.document(str(execution.id)).set(exec_dict)
         return execution
 
     async def get_by_id(self, execution_id: UUID) -> AgentExecution | None:
         """Get execution by ID."""
-        doc = await self._collection.document(str(execution_id)).get()
+        doc = cast(DocumentSnapshot, self._collection.document(str(execution_id)).get())
         if not doc.exists:
             return None
         return FirestoreAgentExecutionMapper.from_dict(doc.to_dict())
@@ -340,11 +341,11 @@ class AgentExecutionRepository(IAgentExecutionRepository):
             .offset(skip)
             .limit(limit)
         )
-        docs = [doc async for doc in query.stream()]
+        docs = list(query.stream())
         return [FirestoreAgentExecutionMapper.from_dict(doc.to_dict()) for doc in docs]
 
     async def update(self, execution: AgentExecution) -> AgentExecution:
         """Update existing execution."""
         exec_dict = FirestoreAgentExecutionMapper.to_dict(execution)
-        await self._collection.document(str(execution.id)).update(exec_dict)
+        self._collection.document(str(execution.id)).update(exec_dict)
         return execution

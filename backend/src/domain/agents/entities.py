@@ -77,7 +77,7 @@ class Conversation:
     def __init__(
         self,
         id: UUID,
-        user_id: UUID,
+        user_id: UUID | str,
         title: str,
         agent_config: dict[str, Any],
         messages: list[Message] | None = None,
@@ -105,7 +105,7 @@ class Conversation:
 
     @staticmethod
     def create(
-        user_id: UUID,
+        user_id: UUID | str,
         title: str,
         agent_config: dict[str, Any],
         metadata: dict[str, Any] | None = None,
