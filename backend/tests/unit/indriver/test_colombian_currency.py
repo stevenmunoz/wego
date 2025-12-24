@@ -218,9 +218,9 @@ class TestCurrencyEdgeCases:
     def test_parse_currency_with_spaces(self, parser):
         """Handle spaces in currency values (OCR artifact)."""
         # OCR might add spaces
-        result = parser._parse_colombian_currency("18 000,00")
         # Should handle gracefully - either parse correctly or return None
         # Don't crash
+        parser._parse_colombian_currency("18 000,00")
 
     def test_parse_currency_trailing_zeros(self, parser):
         """Parse values with trailing zeros."""
@@ -272,12 +272,12 @@ class TestUSFormatBackwardsCompatibility:
         This is the expected behavior for a Colombia-focused application.
         """
         text = "Tarifa COP 15,000.00"
-        result = parser._parse_financial_data(text)
         # The parser sees "15,000.00" and interprets comma as decimal:
         # - Strips the dots (nothing to strip before comma)
         # - Replaces comma with dot -> "15.000.00"
         # - This may result in unexpected parsing
         # This is a known limitation - Colombian format is the primary use case
+        parser._parse_financial_data(text)
 
     def test_parse_cop_prefix_colombian_format(self, parser):
         """Parse COP prefix with Colombian number format: COP 15.000,00"""

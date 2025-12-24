@@ -6,6 +6,7 @@ from unittest.mock import patch
 import pytest
 from jose import jwt
 
+from src.core.exceptions import UnauthorizedException
 from src.core.security import (
     create_access_token,
     create_refresh_token,
@@ -14,7 +15,6 @@ from src.core.security import (
     verify_password,
     verify_token_type,
 )
-from src.core.exceptions import UnauthorizedException
 
 
 # Mock settings for testing

@@ -18,8 +18,6 @@ from fastapi.testclient import TestClient
 from PIL import Image
 
 from src.main import app
-from src.presentation.dependencies import get_current_user_id, get_current_user_role
-from src.domain.entities import UserRole
 
 
 @pytest.fixture

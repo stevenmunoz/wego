@@ -15,14 +15,13 @@ from PIL import Image
 
 # Note: Uses authenticated_client fixture from conftest.py
 from src.application.indriver.schemas import (
-    ExtractedInDriverRide,
-    RideStatus,
-    PaymentMethod,
-    Duration,
-    DurationUnit,
     Distance,
     DistanceUnit,
-    ExportFormat,
+    Duration,
+    DurationUnit,
+    ExtractedInDriverRide,
+    PaymentMethod,
+    RideStatus,
 )
 
 
@@ -189,7 +188,7 @@ class TestExtractEndpoint:
                 ),
             )
 
-            response = authenticated_client.post(
+            authenticated_client.post(
                 "/api/v1/indriver/extract",
                 files=[
                     ("files", ("test1.png", sample_image_bytes, "image/png")),
@@ -417,7 +416,6 @@ class TestValidateEndpoint:
             json=ride.model_dump(mode="json"),
         )
         assert response.status_code == status.HTTP_200_OK
-        data = response.json()
         # Should still be valid due to tolerance
         # Note: This depends on the exact values and calculation order
 
@@ -446,7 +444,7 @@ class TestStatsEndpoint:
         assert isinstance(data["total_extractions"], int)
         assert isinstance(data["successful_extractions"], int)
         assert isinstance(data["failed_extractions"], int)
-        assert isinstance(data["average_confidence"], (int, float))
+        assert isinstance(data["average_confidence"], int | float)
         assert isinstance(data["tesseract_available"], bool)
 
 

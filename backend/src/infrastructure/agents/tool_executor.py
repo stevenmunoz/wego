@@ -145,7 +145,7 @@ class ToolExecutor:
             if isinstance(node, ast.Expression):
                 return _eval_node(node.body)
             elif isinstance(node, ast.Constant):
-                if isinstance(node.value, (int, float)):
+                if isinstance(node.value, int | float):
                     return node.value
                 raise ValueError(f"Unsupported constant type: {type(node.value)}")
             elif isinstance(node, ast.BinOp):

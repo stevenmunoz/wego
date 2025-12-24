@@ -19,19 +19,19 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from src.main import app
-from src.presentation.dependencies import get_current_user_id, get_current_user_role
-from src.domain.entities import UserRole
 from src.application.indriver.schemas import (
-    ExtractedInDriverRide,
-    ExtractionError,
-    RideStatus,
-    PaymentMethod,
-    Duration,
-    DurationUnit,
     Distance,
     DistanceUnit,
+    Duration,
+    DurationUnit,
+    ExtractedInDriverRide,
+    ExtractionError,
+    PaymentMethod,
+    RideStatus,
 )
+from src.domain.entities import UserRole
+from src.main import app
+from src.presentation.dependencies import get_current_user_id, get_current_user_role
 
 
 @pytest.fixture

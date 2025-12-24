@@ -8,17 +8,18 @@ CRITICAL: These tests ensure auth errors are handled properly
 and prevent the 401/403 confusion that broke production.
 """
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
 from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 
+from src.domain.entities import UserRole
 from src.presentation.dependencies import (
     get_current_user_id,
     get_current_user_role,
     require_admin,
 )
-from src.domain.entities import UserRole
 
 
 class TestGetCurrentUserId:

@@ -5,16 +5,17 @@ Tests the extraction of structured ride data from InDriver OCR output text.
 Covers date/time parsing, financial data extraction, and OCR error handling.
 """
 
-import pytest
 from datetime import datetime
 
-from src.application.indriver.text_parser import InDriverTextParser, SPANISH_MONTHS
+import pytest
+
 from src.application.indriver.schemas import (
-    RideStatus,
-    PaymentMethod,
-    DurationUnit,
     DistanceUnit,
+    DurationUnit,
+    PaymentMethod,
+    RideStatus,
 )
+from src.application.indriver.text_parser import SPANISH_MONTHS, InDriverTextParser
 
 
 @pytest.fixture
@@ -766,11 +767,11 @@ class TestOCRErrorRecovery:
 
     def test_ocr_mixed_separators(self, parser):
         """Handle mixed decimal separators."""
-        text = "COP 15.000,00"  # Common OCR confusion
+        # Common OCR confusion: COP 15.000,00
         # Currency pattern handles this
-        result = parser._parse_financial_data("Tarifa COP 15.000,00")
         # The parser handles the specific format used in InDriver
         # This test checks that it doesn't crash with mixed separators
+        parser._parse_financial_data("Tarifa COP 15.000,00")
 
     def test_ocr_time_variations(self, parser):
         """Handle various time format OCR outputs."""

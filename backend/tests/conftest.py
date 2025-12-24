@@ -6,14 +6,14 @@ import uuid
 from collections.abc import AsyncGenerator, Generator
 
 import pytest
+from fastapi.testclient import TestClient
 from google.cloud.firestore_v1 import AsyncClient
 from httpx import AsyncClient as HTTPAsyncClient
-from fastapi.testclient import TestClient
 
-from src.infrastructure.database import get_db, initialize_firebase
-from src.presentation.dependencies import get_current_user_id, get_current_user_role
 from src.domain.entities import UserRole
+from src.infrastructure.database import get_db, initialize_firebase
 from src.main import app
+from src.presentation.dependencies import get_current_user_id, get_current_user_role
 
 # Set Firebase emulator environment variables for testing
 os.environ["FIRESTORE_EMULATOR_HOST"] = "localhost:8080"
