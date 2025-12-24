@@ -31,6 +31,7 @@ from google.cloud.firestore_v1 import AsyncClient  # noqa: E402
 from httpx import AsyncClient as HTTPAsyncClient  # noqa: E402
 
 from src.domain.entities import UserRole  # noqa: E402
+from src.infrastructure.container import Container  # noqa: E402
 from src.infrastructure.database import get_db, initialize_firebase  # noqa: E402
 from src.main import app  # noqa: E402
 from src.presentation.dependencies import get_current_user_id, get_current_user_role  # noqa: E402
@@ -63,10 +64,18 @@ def event_loop() -> Generator:
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_firebase():
-    """Initialize Firebase for testing."""
+    """Initialize Firebase and wire dependency injection for testing."""
     # Initialize Firebase with test configuration
     initialize_firebase()
+
+    # Wire the dependency injection container
+    container = Container()
+    container.wire(modules=container.wiring_config.modules)
+
     yield
+
+    # Unwire on teardown
+    container.unwire()
 
 
 # =============================================================================
@@ -86,12 +95,13 @@ async def db_client() -> AsyncGenerator[AsyncClient, None]:
 
     # Clean up test data after each test
     # Delete all collections (you can customize this based on your needs)
+    # Note: Firestore .stream() returns a sync generator with Firebase Admin SDK
     collections = ["users", "conversations", "messages", "executions"]
     for collection_name in collections:
         collection_ref = client.collection(collection_name)
         docs = collection_ref.stream()
-        async for doc in docs:
-            await doc.reference.delete()
+        for doc in docs:  # Sync iteration for Firebase Admin SDK
+            doc.reference.delete()
 
 
 # =============================================================================
