@@ -208,8 +208,22 @@ class InDriverTextParser:
 
         return ride
 
+    # Maximum OCR text length to prevent ReDoS attacks
+    MAX_OCR_TEXT_LENGTH = 50000
+
     def _clean_text(self, text: str) -> str:
-        """Clean OCR text for better parsing."""
+        """Clean OCR text for better parsing.
+
+        Security:
+            - Truncates input to MAX_OCR_TEXT_LENGTH to prevent ReDoS
+        """
+        # Defense in depth: limit text length before regex operations
+        if len(text) > self.MAX_OCR_TEXT_LENGTH:
+            logger.warning(
+                f"OCR text too long ({len(text)} chars), truncating to {self.MAX_OCR_TEXT_LENGTH}"
+            )
+            text = text[: self.MAX_OCR_TEXT_LENGTH]
+
         # Normalize multiple newlines to single newline
         text = re.sub(r"\n\s*\n+", "\n", text)
         # Normalize multiple spaces (but keep newlines)

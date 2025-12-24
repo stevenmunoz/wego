@@ -44,16 +44,16 @@ async def get_current_user_id(
             raise ValueError("No user ID in token")
         return user_id
     except (ValueError, firebase_auth.InvalidIdTokenError, firebase_auth.ExpiredIdTokenError) as e:
-        # Log detailed error server-side only
-        logger.warning(f"Token validation failed: {str(e)}")
+        # Log only exception type to avoid leaking implementation details
+        logger.warning(f"Token validation failed: {type(e).__name__}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired authentication token",
             headers={"WWW-Authenticate": "Bearer"},
         ) from e
     except Exception as e:
-        # Log detailed error server-side only
-        logger.error(f"Token verification error: {str(e)}")
+        # Log only exception type to avoid leaking implementation details
+        logger.error(f"Token verification error: {type(e).__name__}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication failed",
@@ -88,16 +88,16 @@ async def get_current_user_role(
             # Default to USER role if role string is invalid
             return UserRole.USER
     except (firebase_auth.InvalidIdTokenError, firebase_auth.ExpiredIdTokenError) as e:
-        # Log detailed error server-side only
-        logger.warning(f"Token validation failed for role check: {str(e)}")
+        # Log only exception type to avoid leaking implementation details
+        logger.warning(f"Token validation failed for role check: {type(e).__name__}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired authentication token",
             headers={"WWW-Authenticate": "Bearer"},
         ) from e
     except Exception as e:
-        # Log detailed error server-side only
-        logger.error(f"Token verification error for role check: {str(e)}")
+        # Log only exception type to avoid leaking implementation details
+        logger.error(f"Token verification error for role check: {type(e).__name__}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication failed",
