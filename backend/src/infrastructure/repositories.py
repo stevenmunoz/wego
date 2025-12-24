@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from google.cloud.firestore_v1 import AsyncClient
+from google.cloud.firestore_v1 import Client
 
 from src.domain.entities import User, UserRole, UserStatus
 from src.domain.repositories import IUserRepository
@@ -49,19 +49,19 @@ class UserRepository(IUserRepository):
 
     COLLECTION_NAME = "users"
 
-    def __init__(self, db: AsyncClient) -> None:
+    def __init__(self, db: Client) -> None:
         self._db = db
         self._collection = db.collection(self.COLLECTION_NAME)
 
     async def create(self, user: User) -> User:
         """Create a new user."""
         user_dict = FirestoreUserMapper.to_dict(user)
-        await self._collection.document(str(user.id)).set(user_dict)
+        self._collection.document(str(user.id)).set(user_dict)
         return user
 
     async def get_by_id(self, user_id: UUID | str) -> User | None:
         """Get user by ID."""
-        doc = await self._collection.document(str(user_id)).get()
+        doc = self._collection.document(str(user_id)).get()
         if not doc.exists:
             return None
         return FirestoreUserMapper.from_dict(doc.to_dict())
@@ -80,18 +80,18 @@ class UserRepository(IUserRepository):
         """Update existing user."""
         user.updated_at = datetime.utcnow()
         user_dict = FirestoreUserMapper.to_dict(user)
-        await self._collection.document(str(user.id)).update(user_dict)
+        self._collection.document(str(user.id)).update(user_dict)
         return user
 
     async def delete(self, user_id: UUID) -> bool:
         """Delete user by ID."""
         doc_ref = self._collection.document(str(user_id))
-        doc = await doc_ref.get()
+        doc = doc_ref.get()
 
         if not doc.exists:
             return False
 
-        await doc_ref.delete()
+        doc_ref.delete()
         return True
 
     async def list(self, skip: int = 0, limit: int = 100) -> list[User]:
