@@ -69,7 +69,7 @@ class UserRepository(IUserRepository):
     async def get_by_email(self, email: str) -> User | None:
         """Get user by email."""
         query = self._collection.where("email", "==", email).limit(1)
-        docs = [doc async for doc in query.stream()]
+        docs = list(query.stream())
 
         if not docs:
             return None
@@ -97,11 +97,11 @@ class UserRepository(IUserRepository):
     async def list(self, skip: int = 0, limit: int = 100) -> list[User]:
         """List users with pagination."""
         query = self._collection.offset(skip).limit(limit)
-        docs = [doc async for doc in query.stream()]
+        docs = list(query.stream())
         return [FirestoreUserMapper.from_dict(doc.to_dict()) for doc in docs]
 
     async def exists_by_email(self, email: str) -> bool:
         """Check if user exists by email."""
         query = self._collection.where("email", "==", email).limit(1)
-        docs = [doc async for doc in query.stream()]
+        docs = list(query.stream())
         return len(docs) > 0
