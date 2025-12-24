@@ -32,7 +32,7 @@ router = APIRouter(prefix="/chat", tags=["Agent Chat"])
 @inject
 async def create_conversation(
     dto: ConversationCreateDTO,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
     db: AsyncClient = Depends(get_db),
     use_case: CreateConversationUseCase = Depends(Provide[Container.create_conversation_use_case]),
 ) -> ConversationResponseDTO:
@@ -50,7 +50,7 @@ async def create_conversation(
 async def list_conversations(
     skip: int = 0,
     limit: int = 100,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
     db: AsyncClient = Depends(get_db),
     use_case: ListConversationsUseCase = Depends(Provide[Container.list_conversations_use_case]),
 ) -> list[ConversationResponseDTO]:
@@ -67,7 +67,7 @@ async def list_conversations(
 @inject
 async def get_conversation(
     conversation_id: UUID,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
     db: AsyncClient = Depends(get_db),
     use_case: GetConversationUseCase = Depends(Provide[Container.get_conversation_use_case]),
 ) -> ConversationDetailResponseDTO:
@@ -84,7 +84,7 @@ async def get_conversation(
 @inject
 async def chat(
     dto: ChatRequestDTO,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
     db: AsyncClient = Depends(get_db),
     use_case: ChatUseCase = Depends(Provide[Container.chat_use_case]),
 ) -> ChatResponseDTO:

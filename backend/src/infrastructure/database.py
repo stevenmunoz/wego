@@ -1,16 +1,16 @@
 """Firebase configuration and client management."""
 
 import os
+from typing import Any
 
 import firebase_admin
 from firebase_admin import credentials, firestore
-from google.cloud.firestore_v1 import AsyncClient
 
 from src.core.config import settings
 
 # Global Firebase app instance
 _firebase_app: firebase_admin.App | None = None
-_firestore_client: AsyncClient | None = None
+_firestore_client: Any = None  # firestore.AsyncClient type
 
 
 def initialize_firebase() -> None:
@@ -26,7 +26,7 @@ def initialize_firebase() -> None:
 
     # Initialize Firebase
     if settings.FIREBASE_CREDENTIALS_PATH and os.path.exists(settings.FIREBASE_CREDENTIALS_PATH):
-        # Production: Use service account credentials
+        # Production/Local dev: Use service account credentials
         cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
         _firebase_app = firebase_admin.initialize_app(
             cred,
@@ -52,16 +52,16 @@ def initialize_firebase() -> None:
             }
         )
 
-    # Initialize Firestore client
-    _firestore_client = firestore.AsyncClient()
+    # Initialize Firestore client using Firebase Admin SDK credentials
+    _firestore_client = firestore.client(app=_firebase_app)
 
 
-def get_firestore() -> AsyncClient:
+def get_firestore() -> Any:
     """
-    Get Firestore async client.
+    Get Firestore client.
 
     Returns:
-        AsyncClient: Firestore async client
+        Firestore client instance
 
     Raises:
         RuntimeError: If Firebase has not been initialized
@@ -74,12 +74,12 @@ def get_firestore() -> AsyncClient:
     return _firestore_client
 
 
-async def get_db() -> AsyncClient:
+async def get_db() -> Any:
     """
     Get database client (alias for get_firestore for compatibility).
 
     Returns:
-        AsyncClient: Firestore async client
+        Firestore client instance
     """
     return get_firestore()
 

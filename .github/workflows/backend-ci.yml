@@ -49,12 +49,10 @@ jobs:
     - name: Lint with ruff
       working-directory: ./backend
       run: ruff check src tests
-      continue-on-error: true  # Don't fail on lint warnings initially
 
     - name: Type check with mypy
       working-directory: ./backend
       run: mypy src --ignore-missing-imports
-      continue-on-error: true  # Don't fail build on type errors initially
 
     - name: Start Firebase Emulator
       working-directory: ./backend
@@ -74,6 +72,7 @@ jobs:
         USE_FIREBASE_EMULATOR: "true"
         FIRESTORE_EMULATOR_HOST: "localhost:8080"
         GCLOUD_PROJECT: "demo-test"
+        FIREBASE_PROJECT_ID: "demo-test"
         SECRET_KEY: "test-secret-key-for-ci"
         JWT_SECRET: "test-jwt-secret-for-ci"
         PYTHONPATH: ${{ github.workspace }}/backend
@@ -86,12 +85,14 @@ jobs:
         USE_FIREBASE_EMULATOR: "true"
         FIRESTORE_EMULATOR_HOST: "localhost:8080"
         GCLOUD_PROJECT: "demo-test"
+        FIREBASE_PROJECT_ID: "demo-test"
         SECRET_KEY: "test-secret-key-for-ci"
         JWT_SECRET: "test-jwt-secret-for-ci"
         PYTHONPATH: ${{ github.workspace }}/backend
       run: |
         pytest tests/integration -v --tb=short
-      continue-on-error: true  # Integration tests may need real Firebase
+      # CRITICAL: Integration tests MUST pass - no continue-on-error
+      # If tests fail, fix them. Don't hide failures.
 
     - name: Run all tests with coverage
       working-directory: ./backend
@@ -99,11 +100,12 @@ jobs:
         USE_FIREBASE_EMULATOR: "true"
         FIRESTORE_EMULATOR_HOST: "localhost:8080"
         GCLOUD_PROJECT: "demo-test"
+        FIREBASE_PROJECT_ID: "demo-test"
         SECRET_KEY: "test-secret-key-for-ci"
         JWT_SECRET: "test-jwt-secret-for-ci"
         PYTHONPATH: ${{ github.workspace }}/backend
       run: |
-        pytest --cov=src --cov-report=xml --cov-report=term-missing -v tests/unit
+        pytest --cov=src --cov-report=xml --cov-report=term-missing -v tests/
 
     - name: Upload coverage
       uses: codecov/codecov-action@v4

@@ -4,12 +4,10 @@
 
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { config } from '../config';
-import { authService } from '../auth/auth-service';
+import { getIdToken } from '../firebase/auth';
 
 class ApiClient {
   private client: AxiosInstance;
-  private isRefreshing = false;
-  private refreshSubscribers: Array<(token: string) => void> = [];
 
   constructor() {
     this.client = axios.create({
@@ -23,28 +21,17 @@ class ApiClient {
     this.setupInterceptors();
   }
 
-  /**
-   * Subscribe to token refresh completion
-   */
-  private subscribeTokenRefresh(callback: (token: string) => void): void {
-    this.refreshSubscribers.push(callback);
-  }
-
-  /**
-   * Notify all subscribers that token has been refreshed
-   */
-  private onTokenRefreshed(token: string): void {
-    this.refreshSubscribers.forEach((callback) => callback(token));
-    this.refreshSubscribers = [];
-  }
-
   private setupInterceptors(): void {
-    // Request interceptor to add auth token
+    // Request interceptor to add Firebase ID token
     this.client.interceptors.request.use(
-      (config) => {
-        const token = authService.getAccessToken();
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+      async (config) => {
+        try {
+          const token = await getIdToken();
+          if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+          }
+        } catch (error) {
+          console.warn('[ApiClient] Failed to get ID token:', error);
         }
         return config;
       },
@@ -57,49 +44,21 @@ class ApiClient {
       async (error: AxiosError) => {
         const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
-        // Handle 401 - try to refresh token
+        // Handle 401 - Firebase tokens auto-refresh, so retry once with fresh token
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
 
-          // If already refreshing, queue this request
-          if (this.isRefreshing) {
-            return new Promise((resolve) => {
-              this.subscribeTokenRefresh((token: string) => {
-                if (originalRequest.headers) {
-                  originalRequest.headers.Authorization = `Bearer ${token}`;
-                }
-                resolve(this.client(originalRequest));
-              });
-            });
-          }
-
-          this.isRefreshing = true;
-
           try {
-            const refreshToken = authService.getRefreshToken();
-            if (refreshToken) {
-              const response = await this.post<{ access_token: string; refresh_token: string }>(
-                '/auth/refresh',
-                { refresh_token: refreshToken }
-              );
-
-              authService.setTokens(response.data.access_token, response.data.refresh_token);
-
-              // Notify all queued requests
-              this.onTokenRefreshed(response.data.access_token);
-
-              // Retry original request
-              if (originalRequest.headers) {
-                originalRequest.headers.Authorization = `Bearer ${response.data.access_token}`;
-              }
+            // Force refresh the token
+            const token = await getIdToken();
+            if (token && originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
               return this.client(originalRequest);
             }
           } catch (refreshError) {
-            authService.logout();
+            console.error('[ApiClient] Token refresh failed:', refreshError);
             window.location.href = '/login';
             return Promise.reject(refreshError);
-          } finally {
-            this.isRefreshing = false;
           }
         }
 

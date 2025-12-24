@@ -41,7 +41,7 @@ async def create_user(
 @router.get("/me", response_model=UserResponseDTO)
 @inject
 async def get_current_user(
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
     use_case: GetUserUseCase = Depends(Provide[Container.get_user_use_case]),
 ) -> UserResponseDTO:
     """
@@ -56,7 +56,7 @@ async def get_current_user(
 @inject
 async def update_current_user(
     dto: UserUpdateDTO,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
     use_case: UpdateUserUseCase = Depends(Provide[Container.update_user_use_case]),
 ) -> UserResponseDTO:
     """
