@@ -1,24 +1,43 @@
-"""Pytest configuration and fixtures."""
+"""Pytest configuration and fixtures.
 
-import asyncio
+IMPORTANT: Environment variables must be set BEFORE any src imports.
+This file is structured carefully to ensure env vars are available
+when Settings is instantiated during module imports.
+"""
+
+# =============================================================================
+# ENVIRONMENT SETUP - MUST BE FIRST, BEFORE ANY OTHER IMPORTS
+# =============================================================================
 import os
-import uuid
-from collections.abc import AsyncGenerator, Generator
 
-import pytest
-from fastapi.testclient import TestClient
-from google.cloud.firestore_v1 import AsyncClient
-from httpx import AsyncClient as HTTPAsyncClient
+# Set test environment variables before any src modules are imported
+# These are required for Settings to instantiate and Firebase to work
+os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing")
+os.environ.setdefault("JWT_SECRET", "test-jwt-secret-for-testing")
+os.environ.setdefault("USE_FIREBASE_EMULATOR", "true")
+os.environ.setdefault("FIRESTORE_EMULATOR_HOST", "localhost:8080")
+os.environ.setdefault("FIREBASE_PROJECT_ID", "test-project")
 
-from src.domain.entities import UserRole
-from src.infrastructure.database import get_db, initialize_firebase
-from src.main import app
-from src.presentation.dependencies import get_current_user_id, get_current_user_role
+# =============================================================================
+# STANDARD IMPORTS - Safe to do after env vars are set
+# =============================================================================
+import asyncio  # noqa: E402
+import uuid  # noqa: E402
+from collections.abc import AsyncGenerator, Generator  # noqa: E402
 
-# Set Firebase emulator environment variables for testing
-os.environ["FIRESTORE_EMULATOR_HOST"] = "localhost:8080"
-os.environ["FIREBASE_PROJECT_ID"] = "test-project"
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from google.cloud.firestore_v1 import AsyncClient  # noqa: E402
+from httpx import AsyncClient as HTTPAsyncClient  # noqa: E402
 
+from src.domain.entities import UserRole  # noqa: E402
+from src.infrastructure.database import get_db, initialize_firebase  # noqa: E402
+from src.main import app  # noqa: E402
+from src.presentation.dependencies import get_current_user_id, get_current_user_role  # noqa: E402
+
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
 
 def generate_test_user_id() -> str:
     """Generate a unique test user ID to prevent collisions with production data."""
@@ -29,6 +48,10 @@ def generate_test_admin_id() -> str:
     """Generate a unique test admin ID to prevent collisions with production data."""
     return f"test-admin-{uuid.uuid4().hex[:12]}"
 
+
+# =============================================================================
+# SESSION-SCOPED FIXTURES
+# =============================================================================
 
 @pytest.fixture(scope="session")
 def event_loop() -> Generator:
@@ -45,6 +68,10 @@ def setup_firebase():
     initialize_firebase()
     yield
 
+
+# =============================================================================
+# DATABASE FIXTURES
+# =============================================================================
 
 @pytest.fixture(scope="function")
 async def db_client() -> AsyncGenerator[AsyncClient, None]:
@@ -67,9 +94,9 @@ async def db_client() -> AsyncGenerator[AsyncClient, None]:
             await doc.reference.delete()
 
 
-# ============================================================================
-# Authentication Fixtures
-# ============================================================================
+# =============================================================================
+# AUTHENTICATION FIXTURES
+# =============================================================================
 
 @pytest.fixture
 def mock_user_id() -> str:
@@ -140,6 +167,10 @@ def unauthenticated_client() -> TestClient:
     app.dependency_overrides.clear()
     return TestClient(app)
 
+
+# =============================================================================
+# HTTP CLIENT FIXTURES
+# =============================================================================
 
 @pytest.fixture(scope="function")
 async def client(db_client: AsyncClient) -> AsyncGenerator[HTTPAsyncClient, None]:
