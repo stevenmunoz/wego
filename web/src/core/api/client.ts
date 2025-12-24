@@ -8,6 +8,8 @@ import { getIdToken } from '../firebase/auth';
 
 class ApiClient {
   private client: AxiosInstance;
+  private isRefreshing = false;
+  private refreshSubscribers: Array<(token: string) => void> = [];
 
   constructor() {
     this.client = axios.create({
@@ -19,6 +21,21 @@ class ApiClient {
     });
 
     this.setupInterceptors();
+  }
+
+  /**
+   * Subscribe to token refresh completion
+   */
+  private subscribeTokenRefresh(callback: (token: string) => void): void {
+    this.refreshSubscribers.push(callback);
+  }
+
+  /**
+   * Notify all subscribers that token has been refreshed
+   */
+  private onTokenRefreshed(token: string): void {
+    this.refreshSubscribers.forEach((callback) => callback(token));
+    this.refreshSubscribers = [];
   }
 
   private setupInterceptors(): void {
@@ -48,17 +65,34 @@ class ApiClient {
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
 
+          // If already refreshing, queue this request
+          if (this.isRefreshing) {
+            return new Promise((resolve) => {
+              this.subscribeTokenRefresh((token: string) => {
+                if (originalRequest.headers) {
+                  originalRequest.headers.Authorization = `Bearer ${token}`;
+                }
+                resolve(this.client(originalRequest));
+              });
+            });
+          }
+
+          this.isRefreshing = true;
+
           try {
             // Force refresh the token
             const token = await getIdToken();
             if (token && originalRequest.headers) {
               originalRequest.headers.Authorization = `Bearer ${token}`;
+              this.onTokenRefreshed(token);
               return this.client(originalRequest);
             }
           } catch (refreshError) {
             console.error('[ApiClient] Token refresh failed:', refreshError);
             window.location.href = '/login';
             return Promise.reject(refreshError);
+          } finally {
+            this.isRefreshing = false;
           }
         }
 

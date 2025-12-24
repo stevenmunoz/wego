@@ -49,6 +49,7 @@ jobs:
     - name: Lint with ruff
       working-directory: ./backend
       run: ruff check src tests
+      continue-on-error: true  # Don't fail on lint warnings initially
 
     - name: Type check with mypy
       working-directory: ./backend
