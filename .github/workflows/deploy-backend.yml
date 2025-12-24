@@ -42,7 +42,9 @@ jobs:
             echo "service_name=wego-backend-prod" >> $GITHUB_OUTPUT
             echo "firebase_project_id=wego-bac88" >> $GITHUB_OUTPUT
           else
-            echo "environment=development" >> $GITHUB_OUTPUT
+            # Use "staging" for Cloud Run dev deployments
+            # "development" is reserved for local dev (uses localhost-only CORS)
+            echo "environment=staging" >> $GITHUB_OUTPUT
             echo "gcp_project_id=${{ secrets.GCP_PROJECT_ID_DEV }}" >> $GITHUB_OUTPUT
             echo "service_name=wego-backend-dev" >> $GITHUB_OUTPUT
             echo "firebase_project_id=wego-dev-a5a13" >> $GITHUB_OUTPUT
