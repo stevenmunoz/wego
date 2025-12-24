@@ -127,8 +127,8 @@ class ToolExecutor:
         except SyntaxError as e:
             raise ValueError(f"Invalid expression syntax: {e}") from e
 
-        # Define allowed operators
-        allowed_operators = {
+        # Define allowed binary operators
+        binary_operators: dict[type, Any] = {
             ast.Add: operator.add,
             ast.Sub: operator.sub,
             ast.Mult: operator.mul,
@@ -136,6 +136,10 @@ class ToolExecutor:
             ast.FloorDiv: operator.floordiv,
             ast.Mod: operator.mod,
             ast.Pow: operator.pow,
+        }
+
+        # Define allowed unary operators
+        unary_operators: dict[type, Any] = {
             ast.USub: operator.neg,
             ast.UAdd: operator.pos,
         }
@@ -145,28 +149,28 @@ class ToolExecutor:
             if isinstance(node, ast.Expression):
                 return _eval_node(node.body)
             elif isinstance(node, ast.Constant):
-                if isinstance(node.value, (int, float)):
+                if isinstance(node.value, int | float):
                     return node.value
                 raise ValueError(f"Unsupported constant type: {type(node.value)}")
             elif isinstance(node, ast.BinOp):
-                op_type = type(node.op)
-                if op_type not in allowed_operators:
-                    raise ValueError(f"Unsupported operator: {op_type.__name__}")
+                bin_op_type = type(node.op)
+                if bin_op_type not in binary_operators:
+                    raise ValueError(f"Unsupported operator: {bin_op_type.__name__}")
                 left = _eval_node(node.left)
                 right = _eval_node(node.right)
                 # Prevent division by zero
-                if op_type in (ast.Div, ast.FloorDiv, ast.Mod) and right == 0:
+                if bin_op_type in (ast.Div, ast.FloorDiv, ast.Mod) and right == 0:
                     raise ValueError("Division by zero")
                 # Limit exponentiation to prevent DoS
-                if op_type == ast.Pow and (abs(left) > 1000 or abs(right) > 100):
+                if bin_op_type == ast.Pow and (abs(left) > 1000 or abs(right) > 100):
                     raise ValueError("Exponentiation values too large")
-                return allowed_operators[op_type](left, right)
+                return binary_operators[bin_op_type](left, right)
             elif isinstance(node, ast.UnaryOp):
-                op_type = type(node.op)
-                if op_type not in allowed_operators:
-                    raise ValueError(f"Unsupported unary operator: {op_type.__name__}")
+                unary_op_type = type(node.op)
+                if unary_op_type not in unary_operators:
+                    raise ValueError(f"Unsupported unary operator: {unary_op_type.__name__}")
                 operand = _eval_node(node.operand)
-                return allowed_operators[op_type](operand)
+                return unary_operators[unary_op_type](operand)
             else:
                 raise ValueError(f"Unsupported expression type: {type(node).__name__}")
 

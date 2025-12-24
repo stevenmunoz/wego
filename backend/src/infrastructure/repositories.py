@@ -1,10 +1,11 @@
 """Repository implementations for data access using Firestore."""
 
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
-from google.cloud.firestore_v1 import AsyncClient
+from google.cloud.firestore_v1 import Client
+from google.cloud.firestore_v1.base_document import DocumentSnapshot
 
 from src.domain.entities import User, UserRole, UserStatus
 from src.domain.repositories import IUserRepository
@@ -49,19 +50,19 @@ class UserRepository(IUserRepository):
 
     COLLECTION_NAME = "users"
 
-    def __init__(self, db: AsyncClient) -> None:
+    def __init__(self, db: Client) -> None:
         self._db = db
         self._collection = db.collection(self.COLLECTION_NAME)
 
     async def create(self, user: User) -> User:
         """Create a new user."""
         user_dict = FirestoreUserMapper.to_dict(user)
-        await self._collection.document(str(user.id)).set(user_dict)
+        self._collection.document(str(user.id)).set(user_dict)
         return user
 
-    async def get_by_id(self, user_id: UUID) -> User | None:
+    async def get_by_id(self, user_id: UUID | str) -> User | None:
         """Get user by ID."""
-        doc = await self._collection.document(str(user_id)).get()
+        doc = cast(DocumentSnapshot, self._collection.document(str(user_id)).get())
         if not doc.exists:
             return None
         return FirestoreUserMapper.from_dict(doc.to_dict())
@@ -69,7 +70,7 @@ class UserRepository(IUserRepository):
     async def get_by_email(self, email: str) -> User | None:
         """Get user by email."""
         query = self._collection.where("email", "==", email).limit(1)
-        docs = [doc async for doc in query.stream()]
+        docs = list(query.stream())
 
         if not docs:
             return None
@@ -80,28 +81,28 @@ class UserRepository(IUserRepository):
         """Update existing user."""
         user.updated_at = datetime.utcnow()
         user_dict = FirestoreUserMapper.to_dict(user)
-        await self._collection.document(str(user.id)).update(user_dict)
+        self._collection.document(str(user.id)).update(user_dict)
         return user
 
     async def delete(self, user_id: UUID) -> bool:
         """Delete user by ID."""
         doc_ref = self._collection.document(str(user_id))
-        doc = await doc_ref.get()
+        doc = cast(DocumentSnapshot, doc_ref.get())
 
         if not doc.exists:
             return False
 
-        await doc_ref.delete()
+        doc_ref.delete()
         return True
 
     async def list(self, skip: int = 0, limit: int = 100) -> list[User]:
         """List users with pagination."""
         query = self._collection.offset(skip).limit(limit)
-        docs = [doc async for doc in query.stream()]
+        docs = list(query.stream())
         return [FirestoreUserMapper.from_dict(doc.to_dict()) for doc in docs]
 
     async def exists_by_email(self, email: str) -> bool:
         """Check if user exists by email."""
         query = self._collection.where("email", "==", email).limit(1)
-        docs = [doc async for doc in query.stream()]
+        docs = list(query.stream())
         return len(docs) > 0

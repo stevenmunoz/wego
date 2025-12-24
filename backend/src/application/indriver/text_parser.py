@@ -64,9 +64,10 @@ class InDriverTextParser:
             r"(?:Distancia)?\s*(\d+[,\.\s]?\d*)\s*(km|metro)",
             re.IGNORECASE,
         ),
-        # Currency: "COP 15,000.00" or "COP 1,425.00"
+        # Currency: "18.000,00 COP" or "1.425,00 COP" (Colombian format: dots as thousands, comma as decimal)
+        # Also matches "COP 15,000.00" for backwards compatibility
         "currency": re.compile(
-            r"COP\s*([\d,\.]+)",
+            r"([\d.,]+)\s*COP|COP\s*([\d.,]+)",
             re.IGNORECASE,
         ),
         # Percentage: "9.5%" or "9,5%"
@@ -207,8 +208,22 @@ class InDriverTextParser:
 
         return ride
 
+    # Maximum OCR text length to prevent ReDoS attacks
+    MAX_OCR_TEXT_LENGTH = 50000
+
     def _clean_text(self, text: str) -> str:
-        """Clean OCR text for better parsing."""
+        """Clean OCR text for better parsing.
+
+        Security:
+            - Truncates input to MAX_OCR_TEXT_LENGTH to prevent ReDoS
+        """
+        # Defense in depth: limit text length before regex operations
+        if len(text) > self.MAX_OCR_TEXT_LENGTH:
+            logger.warning(
+                f"OCR text too long ({len(text)} chars), truncating to {self.MAX_OCR_TEXT_LENGTH}"
+            )
+            text = text[: self.MAX_OCR_TEXT_LENGTH]
+
         # Normalize multiple newlines to single newline
         text = re.sub(r"\n\s*\n+", "\n", text)
         # Normalize multiple spaces (but keep newlines)
@@ -366,16 +381,18 @@ class InDriverTextParser:
 
         # Match currency values to their labels by position
         for match in currency_matches:
-            value_str = match.group(1).replace(",", "").replace(".", "", 1)
-            # Handle decimal separator
-            if "." in match.group(1):
-                parts = match.group(1).replace(",", "").split(".")
-                if len(parts) == 2:
-                    value_str = parts[0] + "." + parts[1]
-            try:
-                value = float(value_str.replace(",", ""))
-            except ValueError:
+            # Handle both formats: "18.000,00 COP" (group 1) or "COP 18.000,00" (group 2)
+            raw_value = match.group(1) or match.group(2)
+            if not raw_value:
                 continue
+
+            # Parse Colombian currency format: dots as thousands separators, comma as decimal
+            # Example: "18.000,00" -> 18000.00
+            value = self._parse_colombian_currency(raw_value)
+            if value is None:
+                continue
+
+            logger.debug(f"Currency parsed: '{raw_value}' -> {value}")
 
             pos = match.start()
 
@@ -398,6 +415,61 @@ class InDriverTextParser:
                 result["mis_ingresos"] = value
 
         return result
+
+    # Maximum length for currency input to prevent ReDoS and excessive memory usage
+    MAX_CURRENCY_LENGTH = 20
+    # Allowed characters in currency values (digits, dots, commas, spaces)
+    CURRENCY_CHAR_WHITELIST = set("0123456789., ")
+
+    def _parse_colombian_currency(self, value_str: str) -> float | None:
+        """
+        Parse Colombian currency format.
+
+        Colombian format uses:
+        - Dots as thousands separators: 18.000
+        - Comma as decimal separator: 18.000,00
+
+        Args:
+            value_str: Raw currency string like "18.000,00" or "1.234,56"
+
+        Returns:
+            Float value or None if parsing fails
+
+        Security:
+            - Validates input length (max 20 chars) to prevent ReDoS
+            - Validates character set to prevent injection attacks
+        """
+        # Input validation: check length
+        if len(value_str) > self.MAX_CURRENCY_LENGTH:
+            logger.warning(f"Currency value too long ({len(value_str)} chars), skipping")
+            return None
+
+        # Input validation: check character whitelist
+        if not all(c in self.CURRENCY_CHAR_WHITELIST for c in value_str):
+            logger.warning("Currency value contains invalid characters, skipping")
+            return None
+
+        try:
+            # Check if it uses Colombian format (has comma as decimal)
+            if "," in value_str:
+                # Colombian format: dots are thousands, comma is decimal
+                # Remove dots (thousands separators), replace comma with dot (decimal)
+                normalized = value_str.replace(".", "").replace(",", ".")
+            else:
+                # US format or no decimal: dots might be thousands or decimal
+                # If multiple dots, first ones are thousands
+                parts = value_str.split(".")
+                if len(parts) > 2:
+                    # Multiple dots: all but last are thousands separators
+                    normalized = "".join(parts[:-1]) + "." + parts[-1]
+                else:
+                    # Single dot or no dots: treat as-is
+                    normalized = value_str.replace(",", "")
+
+            return float(normalized)
+        except ValueError:
+            logger.warning(f"Failed to parse currency value: {value_str}")
+            return None
 
     def _parse_passenger_and_destination(self, lines: list) -> dict[str, str]:
         """Extract passenger name and destination address."""

@@ -1,16 +1,28 @@
 """Firebase configuration and client management."""
 
 import os
+from typing import Any
 
 import firebase_admin
 from firebase_admin import credentials, firestore
-from google.cloud.firestore_v1 import AsyncClient
 
 from src.core.config import settings
 
+
+class _EmulatorCredentials(credentials.Base):
+    """Mock credentials for Firebase Emulator - no real auth needed."""
+
+    def get_access_token(self):
+        """Return a mock access token."""
+        return credentials.AccessTokenInfo("mock-token", None)
+
+    def get_credential(self):
+        """Return None as no real credential is needed for emulator."""
+        return None
+
 # Global Firebase app instance
 _firebase_app: firebase_admin.App | None = None
-_firestore_client: AsyncClient | None = None
+_firestore_client: Any = None  # firestore.AsyncClient type
 
 
 def initialize_firebase() -> None:
@@ -26,7 +38,7 @@ def initialize_firebase() -> None:
 
     # Initialize Firebase
     if settings.FIREBASE_CREDENTIALS_PATH and os.path.exists(settings.FIREBASE_CREDENTIALS_PATH):
-        # Production: Use service account credentials
+        # Production/Local dev: Use service account credentials
         cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
         _firebase_app = firebase_admin.initialize_app(
             cred,
@@ -35,11 +47,14 @@ def initialize_firebase() -> None:
             },
         )
     elif settings.USE_FIREBASE_EMULATOR:
-        # Development: Use Firebase emulator
+        # Development/Testing: Use Firebase emulator with mock credentials
         os.environ["FIRESTORE_EMULATOR_HOST"] = (
             f"{settings.FIREBASE_EMULATOR_HOST}:{settings.FIREBASE_EMULATOR_PORT}"
         )
+        # Use mock credentials for emulator - no real auth needed
+        # The emulator doesn't validate credentials
         _firebase_app = firebase_admin.initialize_app(
+            credential=_EmulatorCredentials(),
             options={
                 "projectId": settings.FIREBASE_PROJECT_ID,
             }
@@ -52,16 +67,16 @@ def initialize_firebase() -> None:
             }
         )
 
-    # Initialize Firestore client
-    _firestore_client = firestore.AsyncClient()
+    # Initialize Firestore client using Firebase Admin SDK credentials
+    _firestore_client = firestore.client(app=_firebase_app)
 
 
-def get_firestore() -> AsyncClient:
+def get_firestore() -> Any:
     """
-    Get Firestore async client.
+    Get Firestore client.
 
     Returns:
-        AsyncClient: Firestore async client
+        Firestore client instance
 
     Raises:
         RuntimeError: If Firebase has not been initialized
@@ -74,12 +89,12 @@ def get_firestore() -> AsyncClient:
     return _firestore_client
 
 
-async def get_db() -> AsyncClient:
+async def get_db() -> Any:
     """
     Get database client (alias for get_firestore for compatibility).
 
     Returns:
-        AsyncClient: Firestore async client
+        Firestore client instance
     """
     return get_firestore()
 

@@ -11,26 +11,18 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import status
-from fastapi.testclient import TestClient
 from PIL import Image
 
-from src.main import app
+# Note: Uses authenticated_client fixture from conftest.py
 from src.application.indriver.schemas import (
-    ExtractedInDriverRide,
-    RideStatus,
-    PaymentMethod,
-    Duration,
-    DurationUnit,
     Distance,
     DistanceUnit,
-    ExportFormat,
+    Duration,
+    DurationUnit,
+    ExtractedInDriverRide,
+    PaymentMethod,
+    RideStatus,
 )
-
-
-@pytest.fixture
-def client():
-    """Create test client."""
-    return TestClient(app)
 
 
 @pytest.fixture
@@ -74,21 +66,21 @@ def sample_image_bytes():
 class TestExtractEndpoint:
     """Tests for /api/v1/indriver/extract endpoint."""
 
-    def test_extract_no_files_returns_400(self, client):
+    def test_extract_no_files_returns_400(self, authenticated_client):
         """Request with no files returns 400."""
-        response = client.post("/api/v1/indriver/extract")
+        response = authenticated_client.post("/api/v1/indriver/extract")
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    def test_extract_unsupported_file_type_returns_400(self, client):
+    def test_extract_unsupported_file_type_returns_400(self, authenticated_client):
         """Unsupported file types return 400."""
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/extract",
             files={"files": ("test.txt", b"text content", "text/plain")},
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "Unsupported file type" in response.json()["detail"]
 
-    def test_extract_accepts_png_files(self, client, sample_image_bytes):
+    def test_extract_accepts_png_files(self, authenticated_client, sample_image_bytes):
         """PNG files are accepted."""
         with patch(
             "src.presentation.api.v1.endpoints.indriver.extraction.extraction_service.extract_batch"
@@ -105,7 +97,7 @@ class TestExtractEndpoint:
                 ),
             )
 
-            response = client.post(
+            response = authenticated_client.post(
                 "/api/v1/indriver/extract",
                 files={"files": ("test.png", sample_image_bytes, "image/png")},
             )
@@ -114,7 +106,7 @@ class TestExtractEndpoint:
                 response.json().get("detail", "")
             )
 
-    def test_extract_accepts_jpg_files(self, client, sample_image_bytes):
+    def test_extract_accepts_jpg_files(self, authenticated_client, sample_image_bytes):
         """JPG files are accepted."""
         with patch(
             "src.presentation.api.v1.endpoints.indriver.extraction.extraction_service.extract_batch"
@@ -131,7 +123,7 @@ class TestExtractEndpoint:
                 ),
             )
 
-            response = client.post(
+            response = authenticated_client.post(
                 "/api/v1/indriver/extract",
                 files={"files": ("test.jpg", sample_image_bytes, "image/jpeg")},
             )
@@ -139,7 +131,7 @@ class TestExtractEndpoint:
                 response.json().get("detail", "")
             )
 
-    def test_extract_accepts_pdf_files(self, client):
+    def test_extract_accepts_pdf_files(self, authenticated_client):
         """PDF files are accepted."""
         # Minimal valid PDF bytes
         pdf_bytes = b"%PDF-1.0\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>"
@@ -159,7 +151,7 @@ class TestExtractEndpoint:
                 ),
             )
 
-            response = client.post(
+            response = authenticated_client.post(
                 "/api/v1/indriver/extract",
                 files={"files": ("test.pdf", pdf_bytes, "application/pdf")},
             )
@@ -167,19 +159,19 @@ class TestExtractEndpoint:
                 response.json().get("detail", "")
             )
 
-    def test_extract_file_too_large_returns_400(self, client):
+    def test_extract_file_too_large_returns_400(self, authenticated_client):
         """Files over 10MB are rejected."""
         # Create a 11MB file
         large_content = b"x" * (11 * 1024 * 1024)
 
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/extract",
             files={"files": ("large.png", large_content, "image/png")},
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "too large" in response.json()["detail"]
 
-    def test_extract_multiple_files(self, client, sample_image_bytes):
+    def test_extract_multiple_files(self, authenticated_client, sample_image_bytes):
         """Multiple files can be processed at once."""
         with patch(
             "src.presentation.api.v1.endpoints.indriver.extraction.extraction_service.extract_batch"
@@ -196,7 +188,7 @@ class TestExtractEndpoint:
                 ),
             )
 
-            response = client.post(
+            authenticated_client.post(
                 "/api/v1/indriver/extract",
                 files=[
                     ("files", ("test1.png", sample_image_bytes, "image/png")),
@@ -212,18 +204,18 @@ class TestExtractEndpoint:
 class TestImportEndpoint:
     """Tests for /api/v1/indriver/import endpoint."""
 
-    def test_import_no_rides_returns_400(self, client):
+    def test_import_no_rides_returns_400(self, authenticated_client):
         """Import with no rides returns 400."""
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/import",
             json={"rides": [], "driver_id": "test-driver-001"},
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "No rides provided" in response.json()["detail"]
 
-    def test_import_valid_ride_succeeds(self, client, sample_ride):
+    def test_import_valid_ride_succeeds(self, authenticated_client, sample_ride):
         """Valid ride is imported successfully."""
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/import",
             json={
                 "rides": [sample_ride.model_dump(mode="json")],
@@ -236,7 +228,7 @@ class TestImportEndpoint:
         assert len(data["imported"]) == 1
         assert len(data["skipped"]) == 0
 
-    def test_import_invalid_financial_data_skipped(self, client, sample_ride):
+    def test_import_invalid_financial_data_skipped(self, authenticated_client, sample_ride):
         """Ride with inconsistent financial data is skipped."""
         # Create ride with mismatched totals
         invalid_ride = sample_ride.model_copy()
@@ -244,7 +236,7 @@ class TestImportEndpoint:
         invalid_ride.total_pagado = 1695.75
         invalid_ride.mis_ingresos = 5000.0  # Wrong! Should be ~13304.25
 
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/import",
             json={
                 "rides": [invalid_ride.model_dump(mode="json")],
@@ -256,7 +248,7 @@ class TestImportEndpoint:
         assert len(data["skipped"]) == 1
         assert "mismatch" in data["skipped"][0]["reason"].lower()
 
-    def test_import_multiple_rides_partial_success(self, client, sample_ride):
+    def test_import_multiple_rides_partial_success(self, authenticated_client, sample_ride):
         """Mix of valid and invalid rides - valid ones imported, invalid skipped."""
         valid_ride = sample_ride.model_copy()
         valid_ride.id = "valid-ride"
@@ -265,7 +257,7 @@ class TestImportEndpoint:
         invalid_ride.id = "invalid-ride"
         invalid_ride.mis_ingresos = 0  # Wrong total
 
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/import",
             json={
                 "rides": [
@@ -284,18 +276,18 @@ class TestImportEndpoint:
 class TestExportEndpoint:
     """Tests for /api/v1/indriver/export endpoint."""
 
-    def test_export_no_rides_returns_400(self, client):
+    def test_export_no_rides_returns_400(self, authenticated_client):
         """Export with no rides returns 400."""
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/export",
             json={"rides": [], "format": "csv"},
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "No rides provided" in response.json()["detail"]
 
-    def test_export_csv_format(self, client, sample_ride):
+    def test_export_csv_format(self, authenticated_client, sample_ride):
         """Export to CSV returns CSV content."""
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/export",
             json={
                 "rides": [sample_ride.model_dump(mode="json")],
@@ -313,9 +305,9 @@ class TestExportEndpoint:
         assert "Carlos" in content  # Passenger name
         assert "15000" in content  # Tarifa
 
-    def test_export_json_format(self, client, sample_ride):
+    def test_export_json_format(self, authenticated_client, sample_ride):
         """Export to JSON returns JSON content."""
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/export",
             json={
                 "rides": [sample_ride.model_dump(mode="json")],
@@ -331,7 +323,7 @@ class TestExportEndpoint:
         assert len(data) == 1
         assert data[0]["passenger_name"] == "Carlos"
 
-    def test_export_multiple_rides(self, client, sample_ride):
+    def test_export_multiple_rides(self, authenticated_client, sample_ride):
         """Export multiple rides."""
         ride1 = sample_ride.model_copy()
         ride1.id = "ride-1"
@@ -341,7 +333,7 @@ class TestExportEndpoint:
         ride2.id = "ride-2"
         ride2.passenger_name = "María"
 
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/export",
             json={
                 "rides": [
@@ -360,9 +352,9 @@ class TestExportEndpoint:
 class TestValidateEndpoint:
     """Tests for /api/v1/indriver/validate endpoint."""
 
-    def test_validate_consistent_ride_is_valid(self, client, sample_ride):
+    def test_validate_consistent_ride_is_valid(self, authenticated_client, sample_ride):
         """Ride with consistent financial data is valid."""
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/validate",
             json=sample_ride.model_dump(mode="json"),
         )
@@ -371,12 +363,12 @@ class TestValidateEndpoint:
         assert data["is_valid"] is True
         assert len(data["errors"]) == 0
 
-    def test_validate_net_income_mismatch(self, client, sample_ride):
+    def test_validate_net_income_mismatch(self, authenticated_client, sample_ride):
         """Detect net income mismatch."""
         invalid_ride = sample_ride.model_copy()
         invalid_ride.mis_ingresos = 5000.0  # Wrong!
 
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/validate",
             json=invalid_ride.model_dump(mode="json"),
         )
@@ -385,12 +377,12 @@ class TestValidateEndpoint:
         assert data["is_valid"] is False
         assert any("net income" in e.lower() for e in data["errors"])
 
-    def test_validate_commission_mismatch(self, client, sample_ride):
+    def test_validate_commission_mismatch(self, authenticated_client, sample_ride):
         """Detect commission calculation mismatch."""
         invalid_ride = sample_ride.model_copy()
         invalid_ride.comision_servicio = 500.0  # Wrong! Should be 1425
 
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/validate",
             json=invalid_ride.model_dump(mode="json"),
         )
@@ -399,12 +391,12 @@ class TestValidateEndpoint:
         assert data["is_valid"] is False
         assert any("commission" in e.lower() for e in data["errors"])
 
-    def test_validate_iva_mismatch(self, client, sample_ride):
+    def test_validate_iva_mismatch(self, authenticated_client, sample_ride):
         """Detect IVA calculation mismatch."""
         invalid_ride = sample_ride.model_copy()
         invalid_ride.iva_pago_servicio = 100.0  # Wrong! Should be ~270.75
 
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/validate",
             json=invalid_ride.model_dump(mode="json"),
         )
@@ -413,18 +405,17 @@ class TestValidateEndpoint:
         assert data["is_valid"] is False
         assert any("iva" in e.lower() for e in data["errors"])
 
-    def test_validate_allows_tolerance(self, client, sample_ride):
+    def test_validate_allows_tolerance(self, authenticated_client, sample_ride):
         """Small rounding differences within tolerance are accepted."""
         # Adjust by less than 1 COP tolerance
         ride = sample_ride.model_copy()
         ride.mis_ingresos = 13304.25 + 0.5  # Within 1 COP tolerance
 
-        response = client.post(
+        response = authenticated_client.post(
             "/api/v1/indriver/validate",
             json=ride.model_dump(mode="json"),
         )
         assert response.status_code == status.HTTP_200_OK
-        data = response.json()
         # Should still be valid due to tolerance
         # Note: This depends on the exact values and calculation order
 
@@ -432,9 +423,9 @@ class TestValidateEndpoint:
 class TestStatsEndpoint:
     """Tests for /api/v1/indriver/stats endpoint."""
 
-    def test_get_stats_returns_structure(self, client):
+    def test_get_stats_returns_structure(self, authenticated_client):
         """Stats endpoint returns expected structure."""
-        response = client.get("/api/v1/indriver/stats")
+        response = authenticated_client.get("/api/v1/indriver/stats")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
 
@@ -445,15 +436,15 @@ class TestStatsEndpoint:
         assert "average_confidence" in data
         assert "tesseract_available" in data
 
-    def test_stats_returns_numeric_values(self, client):
+    def test_stats_returns_numeric_values(self, authenticated_client):
         """Stats values are numeric."""
-        response = client.get("/api/v1/indriver/stats")
+        response = authenticated_client.get("/api/v1/indriver/stats")
         data = response.json()
 
         assert isinstance(data["total_extractions"], int)
         assert isinstance(data["successful_extractions"], int)
         assert isinstance(data["failed_extractions"], int)
-        assert isinstance(data["average_confidence"], (int, float))
+        assert isinstance(data["average_confidence"], int | float)
         assert isinstance(data["tesseract_available"], bool)
 
 

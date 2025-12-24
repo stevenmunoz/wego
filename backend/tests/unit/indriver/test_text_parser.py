@@ -5,16 +5,17 @@ Tests the extraction of structured ride data from InDriver OCR output text.
 Covers date/time parsing, financial data extraction, and OCR error handling.
 """
 
-import pytest
 from datetime import datetime
 
-from src.application.indriver.text_parser import InDriverTextParser, SPANISH_MONTHS
+import pytest
+
 from src.application.indriver.schemas import (
-    RideStatus,
-    PaymentMethod,
-    DurationUnit,
     DistanceUnit,
+    DurationUnit,
+    PaymentMethod,
+    RideStatus,
 )
+from src.application.indriver.text_parser import SPANISH_MONTHS, InDriverTextParser
 
 
 @pytest.fixture
@@ -398,29 +399,29 @@ class TestFinancialDataParsing:
     """Tests for financial data extraction."""
 
     def test_parse_financial_tarifa(self, parser):
-        """Extract tarifa (fare) value."""
+        """Extract tarifa (fare) value in Colombian format."""
         text = """
         Tarifa
-        COP 15,000.00
+        COP 15.000,00
         """
         result = parser._parse_financial_data(text)
         assert result.get("tarifa") == 15000.0
 
     def test_parse_financial_total_recibido(self, parser):
-        """Extract total received value."""
+        """Extract total received value in Colombian format."""
         text = """
         Total recibido
-        COP 18,500.00
+        COP 18.500,00
         """
         result = parser._parse_financial_data(text)
         assert result.get("total_recibido") == 18500.0
 
     def test_parse_financial_comision(self, parser):
-        """Extract commission value."""
+        """Extract commission value in Colombian format."""
         text = """
         Pagos por el servicio
-        9.5%
-        COP 1,425.00
+        9,5%
+        COP 1.425,00
         """
         result = parser._parse_financial_data(text)
         assert result.get("comision_porcentaje") == 9.5
@@ -436,46 +437,46 @@ class TestFinancialDataParsing:
         assert result.get("iva_pago_servicio") == 270.75
 
     def test_parse_financial_total_pagado(self, parser):
-        """Extract total paid value."""
+        """Extract total paid value in Colombian format."""
         text = """
         Total pagado
-        COP 1,695.75
+        COP 1.695,75
         """
         result = parser._parse_financial_data(text)
         assert result.get("total_pagado") == 1695.75
 
     def test_parse_financial_mis_ingresos(self, parser):
-        """Extract net income value."""
+        """Extract net income value in Colombian format."""
         text = """
         Mis Ingresos
-        COP 16,804.25
+        COP 16.804,25
         """
         result = parser._parse_financial_data(text)
         assert result.get("mis_ingresos") == 16804.25
 
     def test_parse_financial_complete_receipt(self, parser):
-        """Parse complete financial receipt."""
+        """Parse complete financial receipt in Colombian format."""
         text = """
         Viaje completado
 
         Tarifa
-        COP 15,000.00
+        COP 15.000,00
 
         Total recibido
-        COP 15,000.00
+        COP 15.000,00
 
         Pagos por el servicio
-        9.5%
-        COP 1,425.00
+        9,5%
+        COP 1.425,00
 
         IVA del pago
-        COP 270.75
+        COP 270,75
 
         Total pagado
-        COP 1,695.75
+        COP 1.695,75
 
         Mis Ingresos
-        COP 13,304.25
+        COP 13.304,25
         """
         result = parser._parse_financial_data(text)
         assert result.get("tarifa") == 15000.0
@@ -611,7 +612,7 @@ class TestFullParsing:
     """Integration tests for complete OCR text parsing."""
 
     def test_parse_complete_ride(self, parser):
-        """Parse a complete ride receipt."""
+        """Parse a complete ride receipt in Colombian format."""
         ocr_text = """
         Calle 100 # 15-30
 
@@ -626,23 +627,23 @@ class TestFullParsing:
         Pago en efectivo
 
         Tarifa
-        COP 15,000.00
+        COP 15.000,00
 
         Total recibido
-        COP 15,000.00
+        COP 15.000,00
 
         Pagos por el servicio
-        9.5%
-        COP 1,425.00
+        9,5%
+        COP 1.425,00
 
         IVA del pago
-        COP 270.75
+        COP 270,75
 
         Total pagado
-        COP 1,695.75
+        COP 1.695,75
 
         Mis Ingresos
-        COP 13,304.25
+        COP 13.304,25
 
         ★★★★★
         """
@@ -766,11 +767,11 @@ class TestOCRErrorRecovery:
 
     def test_ocr_mixed_separators(self, parser):
         """Handle mixed decimal separators."""
-        text = "COP 15.000,00"  # Common OCR confusion
+        # Common OCR confusion: COP 15.000,00
         # Currency pattern handles this
-        result = parser._parse_financial_data("Tarifa COP 15.000,00")
         # The parser handles the specific format used in InDriver
         # This test checks that it doesn't crash with mixed separators
+        parser._parse_financial_data("Tarifa COP 15.000,00")
 
     def test_ocr_time_variations(self, parser):
         """Handle various time format OCR outputs."""

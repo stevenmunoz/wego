@@ -51,7 +51,7 @@ class ConversationResponseDTO(BaseModel):
     """DTO for conversation response."""
 
     id: UUID
-    user_id: UUID
+    user_id: UUID | str
     title: str
     agent_config: dict[str, Any]
     message_count: int

@@ -41,7 +41,7 @@ class CreateConversationUseCase:
 
     async def execute(
         self,
-        user_id: UUID,
+        user_id: UUID | str,
         dto: ConversationCreateDTO,
     ) -> ConversationResponseDTO:
         """Execute conversation creation."""
@@ -82,7 +82,7 @@ class GetConversationUseCase:
     async def execute(
         self,
         conversation_id: UUID,
-        user_id: UUID,
+        user_id: UUID | str,
     ) -> ConversationDetailResponseDTO:
         """Execute get conversation."""
         conversation = await self._conversation_repository.get_by_id(conversation_id)
@@ -121,7 +121,7 @@ class ListConversationsUseCase:
 
     async def execute(
         self,
-        user_id: UUID,
+        user_id: UUID | str,
         skip: int = 0,
         limit: int = 100,
     ) -> list[ConversationResponseDTO]:
@@ -164,7 +164,7 @@ class ChatUseCase:
 
     async def execute(
         self,
-        user_id: UUID,
+        user_id: UUID | str,
         dto: ChatRequestDTO,
     ) -> ChatResponseDTO:
         """Execute chat interaction."""
