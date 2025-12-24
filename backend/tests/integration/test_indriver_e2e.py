@@ -11,6 +11,7 @@ CRITICAL: These tests would have caught the production bug where:
 """
 
 import io
+from collections.abc import Generator
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
@@ -35,7 +36,7 @@ from src.presentation.dependencies import get_current_user_id, get_current_user_
 
 
 @pytest.fixture
-def e2e_client() -> TestClient:
+def e2e_client() -> Generator[TestClient, None, None]:
     """
     Create E2E test client with authenticated user.
 

@@ -62,7 +62,7 @@ class GetUserUseCase:
     def __init__(self, user_repository: IUserRepository) -> None:
         self._user_repository = user_repository
 
-    async def execute(self, user_id: UUID) -> UserResponseDTO:
+    async def execute(self, user_id: UUID | str) -> UserResponseDTO:
         """
         Execute get user use case.
 
@@ -89,7 +89,7 @@ class UpdateUserUseCase:
     def __init__(self, user_repository: IUserRepository) -> None:
         self._user_repository = user_repository
 
-    async def execute(self, user_id: UUID, dto: UserUpdateDTO) -> UserResponseDTO:
+    async def execute(self, user_id: UUID | str, dto: UserUpdateDTO) -> UserResponseDTO:
         """
         Execute update user use case.
 

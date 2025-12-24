@@ -4,7 +4,6 @@ from uuid import UUID
 
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, status
-from google.cloud.firestore_v1 import AsyncClient
 
 from src.application.agents.dtos import (
     ChatRequestDTO,
@@ -20,7 +19,6 @@ from src.application.agents.use_cases import (
     ListConversationsUseCase,
 )
 from src.infrastructure.container import Container
-from src.infrastructure.database import get_db
 from src.presentation.dependencies import get_current_user_id
 
 router = APIRouter(prefix="/chat", tags=["Agent Chat"])
@@ -33,7 +31,6 @@ router = APIRouter(prefix="/chat", tags=["Agent Chat"])
 async def create_conversation(
     dto: ConversationCreateDTO,
     current_user_id: str = Depends(get_current_user_id),
-    db: AsyncClient = Depends(get_db),
     use_case: CreateConversationUseCase = Depends(Provide[Container.create_conversation_use_case]),
 ) -> ConversationResponseDTO:
     """
@@ -41,7 +38,6 @@ async def create_conversation(
 
     Requires authentication.
     """
-    Container.db_session.override(db)
     return await use_case.execute(current_user_id, dto)
 
 
@@ -51,7 +47,6 @@ async def list_conversations(
     skip: int = 0,
     limit: int = 100,
     current_user_id: str = Depends(get_current_user_id),
-    db: AsyncClient = Depends(get_db),
     use_case: ListConversationsUseCase = Depends(Provide[Container.list_conversations_use_case]),
 ) -> list[ConversationResponseDTO]:
     """
@@ -59,7 +54,6 @@ async def list_conversations(
 
     Requires authentication.
     """
-    Container.db_session.override(db)
     return await use_case.execute(current_user_id, skip=skip, limit=limit)
 
 
@@ -68,7 +62,6 @@ async def list_conversations(
 async def get_conversation(
     conversation_id: UUID,
     current_user_id: str = Depends(get_current_user_id),
-    db: AsyncClient = Depends(get_db),
     use_case: GetConversationUseCase = Depends(Provide[Container.get_conversation_use_case]),
 ) -> ConversationDetailResponseDTO:
     """
@@ -76,7 +69,6 @@ async def get_conversation(
 
     Requires authentication.
     """
-    Container.db_session.override(db)
     return await use_case.execute(conversation_id, current_user_id)
 
 
@@ -85,7 +77,6 @@ async def get_conversation(
 async def chat(
     dto: ChatRequestDTO,
     current_user_id: str = Depends(get_current_user_id),
-    db: AsyncClient = Depends(get_db),
     use_case: ChatUseCase = Depends(Provide[Container.chat_use_case]),
 ) -> ChatResponseDTO:
     """
@@ -96,5 +87,4 @@ async def chat(
     If conversation_id is provided, adds to existing conversation.
     Otherwise, creates a new conversation.
     """
-    Container.db_session.override(db)
     return await use_case.execute(current_user_id, dto)

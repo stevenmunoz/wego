@@ -54,7 +54,7 @@ async def db_client() -> AsyncGenerator[AsyncClient, None]:
     Note: This fixture provides access to the Firestore emulator.
     Make sure the Firebase emulator is running on localhost:8080
     """
-    client = get_db()
+    client = await get_db()
     yield client
 
     # Clean up test data after each test
@@ -84,7 +84,7 @@ def mock_admin_user_id() -> str:
 
 
 @pytest.fixture
-def authenticated_client(mock_user_id: str) -> TestClient:
+def authenticated_client(mock_user_id: str) -> Generator[TestClient, None, None]:
     """
     Create test client with authentication bypassed.
 
@@ -107,7 +107,7 @@ def authenticated_client(mock_user_id: str) -> TestClient:
 
 
 @pytest.fixture
-def admin_client(mock_admin_user_id: str) -> TestClient:
+def admin_client(mock_admin_user_id: str) -> Generator[TestClient, None, None]:
     """
     Create test client with admin authentication.
 

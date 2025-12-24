@@ -59,7 +59,7 @@ class UserRepository(IUserRepository):
         await self._collection.document(str(user.id)).set(user_dict)
         return user
 
-    async def get_by_id(self, user_id: UUID) -> User | None:
+    async def get_by_id(self, user_id: UUID | str) -> User | None:
         """Get user by ID."""
         doc = await self._collection.document(str(user_id)).get()
         if not doc.exists:
