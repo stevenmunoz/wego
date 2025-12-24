@@ -1,10 +1,11 @@
 """Firestore repository implementations for agent domain."""
 
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from google.cloud.firestore_v1 import Client
+from google.cloud.firestore_v1.base_document import DocumentSnapshot
 
 from src.domain.agents.entities import (
     AgentExecution,
@@ -169,7 +170,7 @@ class ConversationRepository(IConversationRepository):
 
     async def get_by_id(self, conversation_id: UUID) -> Conversation | None:
         """Get conversation by ID."""
-        doc = self._collection.document(str(conversation_id)).get()
+        doc = cast(DocumentSnapshot, self._collection.document(str(conversation_id)).get())
         if not doc.exists:
             return None
 
@@ -210,7 +211,7 @@ class ConversationRepository(IConversationRepository):
     async def delete(self, conversation_id: UUID) -> bool:
         """Delete conversation."""
         doc_ref = self._collection.document(str(conversation_id))
-        doc = doc_ref.get()
+        doc = cast(DocumentSnapshot, doc_ref.get())
 
         if not doc.exists:
             return False
@@ -280,7 +281,7 @@ class ToolRepository(IToolRepository):
 
     async def get_by_id(self, tool_id: UUID) -> Tool | None:
         """Get tool by ID."""
-        doc = self._collection.document(str(tool_id)).get()
+        doc = cast(DocumentSnapshot, self._collection.document(str(tool_id)).get())
         if not doc.exists:
             return None
         return FirestoreToolMapper.from_dict(doc.to_dict())
@@ -325,7 +326,7 @@ class AgentExecutionRepository(IAgentExecutionRepository):
 
     async def get_by_id(self, execution_id: UUID) -> AgentExecution | None:
         """Get execution by ID."""
-        doc = self._collection.document(str(execution_id)).get()
+        doc = cast(DocumentSnapshot, self._collection.document(str(execution_id)).get())
         if not doc.exists:
             return None
         return FirestoreAgentExecutionMapper.from_dict(doc.to_dict())

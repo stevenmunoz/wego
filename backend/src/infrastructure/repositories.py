@@ -1,10 +1,11 @@
 """Repository implementations for data access using Firestore."""
 
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from google.cloud.firestore_v1 import Client
+from google.cloud.firestore_v1.base_document import DocumentSnapshot
 
 from src.domain.entities import User, UserRole, UserStatus
 from src.domain.repositories import IUserRepository
@@ -61,7 +62,7 @@ class UserRepository(IUserRepository):
 
     async def get_by_id(self, user_id: UUID | str) -> User | None:
         """Get user by ID."""
-        doc = self._collection.document(str(user_id)).get()
+        doc = cast(DocumentSnapshot, self._collection.document(str(user_id)).get())
         if not doc.exists:
             return None
         return FirestoreUserMapper.from_dict(doc.to_dict())
@@ -86,7 +87,7 @@ class UserRepository(IUserRepository):
     async def delete(self, user_id: UUID) -> bool:
         """Delete user by ID."""
         doc_ref = self._collection.document(str(user_id))
-        doc = doc_ref.get()
+        doc = cast(DocumentSnapshot, doc_ref.get())
 
         if not doc.exists:
             return False
