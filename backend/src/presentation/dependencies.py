@@ -1,11 +1,15 @@
 """FastAPI dependencies for request handling."""
 
+import logging
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from firebase_admin import auth as firebase_auth
 
 from src.domain.entities import UserRole
 from src.infrastructure.container import Container
+
+logger = logging.getLogger(__name__)
 
 # Security scheme
 security = HTTPBearer()
@@ -40,15 +44,19 @@ async def get_current_user_id(
             raise ValueError("No user ID in token")
         return user_id
     except (ValueError, firebase_auth.InvalidIdTokenError, firebase_auth.ExpiredIdTokenError) as e:
+        # Log detailed error server-side only
+        logger.warning(f"Token validation failed: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {str(e)}",
+            detail="Invalid or expired authentication token",
             headers={"WWW-Authenticate": "Bearer"},
         ) from e
     except Exception as e:
+        # Log detailed error server-side only
+        logger.error(f"Token verification error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Token verification failed: {str(e)}",
+            detail="Authentication failed",
             headers={"WWW-Authenticate": "Bearer"},
         ) from e
 
@@ -80,15 +88,19 @@ async def get_current_user_role(
             # Default to USER role if role string is invalid
             return UserRole.USER
     except (firebase_auth.InvalidIdTokenError, firebase_auth.ExpiredIdTokenError) as e:
+        # Log detailed error server-side only
+        logger.warning(f"Token validation failed for role check: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {str(e)}",
+            detail="Invalid or expired authentication token",
             headers={"WWW-Authenticate": "Bearer"},
         ) from e
     except Exception as e:
+        # Log detailed error server-side only
+        logger.error(f"Token verification error for role check: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Token verification failed: {str(e)}",
+            detail="Authentication failed",
             headers={"WWW-Authenticate": "Bearer"},
         ) from e
 

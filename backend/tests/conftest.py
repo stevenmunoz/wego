@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+import uuid
 from collections.abc import AsyncGenerator, Generator
 
 import pytest
@@ -18,9 +19,15 @@ from src.main import app
 os.environ["FIRESTORE_EMULATOR_HOST"] = "localhost:8080"
 os.environ["FIREBASE_PROJECT_ID"] = "test-project"
 
-# Default test user ID for authenticated requests
-TEST_USER_ID = "test-user-123"
-TEST_ADMIN_USER_ID = "test-admin-456"
+
+def generate_test_user_id() -> str:
+    """Generate a unique test user ID to prevent collisions with production data."""
+    return f"test-user-{uuid.uuid4().hex[:12]}"
+
+
+def generate_test_admin_id() -> str:
+    """Generate a unique test admin ID to prevent collisions with production data."""
+    return f"test-admin-{uuid.uuid4().hex[:12]}"
 
 
 @pytest.fixture(scope="session")
@@ -66,14 +73,14 @@ async def db_client() -> AsyncGenerator[AsyncClient, None]:
 
 @pytest.fixture
 def mock_user_id() -> str:
-    """Return test user ID."""
-    return TEST_USER_ID
+    """Generate a unique test user ID for each test run."""
+    return generate_test_user_id()
 
 
 @pytest.fixture
 def mock_admin_user_id() -> str:
-    """Return test admin user ID."""
-    return TEST_ADMIN_USER_ID
+    """Generate a unique test admin user ID for each test run."""
+    return generate_test_admin_id()
 
 
 @pytest.fixture

@@ -402,6 +402,11 @@ class InDriverTextParser:
 
         return result
 
+    # Maximum length for currency input to prevent ReDoS and excessive memory usage
+    MAX_CURRENCY_LENGTH = 20
+    # Allowed characters in currency values (digits, dots, commas, spaces)
+    CURRENCY_CHAR_WHITELIST = set("0123456789., ")
+
     def _parse_colombian_currency(self, value_str: str) -> float | None:
         """
         Parse Colombian currency format.
@@ -415,7 +420,21 @@ class InDriverTextParser:
 
         Returns:
             Float value or None if parsing fails
+
+        Security:
+            - Validates input length (max 20 chars) to prevent ReDoS
+            - Validates character set to prevent injection attacks
         """
+        # Input validation: check length
+        if len(value_str) > self.MAX_CURRENCY_LENGTH:
+            logger.warning(f"Currency value too long ({len(value_str)} chars), skipping")
+            return None
+
+        # Input validation: check character whitelist
+        if not all(c in self.CURRENCY_CHAR_WHITELIST for c in value_str):
+            logger.warning("Currency value contains invalid characters, skipping")
+            return None
+
         try:
             # Check if it uses Colombian format (has comma as decimal)
             if "," in value_str:
