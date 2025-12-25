@@ -151,8 +151,13 @@ export const ReportingDateFilter: FC<ReportingDateFilterProps> = ({
 
   const handleApplyCustom = () => {
     if (tempStartDate && tempEndDate) {
-      const startDate = getStartOfDay(new Date(tempStartDate));
-      const endDate = getEndOfDay(new Date(tempEndDate));
+      // Parse date string manually to avoid timezone issues
+      // Input format: "YYYY-MM-DD" from <input type="date">
+      const [startYear, startMonth, startDay] = tempStartDate.split('-').map(Number);
+      const [endYear, endMonth, endDay] = tempEndDate.split('-').map(Number);
+
+      const startDate = getStartOfDay(new Date(startYear, startMonth - 1, startDay));
+      const endDate = getEndOfDay(new Date(endYear, endMonth - 1, endDay));
 
       if (startDate <= endDate) {
         onChange('custom', { startDate, endDate });
