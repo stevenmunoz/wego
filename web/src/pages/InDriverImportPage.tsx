@@ -113,7 +113,7 @@ export const InDriverImportPage: FC = () => {
         setImportSuccess(false);
       }, 2000);
     }
-  }, [user?.id, isAdmin, selectedVehicleId, vehicles, importRides, clearFiles, clearExtracted]);
+  }, [user?.id, selectedVehicleId, vehicles, importRides, clearFiles, clearExtracted]);
 
   const handleBackToUpload = useCallback(() => {
     trackImportCancelled('review');
