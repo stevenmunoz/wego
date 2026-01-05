@@ -90,17 +90,31 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
     unsubscribeRef.current = indriverApi.subscribeToExtractions(user.id, (allJobs) => {
       // Filter jobs to only show ones from current session
       const sessionPaths = sessionUploadPathsRef.current;
-      const sessionJobs =
-        sessionPaths.size > 0
-          ? allJobs.filter((job) => {
-              // Match direct uploads and multi-page PDF pages
-              // Direct: indriver-documents/{userId}/{timestamp}_{filename}
-              // Pages: indriver-documents/{userId}/{timestamp}_{filename} (page N)
-              return Array.from(sessionPaths).some(
-                (path) => job.storage_path.startsWith(path) || job.storage_path === path
-              );
-            })
-          : [];
+
+      // If no session paths yet (before any upload), show nothing
+      // If session paths exist, filter to only matching jobs
+      let sessionJobs: InDriverExtractionJob[];
+
+      if (sessionPaths.size === 0) {
+        // No uploads in this session yet - show nothing
+        sessionJobs = [];
+      } else {
+        // Filter to jobs matching current session uploads
+        // Match direct uploads and multi-page PDF pages
+        // Direct: indriver-documents/{userId}/{timestamp}_{filename}
+        // Pages: indriver-documents/{userId}/{timestamp}_{filename} (page N)
+        sessionJobs = allJobs.filter((job) => {
+          return Array.from(sessionPaths).some((path) => {
+            // Exact match for direct uploads
+            if (job.storage_path === path) return true;
+            // startsWith match for multi-page PDFs (path + " (page N)")
+            if (job.storage_path.startsWith(path + ' ')) return true;
+            // Also check if job storage_path starts with exact path (for backward compat)
+            if (job.storage_path.startsWith(path)) return true;
+            return false;
+          });
+        });
+      }
 
       setExtractionJobs(sessionJobs);
 

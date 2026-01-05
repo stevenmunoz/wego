@@ -52,6 +52,7 @@ export interface FirestoreVehicleIncome {
   recurring_parent_id?: string;
   driver_id?: string;
   driver_name?: string;
+  receipt_url?: string;
   created_at: Timestamp;
   updated_at: Timestamp;
   notes?: string;
@@ -140,6 +141,7 @@ export async function createVehicleIncome(
     if (input.driver_id) income.driver_id = input.driver_id;
     if (input.driver_name) income.driver_name = input.driver_name;
     if (input.notes) income.notes = input.notes;
+    if (input.receipt_url) income.receipt_url = input.receipt_url;
 
     // Add recurrence pattern if recurring
     if (input.is_recurring && input.recurrence_pattern) {
@@ -187,6 +189,7 @@ export async function updateVehicleIncome(
     if (updates.driver_id !== undefined) firestoreUpdates.driver_id = updates.driver_id;
     if (updates.driver_name !== undefined) firestoreUpdates.driver_name = updates.driver_name;
     if (updates.notes !== undefined) firestoreUpdates.notes = updates.notes;
+    if (updates.receipt_url !== undefined) firestoreUpdates.receipt_url = updates.receipt_url;
 
     // Convert date string to Timestamp
     if (updates.date) {

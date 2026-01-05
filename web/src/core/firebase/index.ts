@@ -64,6 +64,7 @@ export {
   uploadVehicleDocument,
   deleteVehicleDocument,
   uploadExpenseReceipt,
+  uploadIncomeReceipt,
   type DocumentType,
 } from './storage';
 export {

@@ -254,3 +254,81 @@
 .form-error-banner .error-icon {
   flex-shrink: 0;
 }
+
+/* Receipt Upload */
+.receipt-upload {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.receipt-input {
+  display: none;
+}
+
+.btn-upload-receipt {
+  padding: 0.5rem 1rem !important;
+  font-size: 0.875rem !important;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.receipt-file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #f1f5f9;
+  border-radius: 6px;
+  max-width: 100%;
+}
+
+.receipt-file-name {
+  font-size: 0.875rem;
+  color: var(--color-primary-800, #1e2a3a);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.btn-remove-receipt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.btn-remove-receipt:hover {
+  color: var(--color-error-500, #ef4444);
+}
+
+.btn-view-receipt {
+  font-size: 0.8125rem;
+  color: var(--color-success-600, #16a34a);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn-view-receipt:hover {
+  text-decoration: underline;
+}

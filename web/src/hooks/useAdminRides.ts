@@ -80,12 +80,12 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
         driverNameMap.set(driver.id, driver.name);
       });
 
-      // Enrich rides with vehicle plate and driver name (from vehicle owner)
+      // Enrich rides with vehicle plate and driver name
       const enrichedRides: RideWithDriver[] = fetchedRides.map((ride) => {
         const vehicleInfo = ride.vehicle_id ? vehicleMap.get(ride.vehicle_id) : undefined;
-        // Get driver name from vehicle owner, fallback to ride's driver_name
-        const driverName = vehicleInfo?.owner_id
-          ? driverNameMap.get(vehicleInfo.owner_id)
+        // Get driver name from ride's driver_id (the actual driver who did the ride)
+        const driverName = ride.driver_id
+          ? driverNameMap.get(ride.driver_id)
           : undefined;
 
         return {

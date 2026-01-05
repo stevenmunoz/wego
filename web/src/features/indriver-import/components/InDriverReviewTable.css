@@ -19,6 +19,34 @@
   color: #64748b;
 }
 
+/* Extraction Loading State */
+.extraction-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.extraction-loading p {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-primary-800, #1e2a3a);
+}
+
+.extraction-hint {
+  font-size: 0.875rem !important;
+  color: #64748b !important;
+}
+
+.spinner-large {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top-color: var(--color-accent-600, #f05365);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
 /* Header */
 .review-header {
   display: flex;
