@@ -3,6 +3,9 @@
  *
  * Uses Firebase Storage for uploads and Firestore for real-time status updates.
  * Cloud Functions handle the OCR extraction asynchronously.
+ *
+ * Session Tracking: Only shows extraction jobs from the current upload session,
+ * not accumulated results from previous sessions.
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
@@ -70,8 +73,12 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
   const extractionStartTimeRef = useRef<number>(0);
 
+  // Track uploaded paths for current session (to filter jobs)
+  const sessionUploadPathsRef = useRef<Set<string>>(new Set());
+
   /**
    * Subscribe to extraction jobs when user is authenticated
+   * Only shows jobs that match files uploaded in the current session
    */
   useEffect(() => {
     if (!user?.id) {
@@ -80,20 +87,34 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
     }
 
     // Subscribe to real-time extraction updates
-    unsubscribeRef.current = indriverApi.subscribeToExtractions(user.id, (jobs) => {
-      setExtractionJobs(jobs);
+    unsubscribeRef.current = indriverApi.subscribeToExtractions(user.id, (allJobs) => {
+      // Filter jobs to only show ones from current session
+      const sessionPaths = sessionUploadPathsRef.current;
+      const sessionJobs =
+        sessionPaths.size > 0
+          ? allJobs.filter((job) => {
+              // Match direct uploads and multi-page PDF pages
+              // Direct: indriver-documents/{userId}/{timestamp}_{filename}
+              // Pages: indriver-documents/{userId}/{timestamp}_{filename} (page N)
+              return Array.from(sessionPaths).some(
+                (path) => job.storage_path.startsWith(path) || job.storage_path === path
+              );
+            })
+          : [];
 
-      // Extract successful rides
-      const rides = getSuccessfulExtractions(jobs);
+      setExtractionJobs(sessionJobs);
+
+      // Extract successful rides from session jobs only
+      const rides = getSuccessfulExtractions(sessionJobs);
       setExtractedRides(rides);
 
       // Update extraction status
-      const stats = getExtractionStats(jobs);
+      const stats = getExtractionStats(sessionJobs);
       const hasProcessing = stats.processing > 0;
       setIsExtracting(hasProcessing);
 
       // Update summary when extraction is complete
-      if (jobs.length > 0 && !hasProcessing) {
+      if (sessionJobs.length > 0 && !hasProcessing) {
         const avgConfidence =
           rides.length > 0
             ? rides.reduce((sum, r) => sum + (r.extraction_confidence || 0), 0) / rides.length
@@ -113,10 +134,10 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
       }
 
       // Update file statuses based on jobs
-      if (jobs.length > 0) {
+      if (sessionJobs.length > 0) {
         setFiles((prev) =>
           prev.map((f) => {
-            const job = jobs.find((j) =>
+            const job = sessionJobs.find((j) =>
               j.file_name.includes(f.file.name.replace(/[^a-zA-Z0-9.-]/g, '_'))
             );
             if (!job) return f;
@@ -199,6 +220,12 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
       return;
     }
 
+    // Clear previous session state for new extraction
+    sessionUploadPathsRef.current = new Set();
+    setExtractedRides([]);
+    setExtractionJobs([]);
+    setSummary(null);
+
     setIsUploading(true);
     setIsExtracting(true);
     setError(null);
@@ -216,9 +243,12 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
       const rawFiles = files.map((f) => f.file);
 
       // Upload files to Storage (triggers Cloud Function)
-      await indriverApi.uploadForExtraction(user.id, rawFiles, (progress) => {
+      const uploadedPaths = await indriverApi.uploadForExtraction(user.id, rawFiles, (progress) => {
         setUploadProgress(progress);
       });
+
+      // Track uploaded paths for session filtering
+      uploadedPaths.forEach((path) => sessionUploadPathsRef.current.add(path));
 
       // Upload complete, now waiting for Cloud Function to process
       setIsUploading(false);
@@ -327,10 +357,12 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
   );
 
   /**
-   * Clear extracted rides
+   * Clear extracted rides and session state
    */
   const clearExtracted = useCallback(() => {
+    sessionUploadPathsRef.current = new Set();
     setExtractedRides([]);
+    setExtractionJobs([]);
     setSummary(null);
     setError(null);
   }, []);
