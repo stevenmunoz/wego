@@ -84,9 +84,7 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
       const enrichedRides: RideWithDriver[] = fetchedRides.map((ride) => {
         const vehicleInfo = ride.vehicle_id ? vehicleMap.get(ride.vehicle_id) : undefined;
         // Get driver name from ride's driver_id (the actual driver who did the ride)
-        const driverName = ride.driver_id
-          ? driverNameMap.get(ride.driver_id)
-          : undefined;
+        const driverName = ride.driver_id ? driverNameMap.get(ride.driver_id) : undefined;
 
         return {
           ...ride,
