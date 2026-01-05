@@ -32,11 +32,7 @@ import {
 } from '@/core/firebase/storage';
 
 // Helper to create a mock File
-function createMockFile(
-  name: string,
-  type: string,
-  size: number = 1024
-): File {
+function createMockFile(name: string, type: string, size: number = 1024): File {
   const content = new Array(size).fill('a').join('');
   const blob = new Blob([content], { type });
   return new File([blob], name, { type });

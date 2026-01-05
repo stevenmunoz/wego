@@ -29,11 +29,7 @@ vi.mock('@/hooks/useFinanceCategories', () => ({
 import { ExpenseForm } from '@/components/VehicleFinances/ExpenseForm';
 
 // Helper to create a mock File
-function createMockFile(
-  name: string,
-  type: string,
-  size: number = 1024
-): File {
+function createMockFile(name: string, type: string, size: number = 1024): File {
   const content = new Array(size).fill('a').join('');
   const blob = new Blob([content], { type });
   return new File([blob], name, { type });
@@ -71,12 +67,7 @@ describe('ExpenseForm Component', () => {
 
   describe('Receipt Upload Section', () => {
     it('should render the receipt upload section', () => {
-      render(
-        <ExpenseForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       expect(screen.getByText('Comprobante')).toBeInTheDocument();
       expect(screen.getByText(/Recibo o factura/i)).toBeInTheDocument();
@@ -84,12 +75,7 @@ describe('ExpenseForm Component', () => {
     });
 
     it('should show upload button when no receipt exists (new expense)', () => {
-      render(
-        <ExpenseForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       const uploadButton = screen.getByText(/Subir comprobante/i);
       expect(uploadButton).toBeInTheDocument();
@@ -102,11 +88,7 @@ describe('ExpenseForm Component', () => {
       });
 
       render(
-        <ExpenseForm
-          expense={expenseWithReceipt}
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
+        <ExpenseForm expense={expenseWithReceipt} onSubmit={mockOnSubmit} onCancel={mockOnCancel} />
       );
 
       expect(screen.getByText('✓ Recibo cargado')).toBeInTheDocument();
@@ -119,11 +101,7 @@ describe('ExpenseForm Component', () => {
       const expenseWithReceipt = createMockExpense({ receipt_url: receiptUrl });
 
       render(
-        <ExpenseForm
-          expense={expenseWithReceipt}
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
+        <ExpenseForm expense={expenseWithReceipt} onSubmit={mockOnSubmit} onCancel={mockOnCancel} />
       );
 
       const viewLink = screen.getByText('Ver actual');
@@ -151,12 +129,7 @@ describe('ExpenseForm Component', () => {
     it('should show selected file name after file selection', async () => {
       const user = userEvent.setup();
 
-      render(
-        <ExpenseForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       const fileInput = screen.getByLabelText(/Subir comprobante/i);
       const mockFile = createMockFile('expense-receipt.jpg', 'image/jpeg');
@@ -171,12 +144,7 @@ describe('ExpenseForm Component', () => {
     it('should accept PDF files', async () => {
       const user = userEvent.setup();
 
-      render(
-        <ExpenseForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       const fileInput = screen.getByLabelText(/Subir comprobante/i);
       const pdfFile = createMockFile('factura.pdf', 'application/pdf');
@@ -192,12 +160,7 @@ describe('ExpenseForm Component', () => {
     it('should accept PNG files', async () => {
       const user = userEvent.setup();
 
-      render(
-        <ExpenseForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       const fileInput = screen.getByLabelText(/Subir comprobante/i);
       const pngFile = createMockFile('receipt.png', 'image/png');
@@ -212,12 +175,7 @@ describe('ExpenseForm Component', () => {
     it('should accept WebP files', async () => {
       const user = userEvent.setup();
 
-      render(
-        <ExpenseForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       const fileInput = screen.getByLabelText(/Subir comprobante/i);
       const webpFile = createMockFile('receipt.webp', 'image/webp');
@@ -232,12 +190,7 @@ describe('ExpenseForm Component', () => {
     it('should allow removing selected file', async () => {
       const user = userEvent.setup();
 
-      render(
-        <ExpenseForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       const fileInput = screen.getByLabelText(/Subir comprobante/i);
       const mockFile = createMockFile('receipt.jpg', 'image/jpeg');
@@ -261,12 +214,7 @@ describe('ExpenseForm Component', () => {
     it('should include receipt file in form submission', async () => {
       const user = userEvent.setup();
 
-      render(
-        <ExpenseForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       // Fill required fields
       await user.clear(screen.getByLabelText(/Monto/i));
@@ -298,11 +246,7 @@ describe('ExpenseForm Component', () => {
       });
 
       render(
-        <ExpenseForm
-          expense={expenseWithReceipt}
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
+        <ExpenseForm expense={expenseWithReceipt} onSubmit={mockOnSubmit} onCancel={mockOnCancel} />
       );
 
       // Verify existing receipt is shown
@@ -324,12 +268,7 @@ describe('ExpenseForm Component', () => {
 
   describe('Form Rendering', () => {
     it('should render the form with all required fields', () => {
-      render(
-        <ExpenseForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       // Title appears in header
       expect(screen.getByRole('heading', { name: 'Agregar Gasto' })).toBeInTheDocument();
@@ -343,13 +282,7 @@ describe('ExpenseForm Component', () => {
     it('should show "Editar Gasto" title when editing', () => {
       const expense = createMockExpense();
 
-      render(
-        <ExpenseForm
-          expense={expense}
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm expense={expense} onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       expect(screen.getByRole('heading', { name: 'Editar Gasto' })).toBeInTheDocument();
     });
@@ -361,13 +294,7 @@ describe('ExpenseForm Component', () => {
         vendor: 'Taller ABC',
       });
 
-      render(
-        <ExpenseForm
-          expense={expense}
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm expense={expense} onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       expect(screen.getByLabelText(/Monto/i)).toHaveValue(150000);
       expect(screen.getByLabelText(/Descripción/i)).toHaveValue('Cambio de aceite');
@@ -379,12 +306,7 @@ describe('ExpenseForm Component', () => {
     it('should call onCancel when cancel button is clicked', async () => {
       const user = userEvent.setup();
 
-      render(
-        <ExpenseForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       await user.click(screen.getByText('Cancelar'));
 
@@ -392,13 +314,7 @@ describe('ExpenseForm Component', () => {
     });
 
     it('should show "Guardando..." and disable button while submitting', () => {
-      render(
-        <ExpenseForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-          isSubmitting={true}
-        />
-      );
+      render(<ExpenseForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} isSubmitting={true} />);
 
       const submitButton = screen.getByText('Guardando...');
       expect(submitButton).toBeDisabled();
@@ -419,13 +335,7 @@ describe('ExpenseForm Component', () => {
     it('should show "Guardar Cambios" button when editing', () => {
       const expense = createMockExpense();
 
-      render(
-        <ExpenseForm
-          expense={expense}
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm expense={expense} onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       expect(screen.getByText('Guardar Cambios')).toBeInTheDocument();
     });
@@ -433,12 +343,7 @@ describe('ExpenseForm Component', () => {
 
   describe('Recurrence Section', () => {
     it('should have recurrence checkbox', () => {
-      render(
-        <ExpenseForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       expect(screen.getByText('Recurrencia')).toBeInTheDocument();
       expect(screen.getByText(/Este gasto es recurrente/i)).toBeInTheDocument();
@@ -447,12 +352,7 @@ describe('ExpenseForm Component', () => {
     it('should show frequency selector when recurrence is enabled', async () => {
       const user = userEvent.setup();
 
-      render(
-        <ExpenseForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<ExpenseForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       const checkbox = screen.getByRole('checkbox');
       await user.click(checkbox);

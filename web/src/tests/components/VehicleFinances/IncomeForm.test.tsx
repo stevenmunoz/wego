@@ -29,11 +29,7 @@ vi.mock('@/hooks/useFinanceCategories', () => ({
 import { IncomeForm } from '@/components/VehicleFinances/IncomeForm';
 
 // Helper to create a mock File
-function createMockFile(
-  name: string,
-  type: string,
-  size: number = 1024
-): File {
+function createMockFile(name: string, type: string, size: number = 1024): File {
   const content = new Array(size).fill('a').join('');
   const blob = new Blob([content], { type });
   return new File([blob], name, { type });
@@ -71,12 +67,7 @@ describe('IncomeForm Component', () => {
 
   describe('Receipt Upload Section', () => {
     it('should render the receipt upload section', () => {
-      render(
-        <IncomeForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<IncomeForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       expect(screen.getByText('Comprobante')).toBeInTheDocument();
       expect(screen.getByText(/Recibo o comprobante/i)).toBeInTheDocument();
@@ -84,12 +75,7 @@ describe('IncomeForm Component', () => {
     });
 
     it('should show upload button when no receipt exists (new income)', () => {
-      render(
-        <IncomeForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<IncomeForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       const uploadButton = screen.getByText(/Subir comprobante/i);
       expect(uploadButton).toBeInTheDocument();
@@ -102,11 +88,7 @@ describe('IncomeForm Component', () => {
       });
 
       render(
-        <IncomeForm
-          income={incomeWithReceipt}
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
+        <IncomeForm income={incomeWithReceipt} onSubmit={mockOnSubmit} onCancel={mockOnCancel} />
       );
 
       expect(screen.getByText('✓ Comprobante cargado')).toBeInTheDocument();
@@ -119,11 +101,7 @@ describe('IncomeForm Component', () => {
       const incomeWithReceipt = createMockIncome({ receipt_url: receiptUrl });
 
       render(
-        <IncomeForm
-          income={incomeWithReceipt}
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
+        <IncomeForm income={incomeWithReceipt} onSubmit={mockOnSubmit} onCancel={mockOnCancel} />
       );
 
       const viewLink = screen.getByText('Ver actual');
@@ -135,11 +113,7 @@ describe('IncomeForm Component', () => {
       const incomeWithoutReceipt = createMockIncome({ receipt_url: undefined });
 
       render(
-        <IncomeForm
-          income={incomeWithoutReceipt}
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
+        <IncomeForm income={incomeWithoutReceipt} onSubmit={mockOnSubmit} onCancel={mockOnCancel} />
       );
 
       expect(screen.queryByText('✓ Comprobante cargado')).not.toBeInTheDocument();
@@ -150,12 +124,7 @@ describe('IncomeForm Component', () => {
     it('should show selected file name after file selection', async () => {
       const user = userEvent.setup();
 
-      render(
-        <IncomeForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<IncomeForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       const fileInput = screen.getByLabelText(/Subir comprobante/i);
       const mockFile = createMockFile('my-receipt.jpg', 'image/jpeg');
@@ -170,12 +139,7 @@ describe('IncomeForm Component', () => {
     it('should allow removing selected file', async () => {
       const user = userEvent.setup();
 
-      render(
-        <IncomeForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<IncomeForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       const fileInput = screen.getByLabelText(/Subir comprobante/i);
       const mockFile = createMockFile('receipt.jpg', 'image/jpeg');
@@ -199,12 +163,7 @@ describe('IncomeForm Component', () => {
     it('should include receipt file in form submission', async () => {
       const user = userEvent.setup();
 
-      render(
-        <IncomeForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<IncomeForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       // Fill required fields
       await user.clear(screen.getByLabelText(/Monto/i));
@@ -232,12 +191,7 @@ describe('IncomeForm Component', () => {
 
   describe('Form Rendering', () => {
     it('should render the form with all required fields', () => {
-      render(
-        <IncomeForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<IncomeForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       // Title appears in header
       expect(screen.getByRole('heading', { name: 'Agregar Ingreso' })).toBeInTheDocument();
@@ -250,13 +204,7 @@ describe('IncomeForm Component', () => {
     it('should show "Editar Ingreso" title when editing', () => {
       const income = createMockIncome();
 
-      render(
-        <IncomeForm
-          income={income}
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<IncomeForm income={income} onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       expect(screen.getByRole('heading', { name: 'Editar Ingreso' })).toBeInTheDocument();
     });
@@ -267,13 +215,7 @@ describe('IncomeForm Component', () => {
         description: 'Test description',
       });
 
-      render(
-        <IncomeForm
-          income={income}
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<IncomeForm income={income} onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       expect(screen.getByLabelText(/Monto/i)).toHaveValue(450000);
       expect(screen.getByLabelText(/Descripción/i)).toHaveValue('Test description');
@@ -284,12 +226,7 @@ describe('IncomeForm Component', () => {
     it('should call onCancel when cancel button is clicked', async () => {
       const user = userEvent.setup();
 
-      render(
-        <IncomeForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-        />
-      );
+      render(<IncomeForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       await user.click(screen.getByText('Cancelar'));
 
@@ -297,13 +234,7 @@ describe('IncomeForm Component', () => {
     });
 
     it('should disable submit button while submitting', () => {
-      render(
-        <IncomeForm
-          onSubmit={mockOnSubmit}
-          onCancel={mockOnCancel}
-          isSubmitting={true}
-        />
-      );
+      render(<IncomeForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} isSubmitting={true} />);
 
       const submitButton = screen.getByText('Guardando...');
       expect(submitButton).toBeDisabled();
