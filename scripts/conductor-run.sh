@@ -182,7 +182,8 @@ else
         print_warning "⚠️  Firebase CLI not installed (optional)"
         print_warning "   Install: npm install -g firebase-tools"
     else
-        print_status "ℹ️  Using production Firebase (set USE_FIREBASE_EMULATORS=true for local)"
+        print_status "ℹ️  Using cloud Firebase (DEV project via .env.development)"
+        print_status "   Cloud Functions execute in Firebase, not locally"
     fi
 fi
 
@@ -252,9 +253,9 @@ print_status "━━━━━━━━━━━━━━━━━━━━━━
 print_status "📱 Web App:          http://localhost:$WEB_PORT"
 if [[ -n "$FIREBASE_PID" ]]; then
     print_status "🔥 Firebase UI:      http://localhost:$FIREBASE_PORT"
-    print_status "☁️  Functions:        Running in emulator"
+    print_status "☁️  Functions:        Running locally (emulator)"
 else
-    print_status "☁️  Functions:        Using production Cloud Functions"
+    print_status "☁️  Functions:        Running in cloud (DEV project)"
 fi
 print_status "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 print_status "🗂️  Workspace: $CONDUCTOR_WORKSPACE_NAME"
