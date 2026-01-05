@@ -1,9 +1,20 @@
 /**
- * Hook for managing InDriver extraction state and operations
+ * Hook for managing InDriver extraction state and operations (Serverless)
+ *
+ * Uses Firebase Storage for uploads and Firestore for real-time status updates.
+ * Cloud Functions handle the OCR extraction asynchronously.
  */
 
-import { useState, useCallback } from 'react';
-import { indriverApi, downloadExport } from '../services/indriver-api';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { useAuthStore } from '@/core/store/auth-store';
+import {
+  indriverApi,
+  downloadExport,
+  getSuccessfulExtractions,
+  getExtractionStats,
+  type InDriverExtractionJob,
+} from '../services/indriver-api';
+import type { Unsubscribe } from 'firebase/firestore';
 import { saveInDriverRides } from '@/core/firebase';
 import {
   trackImportStarted,
@@ -21,11 +32,14 @@ interface UseInDriverExtractReturn {
   // State
   files: UploadedFile[];
   extractedRides: ExtractedInDriverRide[];
+  extractionJobs: InDriverExtractionJob[];
+  isUploading: boolean;
   isExtracting: boolean;
   isImporting: boolean;
   isExporting: boolean;
   error: string | null;
   summary: ExtractionSummary | null;
+  uploadProgress: number;
 
   // Actions
   addFiles: (newFiles: File[]) => void;
@@ -40,13 +54,98 @@ interface UseInDriverExtractReturn {
 }
 
 export const useInDriverExtract = (): UseInDriverExtractReturn => {
+  const user = useAuthStore((state) => state.user);
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [extractedRides, setExtractedRides] = useState<ExtractedInDriverRide[]>([]);
+  const [extractionJobs, setExtractionJobs] = useState<InDriverExtractionJob[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<ExtractionSummary | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  // Track subscription cleanup
+  const unsubscribeRef = useRef<Unsubscribe | null>(null);
+  const extractionStartTimeRef = useRef<number>(0);
+
+  /**
+   * Subscribe to extraction jobs when user is authenticated
+   */
+  useEffect(() => {
+    if (!user?.id) {
+      setExtractionJobs([]);
+      return;
+    }
+
+    // Subscribe to real-time extraction updates
+    unsubscribeRef.current = indriverApi.subscribeToExtractions(user.id, (jobs) => {
+      setExtractionJobs(jobs);
+
+      // Extract successful rides
+      const rides = getSuccessfulExtractions(jobs);
+      setExtractedRides(rides);
+
+      // Update extraction status
+      const stats = getExtractionStats(jobs);
+      const hasProcessing = stats.processing > 0;
+      setIsExtracting(hasProcessing);
+
+      // Update summary when extraction is complete
+      if (jobs.length > 0 && !hasProcessing) {
+        const avgConfidence =
+          rides.length > 0
+            ? rides.reduce((sum, r) => sum + (r.extraction_confidence || 0), 0) / rides.length
+            : 0;
+        setSummary({
+          total_files: stats.total,
+          successful_extractions: stats.completed,
+          failed_extractions: stats.failed,
+          average_confidence: avgConfidence,
+        });
+
+        // Track extraction completed (only once when all jobs finish)
+        if (extractionStartTimeRef.current > 0) {
+          trackExtractionCompleted(stats.completed, Date.now() - extractionStartTimeRef.current);
+          extractionStartTimeRef.current = 0;
+        }
+      }
+
+      // Update file statuses based on jobs
+      if (jobs.length > 0) {
+        setFiles((prev) =>
+          prev.map((f) => {
+            const job = jobs.find((j) =>
+              j.file_name.includes(f.file.name.replace(/[^a-zA-Z0-9.-]/g, '_'))
+            );
+            if (!job) return f;
+
+            const status =
+              job.status === 'completed'
+                ? 'success'
+                : job.status === 'failed'
+                  ? 'error'
+                  : 'processing';
+
+            return {
+              ...f,
+              status,
+              result: job.result || undefined,
+              error: job.error || undefined,
+            };
+          })
+        );
+      }
+    });
+
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
+      }
+    };
+  }, [user?.id]);
 
   /**
    * Add new files to the upload queue
@@ -87,7 +186,7 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
   }, [files]);
 
   /**
-   * Extract data from all uploaded files
+   * Upload files for extraction (triggers Cloud Function)
    */
   const extractAll = useCallback(async () => {
     if (files.length === 0) {
@@ -95,53 +194,45 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
       return;
     }
 
+    if (!user?.id) {
+      setError('Usuario no autenticado');
+      return;
+    }
+
+    setIsUploading(true);
     setIsExtracting(true);
     setError(null);
+    setUploadProgress(0);
 
     // Track import started
     const fileTypes = [...new Set(files.map((f) => f.file.type.split('/')[1] || 'unknown'))];
     trackImportStarted(files.length, fileTypes);
-    const startTime = Date.now();
+    extractionStartTimeRef.current = Date.now();
 
     // Mark all files as processing
     setFiles((prev) => prev.map((f) => ({ ...f, status: 'processing' as const })));
 
     try {
       const rawFiles = files.map((f) => f.file);
-      const response = await indriverApi.extractFromFiles(rawFiles);
 
-      // Update file statuses based on results
-      setFiles((prev) =>
-        prev.map((f) => {
-          const result = response.results.find((r) => r.source_image_path === f.file.name);
-          const extractionError = response.errors.find((e) => e.file_name === f.file.name);
+      // Upload files to Storage (triggers Cloud Function)
+      await indriverApi.uploadForExtraction(user.id, rawFiles, (progress) => {
+        setUploadProgress(progress);
+      });
 
-          return {
-            ...f,
-            status: result ? 'success' : extractionError ? 'error' : 'pending',
-            result,
-            error: extractionError?.error,
-          };
-        })
-      );
+      // Upload complete, now waiting for Cloud Function to process
+      setIsUploading(false);
+      setUploadProgress(100);
 
-      setExtractedRides(response.results);
-      setSummary(response.summary);
-
-      // Track extraction completed
-      trackExtractionCompleted(response.results.length, Date.now() - startTime);
-
-      if (!response.success && response.errors.length > 0) {
-        setError(`${response.errors.length} archivo(s) no pudieron ser procesados`);
-      }
+      // The extraction status will be updated via the Firestore subscription
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al procesar los archivos';
+      const message = err instanceof Error ? err.message : 'Error al subir los archivos';
       setError(message);
       setFiles((prev) => prev.map((f) => ({ ...f, status: 'error' as const, error: message })));
-    } finally {
+      setIsUploading(false);
       setIsExtracting(false);
     }
-  }, [files]);
+  }, [files, user?.id]);
 
   /**
    * Update a specific extracted ride
@@ -211,7 +302,7 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
   );
 
   /**
-   * Export rides to specified format
+   * Export rides to specified format (client-side)
    */
   const exportRides = useCallback(
     async (format: ExportFormat) => {
@@ -224,7 +315,7 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
       setError(null);
 
       try {
-        await downloadExport(extractedRides, format);
+        downloadExport(extractedRides, format);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Error al exportar los viajes';
         setError(message);
@@ -247,11 +338,14 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
   return {
     files,
     extractedRides,
+    extractionJobs,
+    isUploading,
     isExtracting,
     isImporting,
     isExporting,
     error,
     summary,
+    uploadProgress,
     addFiles,
     removeFile,
     clearFiles,

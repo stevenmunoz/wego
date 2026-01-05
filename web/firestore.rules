@@ -43,6 +43,14 @@ service cloud.firestore {
         (resource.data.role == 'driver');
       allow create: if request.auth != null && (request.auth.uid == userId || isAdmin());
       allow update: if request.auth != null && (request.auth.uid == userId || isAdmin());
+
+      // InDriver extraction jobs subcollection (created by Cloud Functions)
+      match /indriver_extractions/{extractionId} {
+        // Users can read their own extraction jobs
+        allow read: if request.auth != null && request.auth.uid == userId;
+        // Only Cloud Functions can write (no client writes)
+        allow write: if false;
+      }
     }
 
     // Collection group query for vehicles removed

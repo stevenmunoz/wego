@@ -23,7 +23,9 @@ export async function createNotification(input: CreateNotificationInput): Promis
 
   await notificationRef.set(notification);
 
-  console.log(`[NotificationService] Created notification ${notificationRef.id} of type ${input.type}`);
+  console.log(
+    `[NotificationService] Created notification ${notificationRef.id} of type ${input.type}`
+  );
 
   return notificationRef.id;
 }

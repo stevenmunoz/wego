@@ -59,6 +59,23 @@ service firebase.storage {
       allow write: if false; // No new writes to legacy paths
     }
 
+    // ============================================================================
+    // INDRIVER DOCUMENT UPLOADS (for OCR processing)
+    // ============================================================================
+
+    // InDriver screenshots/PDFs for serverless OCR extraction
+    match /indriver-documents/{userId}/{fileName} {
+      // Allow read only by document owner
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Allow write for images or PDFs (max 10MB)
+      allow write: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.size < 10 * 1024 * 1024
+                   && (request.resource.contentType.matches('image/.*')
+                       || request.resource.contentType == 'application/pdf');
+    }
+
     // Default deny all other paths
     match /{allPaths=**} {
       allow read, write: if false;
