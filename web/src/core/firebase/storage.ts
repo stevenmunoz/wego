@@ -297,3 +297,46 @@ export async function uploadExpenseReceipt(
     return { success: false, error: errorMsg };
   }
 }
+
+/**
+ * Upload an income receipt/proof to Firebase Storage
+ * Path: vehicles/{vehicleId}/receipts/{timestamp}.{ext}
+ */
+export async function uploadIncomeReceipt(
+  vehicleId: string,
+  file: File
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    // Validate file
+    const validation = validateDocumentFile(file);
+    if (!validation.valid) {
+      return { success: false, error: validation.error };
+    }
+
+    // Generate unique filename with timestamp
+    const timestamp = Date.now();
+    const extension = file.name.split('.').pop() || 'pdf';
+    const filename = `income_${timestamp}.${extension}`;
+
+    // Create storage reference (same folder as expense receipts)
+    const storageRef = ref(firebaseStorage, `vehicles/${vehicleId}/receipts/${filename}`);
+
+    // Upload file
+    const snapshot = await uploadBytes(storageRef, file, {
+      contentType: file.type,
+      customMetadata: {
+        vehicleId: vehicleId,
+        type: 'income_receipt',
+      },
+    });
+
+    // Get download URL
+    const url = await getDownloadURL(snapshot.ref);
+
+    return { success: true, url };
+  } catch (error) {
+    console.error('[Storage] Error uploading income receipt:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Error al subir comprobante';
+    return { success: false, error: errorMsg };
+  }
+}
