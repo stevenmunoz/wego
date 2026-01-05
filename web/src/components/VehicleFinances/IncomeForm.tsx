@@ -4,7 +4,7 @@
  * Form for adding/editing income entries
  */
 
-import { type FC, useMemo } from 'react';
+import { type FC, useState, useRef, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,6 +12,10 @@ import type { VehicleIncome, VehicleIncomeCreateInput } from '@/core/types';
 import { RECURRENCE_LABELS } from '@/core/types';
 import { useIncomeCategories, useIncomeCategoryKeys } from '@/hooks/useFinanceCategories';
 import './IncomeForm.css';
+
+// Allowed file types for receipts
+const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 // Base schema fields (without type, which is dynamic)
 const baseIncomeSchema = z.object({
@@ -100,6 +104,46 @@ export const IncomeForm: FC<IncomeFormProps> = ({
 
   const isRecurring = watch('is_recurring');
 
+  // Receipt file state
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptFileName, setReceiptFileName] = useState<string | null>(
+    income?.receipt_url ? 'Comprobante cargado' : null
+  );
+  const [receiptError, setReceiptError] = useState<string | null>(null);
+  const receiptInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle receipt file selection
+  const handleReceiptSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      setReceiptError('Tipo de archivo no permitido. Use PDF, JPG, PNG o WebP.');
+      return;
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      setReceiptError('El archivo es muy grande. Máximo 10MB.');
+      return;
+    }
+
+    setReceiptFile(file);
+    setReceiptFileName(file.name);
+    setReceiptError(null);
+  };
+
+  // Remove receipt file
+  const handleRemoveReceipt = () => {
+    setReceiptFile(null);
+    setReceiptFileName(null);
+    setReceiptError(null);
+    if (receiptInputRef.current) {
+      receiptInputRef.current.value = '';
+    }
+  };
+
   const handleFormSubmit = async (data: IncomeFormData) => {
     const submitData: VehicleIncomeCreateInput = {
       type: data.type,
@@ -108,6 +152,7 @@ export const IncomeForm: FC<IncomeFormProps> = ({
       date: data.date,
       is_recurring: data.is_recurring,
       notes: data.notes,
+      receipt_file: receiptFile || undefined,
     };
 
     if (data.is_recurring && data.recurrence_frequency) {
@@ -241,6 +286,71 @@ export const IncomeForm: FC<IncomeFormProps> = ({
               placeholder="Notas adicionales..."
               {...register('notes')}
             />
+          </div>
+        </fieldset>
+
+        {/* Receipt Upload */}
+        <fieldset className="form-section">
+          <legend>Comprobante</legend>
+
+          <div className="form-group">
+            <label>Recibo o comprobante (PDF, imagen)</label>
+            <div className="receipt-upload">
+              {receiptFile ? (
+                // New file selected - show file name with remove button
+                <div className="receipt-file-info">
+                  <span className="receipt-file-name" title={receiptFileName || ''}>
+                    📄 {receiptFileName}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn-remove-receipt"
+                    onClick={handleRemoveReceipt}
+                    title="Eliminar"
+                  >
+                    &times;
+                  </button>
+                </div>
+              ) : income?.receipt_url ? (
+                // Existing receipt - show "ver actual" with option to replace
+                <div className="receipt-file-info">
+                  <span className="receipt-file-name">✓ Comprobante cargado</span>
+                  <a
+                    href={income.receipt_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-view-receipt"
+                  >
+                    Ver actual
+                  </a>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-upload-receipt"
+                    onClick={() => receiptInputRef.current?.click()}
+                  >
+                    Reemplazar
+                  </button>
+                </div>
+              ) : (
+                // No file - show upload button
+                <button
+                  type="button"
+                  className="btn btn-outline btn-upload-receipt"
+                  onClick={() => receiptInputRef.current?.click()}
+                >
+                  📎 Subir comprobante
+                </button>
+              )}
+              <input
+                ref={receiptInputRef}
+                type="file"
+                accept=".pdf,image/jpeg,image/png,image/webp"
+                onChange={handleReceiptSelect}
+                className="receipt-input"
+                aria-label="Subir comprobante"
+              />
+            </div>
+            {receiptError && <span className="error-message">{receiptError}</span>}
           </div>
         </fieldset>
 
