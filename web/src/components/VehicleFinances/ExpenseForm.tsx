@@ -315,10 +315,11 @@ export const ExpenseForm: FC<ExpenseFormProps> = ({
           <div className="form-group">
             <label>Recibo o factura (PDF, imagen)</label>
             <div className="receipt-upload">
-              {receiptFileName ? (
+              {receiptFile ? (
+                // New file selected - show file name with remove button
                 <div className="receipt-file-info">
-                  <span className="receipt-file-name" title={receiptFileName}>
-                    {receiptFile ? '📄' : '✓'} {receiptFileName}
+                  <span className="receipt-file-name" title={receiptFileName || ''}>
+                    📄 {receiptFileName}
                   </span>
                   <button
                     type="button"
@@ -329,7 +330,28 @@ export const ExpenseForm: FC<ExpenseFormProps> = ({
                     &times;
                   </button>
                 </div>
+              ) : expense?.receipt_url ? (
+                // Existing receipt - show "ver actual" with option to replace
+                <div className="receipt-file-info">
+                  <span className="receipt-file-name">✓ Recibo cargado</span>
+                  <a
+                    href={expense.receipt_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-view-receipt"
+                  >
+                    Ver actual
+                  </a>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-upload-receipt"
+                    onClick={() => receiptInputRef.current?.click()}
+                  >
+                    Reemplazar
+                  </button>
+                </div>
               ) : (
+                // No file - show upload button
                 <button
                   type="button"
                   className="btn btn-outline btn-upload-receipt"
@@ -346,16 +368,6 @@ export const ExpenseForm: FC<ExpenseFormProps> = ({
                 className="receipt-input"
                 aria-label="Subir comprobante"
               />
-              {expense?.receipt_url && !receiptFile && (
-                <a
-                  href={expense.receipt_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-view-receipt"
-                >
-                  Ver actual
-                </a>
-              )}
             </div>
             {receiptError && <span className="error-message">{receiptError}</span>}
           </div>

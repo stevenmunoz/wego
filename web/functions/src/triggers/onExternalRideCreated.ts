@@ -20,9 +20,7 @@ export const onExternalRideCreated = functions
 
     // Only trigger for external rides
     if (rideData.category !== 'external') {
-      console.log(
-        `[onExternalRideCreated] Ride ${rideId} is not external (category: ${rideData.category}), skipping notification`
-      );
+      console.log(`[onExternalRideCreated] Ride ${rideId} is not external (category: ${rideData.category}), skipping notification`);
       return null;
     }
 
@@ -30,7 +28,10 @@ export const onExternalRideCreated = functions
 
     try {
       // Fetch driver info for the notification message
-      const driverDoc = await admin.firestore().collection('drivers').doc(driverId).get();
+      const driverDoc = await admin.firestore()
+        .collection('drivers')
+        .doc(driverId)
+        .get();
 
       let driverName = 'Conductor desconocido';
 
@@ -40,7 +41,10 @@ export const onExternalRideCreated = functions
 
         // If driver document doesn't have name, try to get it from linked user
         if (driverName === 'Conductor desconocido' && driverData?.user_id) {
-          const userDoc = await admin.firestore().collection('users').doc(driverData.user_id).get();
+          const userDoc = await admin.firestore()
+            .collection('users')
+            .doc(driverData.user_id)
+            .get();
 
           if (userDoc.exists) {
             const userData = userDoc.data();
@@ -72,15 +76,10 @@ export const onExternalRideCreated = functions
         },
       });
 
-      console.log(
-        `[onExternalRideCreated] Notification ${notificationId} created for external ride ${rideId}`
-      );
+      console.log(`[onExternalRideCreated] Notification ${notificationId} created for external ride ${rideId}`);
       return null;
     } catch (error) {
-      console.error(
-        `[onExternalRideCreated] Error creating notification for ride ${rideId}:`,
-        error
-      );
+      console.error(`[onExternalRideCreated] Error creating notification for ride ${rideId}:`, error);
       throw error;
     }
   });

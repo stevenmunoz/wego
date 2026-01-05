@@ -15,11 +15,8 @@
   },
   "main": "lib/index.js",
   "dependencies": {
-    "@google-cloud/storage": "^7.7.0",
-    "@google-cloud/vision": "^4.3.2",
     "firebase-admin": "^12.0.0",
-    "firebase-functions": "^4.9.0",
-    "openai": "^4.76.0"
+    "firebase-functions": "^4.9.0"
   },
   "devDependencies": {
     "typescript": "^5.3.3"

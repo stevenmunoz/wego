@@ -114,7 +114,7 @@ export const VehicleFinancesPage = () => {
     setFormError(null);
     try {
       // Extract receipt file from data
-      const { receipt_file, ...incomeData } = data;
+      const { receipt_file, ...incomeDataWithoutFile } = data;
 
       // Upload receipt if provided
       let receiptUrl: string | undefined;
@@ -132,17 +132,17 @@ export const VehicleFinancesPage = () => {
 
       // Auto-populate driver_name only for non-admin users (they are the drivers)
       // For admins, leave it empty since they're recording on behalf of drivers
-      const finalIncomeData: VehicleIncomeCreateInput = {
-        ...incomeData,
-        driver_name: !isAdmin ? incomeData.driver_name || user?.full_name || undefined : undefined,
+      const incomeData: VehicleIncomeCreateInput = {
+        ...incomeDataWithoutFile,
+        driver_name: !isAdmin ? data.driver_name || user?.full_name || undefined : undefined,
         ...(receiptUrl && { receipt_url: receiptUrl }),
       };
       console.log('[VehicleFinancesPage] Adding income:', {
-        finalIncomeData,
+        incomeData,
         effectiveOwnerId,
         effectiveVehicleId,
       });
-      const result = await addIncome(finalIncomeData);
+      const result = await addIncome(incomeData);
       console.log('[VehicleFinancesPage] Add income result:', result);
       if (result.success) {
         setShowForm(null);
@@ -164,7 +164,7 @@ export const VehicleFinancesPage = () => {
   };
 
   const handleUpdateIncome = async (data: VehicleIncomeCreateInput) => {
-    if (!editingIncome || !effectiveOwnerId || !effectiveVehicleId) return;
+    if (!editingIncome || !effectiveVehicleId) return;
     setIsSubmitting(true);
     setFormError(null);
     try {

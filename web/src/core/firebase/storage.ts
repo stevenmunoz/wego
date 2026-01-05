@@ -273,7 +273,7 @@ export async function uploadExpenseReceipt(
     // Generate unique filename with timestamp
     const timestamp = Date.now();
     const extension = file.name.split('.').pop() || 'pdf';
-    const filename = `expense_receipt_${timestamp}.${extension}`;
+    const filename = `receipt_${timestamp}.${extension}`;
 
     // Create storage reference
     const storageRef = ref(firebaseStorage, `vehicles/${vehicleId}/receipts/${filename}`);
@@ -299,7 +299,7 @@ export async function uploadExpenseReceipt(
 }
 
 /**
- * Upload an income receipt to Firebase Storage
+ * Upload an income receipt/proof to Firebase Storage
  * Path: vehicles/{vehicleId}/receipts/{timestamp}.{ext}
  */
 export async function uploadIncomeReceipt(
@@ -316,9 +316,9 @@ export async function uploadIncomeReceipt(
     // Generate unique filename with timestamp
     const timestamp = Date.now();
     const extension = file.name.split('.').pop() || 'pdf';
-    const filename = `income_receipt_${timestamp}.${extension}`;
+    const filename = `income_${timestamp}.${extension}`;
 
-    // Create storage reference
+    // Create storage reference (same folder as expense receipts)
     const storageRef = ref(firebaseStorage, `vehicles/${vehicleId}/receipts/${filename}`);
 
     // Upload file
@@ -336,7 +336,7 @@ export async function uploadIncomeReceipt(
     return { success: true, url };
   } catch (error) {
     console.error('[Storage] Error uploading income receipt:', error);
-    const errorMsg = error instanceof Error ? error.message : 'Error al subir recibo';
+    const errorMsg = error instanceof Error ? error.message : 'Error al subir comprobante';
     return { success: false, error: errorMsg };
   }
 }

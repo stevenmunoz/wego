@@ -42,7 +42,7 @@ export interface VehicleIncome {
   recurring_parent_id?: string;
   driver_id?: string;
   driver_name?: string;
-  receipt_url?: string; // Receipt/proof document URL
+  receipt_url?: string;
   created_at: Date;
   updated_at: Date;
   notes?: string;
@@ -81,8 +81,8 @@ export interface VehicleIncomeCreateInput {
   };
   driver_id?: string;
   driver_name?: string;
-  receipt_file?: File; // Receipt/proof document file for upload
-  receipt_url?: string; // Existing receipt URL (for updates)
+  receipt_file?: File;
+  receipt_url?: string;
   notes?: string;
 }
 
