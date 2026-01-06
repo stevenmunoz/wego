@@ -11,3 +11,6 @@ admin.initializeApp();
 
 // Export notification triggers
 export { onExternalRideCreated } from './triggers/onExternalRideCreated';
+
+// Export InDriver OCR processing trigger
+export { processInDriverDocument } from './triggers/processInDriverDocument';
