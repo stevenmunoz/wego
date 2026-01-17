@@ -7,7 +7,7 @@
 
 import OpenAI from 'openai';
 import * as functions from 'firebase-functions';
-import { defineSecret } from 'firebase-functions/params';
+import { defineString } from 'firebase-functions/params';
 import type {
   ExtractedInDriverRide,
   GPTExtractionResult,
@@ -16,8 +16,9 @@ import type {
   PaymentMethod,
 } from '../types/indriver.types';
 
-// Define the secret for OpenAI API key
-export const openaiApiKey = defineSecret('OPENAI_API_KEY');
+// Define the OpenAI API key as an environment parameter
+// Uses .env file during deployment, avoiding Secret Manager permission issues
+export const openaiApiKey = defineString('OPENAI_API_KEY');
 
 /**
  * System prompt for GPT-4o to extract InDriver ride data

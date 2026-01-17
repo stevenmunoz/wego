@@ -132,17 +132,15 @@ jobs:
           npx tsx scripts/toggle-maintenance.ts on ${{ steps.env.outputs.firebase_project_id }}
           rm -f /tmp/firebase-key.json
 
-      - name: Set OpenAI Secret for Cloud Functions
-        working-directory: ./web
+      - name: Set Cloud Functions environment variables
+        working-directory: ./web/functions
         env:
-          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ steps.env.outputs.environment == 'production' && secrets.FIREBASE_SERVICE_ACCOUNT_PROD || secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/firebase-key.json
-          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-key.json
-          # Set OpenAI API key as Firebase secret (required for InDriver OCR)
-          echo "$OPENAI_API_KEY" | npx firebase-tools functions:secrets:set OPENAI_API_KEY --project ${{ steps.env.outputs.firebase_project_id }} --force --data-file - 2>/dev/null || echo "Secret may already exist"
-          rm -f /tmp/firebase-key.json
+          # Write environment variables to .env file for Cloud Functions
+          # This avoids Secret Manager permission issues during deployment
+          echo "OPENAI_API_KEY=${OPENAI_API_KEY}" > .env
+          echo "Created .env file for Cloud Functions"
 
       - name: Deploy Cloud Functions
         working-directory: ./web
