@@ -250,11 +250,6 @@ export const useInDriverExtract = (): UseInDriverExtractReturn => {
     trackImportStarted(files.length, fileTypes);
     extractionStartTimeRef.current = Date.now();
 
-    // Track import started
-    const fileTypes = [...new Set(files.map((f) => f.file.type.split('/')[1] || 'unknown'))];
-    trackImportStarted(files.length, fileTypes);
-    const startTime = Date.now();
-
     // Mark all files as processing
     setFiles((prev) => prev.map((f) => ({ ...f, status: 'processing' as const })));
 
