@@ -2,7 +2,13 @@
  * Firebase module exports
  */
 
-export { firebaseApp, firebaseAuth, firebaseStorage, initAnalytics } from './config';
+export {
+  firebaseApp,
+  firebaseAuth,
+  firebaseStorage,
+  firebaseStorage as storage,
+  initAnalytics,
+} from './config';
 export {
   signUp,
   signIn,
@@ -58,6 +64,7 @@ export {
   uploadVehicleDocument,
   deleteVehicleDocument,
   uploadExpenseReceipt,
+  uploadIncomeReceipt,
   type DocumentType,
 } from './storage';
 export {

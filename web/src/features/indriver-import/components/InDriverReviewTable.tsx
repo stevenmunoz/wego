@@ -48,6 +48,7 @@ interface InDriverReviewTableProps {
   rides: ExtractedInDriverRide[];
   summary: ExtractionSummary | null;
   isImporting: boolean;
+  isExtracting?: boolean;
   onUpdateRide: (id: string, updates: Partial<ExtractedInDriverRide>) => void;
   onImport: () => void;
   onBack: () => void;
@@ -280,6 +281,7 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
   rides,
   summary,
   isImporting,
+  isExtracting = false,
   onUpdateRide,
   onImport,
   onBack,
@@ -410,6 +412,19 @@ export const InDriverReviewTable: FC<InDriverReviewTableProps> = ({
       </span>
     );
   };
+
+  // Show loading state while extraction is in progress
+  if (isExtracting) {
+    return (
+      <div className="review-table-empty">
+        <div className="extraction-loading">
+          <span className="spinner-large"></span>
+          <p>Extrayendo datos de los documentos...</p>
+          <p className="extraction-hint">Esto puede tomar unos segundos por cada archivo</p>
+        </div>
+      </div>
+    );
+  }
 
   if (rides.length === 0) {
     return (

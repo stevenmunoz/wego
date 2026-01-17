@@ -15,7 +15,6 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { useDriverVehicles } from '@/hooks/useDriverVehicles';
 import { useAllVehicles } from '@/hooks/useAllVehicles';
 import { trackImportCancelled } from '@/core/analytics';
-import { config } from '@/core/config';
 import './InDriverImportPage.css';
 
 type PageView = 'upload' | 'review';
@@ -86,13 +85,14 @@ export const InDriverImportPage: FC = () => {
     }
 
     // Determine the driver ID to save rides under
-    // If admin selects a vehicle, use the vehicle owner's ID
-    // Otherwise use the logged-in user's ID
+    // Priority: assigned_driver_id > owner_id > logged-in user
+    // This ensures rides are attributed to the actual driver, not the vehicle owner
     let driverId = user.id;
-    if (isAdmin && selectedVehicleId) {
+    if (selectedVehicleId) {
       const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
-      if (selectedVehicle?.owner_id) {
-        driverId = selectedVehicle.owner_id;
+      if (selectedVehicle) {
+        // Use assigned driver if exists, otherwise fall back to owner
+        driverId = selectedVehicle.assigned_driver_id || selectedVehicle.owner_id || user.id;
       }
     }
 
@@ -112,7 +112,7 @@ export const InDriverImportPage: FC = () => {
         setImportSuccess(false);
       }, 2000);
     }
-  }, [user?.id, isAdmin, selectedVehicleId, vehicles, importRides, clearFiles, clearExtracted]);
+  }, [user?.id, selectedVehicleId, vehicles, importRides, clearFiles, clearExtracted]);
 
   const handleBackToUpload = useCallback(() => {
     trackImportCancelled('review');
@@ -123,17 +123,6 @@ export const InDriverImportPage: FC = () => {
     <DashboardLayout>
       <div className="indriver-import-page">
         <div className="page-container">
-          {/* Backend Not Available Warning */}
-          {!config.hasBackend && (
-            <div className="alert alert-warning" role="alert">
-              <span className="alert-icon">⚠️</span>
-              <span className="alert-message">
-                El servidor de procesamiento no está configurado. Esta función requiere un backend
-                desplegado.
-              </span>
-            </div>
-          )}
-
           {/* Error Alert */}
           {error && (
             <div className="alert alert-error" role="alert">
@@ -198,6 +187,7 @@ export const InDriverImportPage: FC = () => {
                 rides={extractedRides}
                 summary={summary}
                 isImporting={isImporting}
+                isExtracting={isExtracting}
                 onUpdateRide={updateRide}
                 onImport={handleImport}
                 onBack={handleBackToUpload}

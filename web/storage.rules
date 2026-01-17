@@ -43,6 +43,27 @@ service firebase.storage {
     }
 
     // ============================================================================
+    // INDRIVER OCR DOCUMENTS
+    // Uploaded by users for serverless OCR processing via Cloud Functions
+    // ============================================================================
+
+    // InDriver documents for OCR processing
+    match /indriver-documents/{userId}/{fileName} {
+      // Allow read if user owns the document or is admin
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Allow write for images and PDFs (max 10MB)
+      allow write: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.size < 10 * 1024 * 1024
+                   && (request.resource.contentType.matches('image/.*')
+                       || request.resource.contentType == 'application/pdf');
+
+      // Allow delete for own files
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ============================================================================
     // LEGACY PATHS (read-only for backward compatibility)
     // These will be removed once all files are migrated
     // ============================================================================

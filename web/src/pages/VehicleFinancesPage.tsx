@@ -13,7 +13,7 @@ import { ExpenseForm } from '@/components/VehicleFinances/ExpenseForm';
 import { useDriverVehicles } from '@/hooks/useDriverVehicles';
 import { useAllVehicles } from '@/hooks/useAllVehicles';
 import { useVehicleFinances } from '@/hooks/useVehicleFinances';
-import { uploadExpenseReceipt } from '@/core/firebase';
+import { uploadExpenseReceipt, uploadIncomeReceipt } from '@/core/firebase';
 import type {
   VehicleIncomeCreateInput,
   VehicleExpenseCreateInput,
@@ -109,14 +109,33 @@ export const VehicleFinancesPage = () => {
 
   // Income handlers
   const handleAddIncome = async (data: VehicleIncomeCreateInput) => {
+    if (!effectiveOwnerId || !effectiveVehicleId) return;
     setIsSubmitting(true);
     setFormError(null);
     try {
+      // Extract receipt file from data
+      const { receipt_file, ...incomeDataWithoutFile } = data;
+
+      // Upload receipt if provided
+      let receiptUrl: string | undefined;
+      if (receipt_file) {
+        console.log('[VehicleFinancesPage] Uploading income receipt...');
+        const uploadResult = await uploadIncomeReceipt(effectiveVehicleId, receipt_file);
+        if (uploadResult.success && uploadResult.url) {
+          receiptUrl = uploadResult.url;
+          console.log('[VehicleFinancesPage] Income receipt uploaded:', receiptUrl);
+        } else {
+          console.error('[VehicleFinancesPage] Income receipt upload failed:', uploadResult.error);
+          // Continue without receipt if upload fails
+        }
+      }
+
       // Auto-populate driver_name only for non-admin users (they are the drivers)
       // For admins, leave it empty since they're recording on behalf of drivers
       const incomeData: VehicleIncomeCreateInput = {
-        ...data,
+        ...incomeDataWithoutFile,
         driver_name: !isAdmin ? data.driver_name || user?.full_name || undefined : undefined,
+        ...(receiptUrl && { receipt_url: receiptUrl }),
       };
       console.log('[VehicleFinancesPage] Adding income:', {
         incomeData,
@@ -145,12 +164,36 @@ export const VehicleFinancesPage = () => {
   };
 
   const handleUpdateIncome = async (data: VehicleIncomeCreateInput) => {
-    if (!editingIncome) return;
+    if (!editingIncome || !effectiveVehicleId) return;
     setIsSubmitting(true);
+    setFormError(null);
     try {
-      await updateIncome(editingIncome.id, data);
+      // Extract receipt file from data
+      const { receipt_file, ...incomeData } = data;
+
+      // Upload receipt if new file provided
+      let receiptUrl: string | undefined;
+      if (receipt_file) {
+        console.log('[VehicleFinancesPage] Uploading income receipt...');
+        const uploadResult = await uploadIncomeReceipt(effectiveVehicleId, receipt_file);
+        if (uploadResult.success && uploadResult.url) {
+          receiptUrl = uploadResult.url;
+          console.log('[VehicleFinancesPage] Income receipt uploaded:', receiptUrl);
+        }
+      }
+
+      // Update income with receipt URL if available
+      const finalIncomeData = {
+        ...incomeData,
+        ...(receiptUrl && { receipt_url: receiptUrl }),
+      };
+
+      await updateIncome(editingIncome.id, finalIncomeData);
       setShowForm(null);
       setEditingIncome(null);
+    } catch (err) {
+      console.error('[VehicleFinancesPage] Error updating income:', err);
+      setFormError(err instanceof Error ? err.message : 'Error inesperado');
     } finally {
       setIsSubmitting(false);
     }
