@@ -15,7 +15,6 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { useDriverVehicles } from '@/hooks/useDriverVehicles';
 import { useAllVehicles } from '@/hooks/useAllVehicles';
 import { trackImportCancelled } from '@/core/analytics';
-import { config } from '@/core/config';
 import './InDriverImportPage.css';
 
 type PageView = 'upload' | 'review';
@@ -124,17 +123,6 @@ export const InDriverImportPage: FC = () => {
     <DashboardLayout>
       <div className="indriver-import-page">
         <div className="page-container">
-          {/* Backend Not Available Warning */}
-          {!config.hasBackend && (
-            <div className="alert alert-warning" role="alert">
-              <span className="alert-icon">⚠️</span>
-              <span className="alert-message">
-                El servidor de procesamiento no está configurado. Esta función requiere un backend
-                desplegado.
-              </span>
-            </div>
-          )}
-
           {/* Error Alert */}
           {error && (
             <div className="alert alert-error" role="alert">

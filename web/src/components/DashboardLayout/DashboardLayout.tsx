@@ -61,22 +61,10 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
     [isAdmin]
   );
 
-  // Fetch versions from endpoints
+  // Fetch web version (serverless architecture - no backend)
   useEffect(() => {
-    // Fetch backend version from health endpoint
-    const fetchBackendVersion = async () => {
-      try {
-        const apiUrl = import.meta.env.VITE_API_URL || '';
-        const response = await fetch(`${apiUrl}/health`);
-        if (response.ok) {
-          const data = await response.json();
-          setBackendVersion(data.version);
-        }
-      } catch {
-        // Silently fail - backend might not be available
-        setBackendVersion(null);
-      }
-    };
+    // No backend health check - serverless architecture uses Cloud Functions
+    setBackendVersion(null);
 
     // Fetch web version from version.json (useful in dev mode)
     const fetchWebVersion = async () => {
@@ -100,7 +88,6 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
       }
     };
 
-    fetchBackendVersion();
     fetchWebVersion();
   }, []);
 
