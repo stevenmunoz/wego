@@ -16,7 +16,7 @@ import {
   isSupportedImageType,
   isPdfType,
 } from '../services/visionService';
-import { extractRideData, extractMultipleRides, openaiApiKey } from '../services/aiAnalysisService';
+import { extractRideData, extractMultipleRides } from '../services/aiAnalysisService';
 
 const db = admin.firestore();
 
@@ -94,7 +94,7 @@ export const processInDriverDocument = onObjectFinalized(
     region: 'us-central1',
     memory: '1GiB',
     timeoutSeconds: 540, // 9 minutes for large files
-    secrets: [openaiApiKey],
+    // OpenAI API key is loaded from .env file via defineString
   },
   async (event) => {
     const filePath = event.data.name;
