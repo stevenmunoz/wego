@@ -109,6 +109,17 @@ if [[ -f "mobile/.env.example" ]] && [[ ! -f "mobile/.env" ]]; then
     print_status "✅ Created mobile/.env"
 fi
 
+# Cloud Functions environment setup - symlink from main project
+FUNCTIONS_ENV_SOURCE="$CONDUCTOR_ROOT_PATH/web/functions/.env"
+if [[ -f "$FUNCTIONS_ENV_SOURCE" ]]; then
+    mkdir -p web/functions
+    ln -sf "$FUNCTIONS_ENV_SOURCE" web/functions/.env
+    print_status "✅ Symlinked web/functions/.env from main project"
+else
+    print_warning "⚠️  No web/functions/.env file found at: $FUNCTIONS_ENV_SOURCE"
+    print_warning "   Cloud Functions deployment may fail without OPENAI_API_KEY"
+fi
+
 # 2. Backend Setup (Python)
 print_status "Setting up Python backend..."
 
