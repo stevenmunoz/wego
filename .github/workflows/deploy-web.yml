@@ -137,10 +137,19 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          # Write environment variables to .env file for Cloud Functions
-          # This avoids Secret Manager permission issues during deployment
-          echo "OPENAI_API_KEY=${OPENAI_API_KEY}" > .env
-          echo "Created .env file for Cloud Functions"
+          # Validate that OPENAI_API_KEY secret is set
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "ERROR: OPENAI_API_KEY secret is not set in GitHub repository secrets"
+            exit 1
+          fi
+          # Use printf to avoid shell interpretation issues with special characters
+          printf 'OPENAI_API_KEY=%s\n' "$OPENAI_API_KEY" > .env
+          # Verify the file was created and has content
+          if [ ! -s .env ]; then
+            echo "ERROR: Failed to create .env file"
+            exit 1
+          fi
+          echo "Created .env file for Cloud Functions ($(wc -c < .env) bytes)"
 
       - name: Deploy Cloud Functions
         working-directory: ./web
