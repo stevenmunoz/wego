@@ -444,6 +444,16 @@ function vehicleOwnershipCheck(vehicleId) {
 ### User-Facing Copy
 **All user-visible copy must be in Spanish (Colombia).**
 
+**Use proper Spanish accent marks (tildes).** Words must include their correct accents:
+- vehículo (not vehiculo)
+- kilómetro (not kilometro)
+- operación (not operacion)
+- información (not informacion)
+- número (not numero)
+- día (not dia)
+- más (not mas)
+- están (not estan)
+
 ### Code and Documentation
 **All code, comments, variable names, and documentation must be in English.**
 
@@ -584,6 +594,7 @@ export const useRidesStore = create<RidesState>((set) => ({
 | File | Purpose |
 |------|---------|
 | `design-system/BRAND_GUIDELINES.md` | Complete brand guide |
+| `design-system/DATEPICKER_GUIDELINES.md` | Date picker components usage guide |
 | `design-system/tokens/colors.css` | Color variables |
 | `design-system/tokens/typography.css` | Typography system |
 | `design-system/components/*.css` | Component styles |
@@ -815,7 +826,8 @@ npm run db:studio    # Open Prisma Studio
 7. **Validate** data with Zod at boundaries (API, forms)
 8. **Maintain** consistency with existing code
 9. **Document** complex components with JSDoc comments
+10. **Use date picker components** - For date selection, use `SingleDatePicker` (single dates with presets) or `DateRangePicker` (date ranges with presets). See `design-system/DATEPICKER_GUIDELINES.md`
 
 ---
 
-*Last updated: December 2024 - Added Claude AI Code Review to CI/CD pipeline*
+*Last updated: January 2025 - Added date picker components and AI Insights feature*

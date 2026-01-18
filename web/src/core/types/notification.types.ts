@@ -5,7 +5,7 @@
 import { Timestamp } from 'firebase/firestore';
 
 // Extensible notification types for future use
-export type NotificationType = 'external_driver_ride';
+export type NotificationType = 'external_driver_ride' | 'weekly_insights';
 
 // Target roles for notifications
 export type NotificationTargetRole = 'admin';
@@ -18,6 +18,12 @@ export interface NotificationMetadata {
   ride_destination?: string;
   ride_amount?: number;
   ride_category?: string;
+  // Weekly insights metadata
+  week_id?: string;
+  week_range?: string;
+  total_rides?: number;
+  total_revenue?: number;
+  action_url?: string;
 }
 
 /**

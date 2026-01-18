@@ -271,7 +271,8 @@ function transformToExtractedRide(
 
 /**
  * Extract multiple rides from multi-page PDF OCR text
- * Splits text by PAGE_BREAK markers and processes each page
+ * Splits text by PAGE_BREAK markers and processes pages in PARALLEL
+ * with concurrency control to avoid rate limiting.
  *
  * @param ocrText - OCR text with PAGE_BREAK markers between pages
  * @param sourceImagePath - Base path of the source document
@@ -284,17 +285,24 @@ export async function extractMultipleRides(
   // Split by page break markers
   const pages = ocrText.split(/---PAGE_BREAK---/).filter((page) => page.trim().length > 50);
 
-  functions.logger.info(`[AIAnalysis] Processing ${pages.length} pages from ${sourceImagePath}`);
+  functions.logger.info(
+    `[AIAnalysis] Processing ${pages.length} pages from ${sourceImagePath} (parallel, concurrency=5)`
+  );
 
-  const rides: ExtractedInDriverRide[] = [];
+  // Process pages in parallel with concurrency limit of 5
+  // This prevents rate limiting while being ~5x faster than sequential
+  const CONCURRENCY = 5;
 
-  for (let i = 0; i < pages.length; i++) {
-    const pageText = pages[i].trim();
-    const pageSource = `${sourceImagePath} (page ${i + 1})`;
+  // Create extraction tasks for each page
+  const extractPage = async (
+    pageText: string,
+    index: number
+  ): Promise<{ ride: ExtractedInDriverRide; index: number } | null> => {
+    const pageSource = `${sourceImagePath} (page ${index + 1})`;
 
     try {
-      functions.logger.info(`[AIAnalysis] Processing page ${i + 1}/${pages.length}`);
-      const ride = await extractRideData(pageText, pageSource);
+      functions.logger.info(`[AIAnalysis] Starting page ${index + 1}/${pages.length}`);
+      const ride = await extractRideData(pageText.trim(), pageSource);
 
       // Validate that we got meaningful data
       const hasFinancial = ride.mis_ingresos > 0 || ride.tarifa > 0 || ride.total_recibido > 0;
@@ -302,18 +310,47 @@ export async function extractMultipleRides(
       const isCancelled = ride.status !== 'completed';
 
       if (hasFinancial || hasIdentity || isCancelled) {
-        rides.push(ride);
         functions.logger.info(
-          `[AIAnalysis] Page ${i + 1}: Extracted ride with ${ride.mis_ingresos} COP earnings`
+          `[AIAnalysis] Page ${index + 1}: Extracted ride with ${ride.mis_ingresos} COP earnings`
         );
+        return { ride, index };
       } else {
-        functions.logger.warn(`[AIAnalysis] Page ${i + 1}: No meaningful data extracted, skipping`);
+        functions.logger.warn(
+          `[AIAnalysis] Page ${index + 1}: No meaningful data extracted, skipping`
+        );
+        return null;
       }
     } catch (error) {
-      functions.logger.error(`[AIAnalysis] Page ${i + 1} extraction failed:`, error);
-      // Continue with other pages
+      functions.logger.error(`[AIAnalysis] Page ${index + 1} extraction failed:`, error);
+      return null;
     }
+  };
+
+  // Process in batches of CONCURRENCY
+  const results: Array<{ ride: ExtractedInDriverRide; index: number } | null> = [];
+
+  for (let i = 0; i < pages.length; i += CONCURRENCY) {
+    const batch = pages.slice(i, i + CONCURRENCY);
+    const batchNum = Math.floor(i / CONCURRENCY) + 1;
+    const totalBatches = Math.ceil(pages.length / CONCURRENCY);
+
+    functions.logger.info(`[AIAnalysis] Processing batch ${batchNum}/${totalBatches}`);
+
+    const batchPromises = batch.map((pageText, batchIndex) =>
+      extractPage(pageText, i + batchIndex)
+    );
+
+    const batchResults = await Promise.all(batchPromises);
+    results.push(...batchResults);
+
+    functions.logger.info(`[AIAnalysis] Completed batch ${batchNum}/${totalBatches}`);
   }
+
+  // Filter out nulls and sort by original page order
+  const rides = results
+    .filter((r): r is { ride: ExtractedInDriverRide; index: number } => r !== null)
+    .sort((a, b) => a.index - b.index)
+    .map((r) => r.ride);
 
   functions.logger.info(
     `[AIAnalysis] Total rides extracted: ${rides.length} from ${pages.length} pages`

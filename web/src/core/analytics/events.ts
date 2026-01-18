@@ -161,7 +161,8 @@ type PageName =
   | 'users'
   | 'finances'
   | 'external_ride'
-  | 'reporting';
+  | 'reporting'
+  | 'insights';
 
 export function trackPageViewed(pageName: PageName): void {
   trackEvent('page_viewed', { page_name: pageName });

@@ -1,0 +1,171 @@
+/**
+ * InsightsSummary Component Styles
+ *
+ * Conversational email-style weekly summary.
+ */
+
+.insights-summary {
+  font-family: 'Inter', sans-serif;
+  color: var(--color-neutral-800, #1f2937);
+  line-height: 1.6;
+}
+
+/* Greeting */
+.insights-summary__greeting {
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+
+.insights-summary__greeting p {
+  margin: 0;
+}
+
+.insights-summary__greeting p:first-child {
+  margin-bottom: 0.5rem;
+}
+
+/* Section */
+.insights-summary__section {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-neutral-200, #e5e7eb);
+}
+
+.insights-summary__section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.insights-summary__section-title {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-neutral-500, #6b7280);
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--color-neutral-200, #e5e7eb);
+}
+
+.insights-summary__content {
+  font-size: 0.9375rem;
+}
+
+/* Highlight text */
+.insights-summary__highlight {
+  margin: 0 0 1rem 0;
+}
+
+.insights-summary__highlight strong {
+  font-weight: 600;
+  color: var(--color-primary-800, #1e2a3a);
+}
+
+/* Change indicator */
+.insights-summary__change {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.insights-summary__change.positive {
+  color: var(--color-success-600, #16a34a);
+}
+
+.insights-summary__change.negative {
+  color: var(--color-error-500, #ef4444);
+}
+
+/* Breakdown list */
+.insights-summary__breakdown {
+  list-style: none;
+  margin: 0 0 1rem 0;
+  padding: 0;
+}
+
+.insights-summary__breakdown li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.375rem;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.insights-summary__breakdown li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--color-neutral-400, #9ca3af);
+}
+
+.insights-summary__source {
+  font-weight: 500;
+  color: var(--color-neutral-700, #374151);
+  min-width: 100px;
+}
+
+.insights-summary__source-data {
+  color: var(--color-neutral-600, #4b5563);
+}
+
+/* Amount styling */
+.insights-summary__amount {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  color: var(--color-primary-800, #1e2a3a);
+}
+
+/* Total line */
+.insights-summary__total {
+  margin: 0;
+  padding-top: 0.5rem;
+  font-weight: 500;
+  color: var(--color-neutral-700, #374151);
+}
+
+/* Vehicles grid */
+.insights-summary__vehicles {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Recommendations section */
+.insights-summary__section--recommendations {
+  background: var(--color-neutral-50, #f9fafb);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: none;
+  margin-top: 0.5rem;
+}
+
+.insights-summary__section--recommendations .insights-summary__section-title {
+  color: var(--color-primary-800, #1e2a3a);
+  border-bottom-color: var(--color-neutral-300, #d1d5db);
+}
+
+.insights-summary__generated-at {
+  font-size: 0.75rem;
+  color: var(--color-neutral-500, #6b7280);
+  margin: 0 0 1rem 0;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .insights-summary__breakdown li {
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .insights-summary__source {
+    min-width: auto;
+  }
+
+  .insights-summary__section--recommendations {
+    padding: 1rem;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    border-radius: 0;
+  }
+}
