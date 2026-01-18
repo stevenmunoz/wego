@@ -23,70 +23,63 @@ This command guides you through building a complete feature from description to 
 - Work with description directly
 - Generate branch name from key concepts
 
-### 2. Create Specification
+### 2. Research the Codebase
 
-Run: `.specify/scripts/bash/create-new-feature.sh --json "$FEATURE_DESCRIPTION"`
+**Before planning, explore existing patterns:**
 
-Parse output for `BRANCH_NAME`, `SPEC_FILE`, `FEATURE_DIR`.
+```bash
+# Check existing pages
+ls web/src/pages/*.tsx
 
-**Write a clear specification** that answers:
-- **What** are we building? (user stories, requirements)
-- **Why** does it matter? (value, success criteria)
-- **What's unclear?** (mark ambiguities with `[NEEDS CLARIFICATION: ...]`)
+# Check existing features
+ls web/src/features/
 
-Use `.specify/templates/spec-template.md` as your guide, but adapt naturally to the feature's needs.
+# Check hooks
+ls web/src/hooks/*.ts
 
-### 3. Clarify Ambiguities (if needed)
+# Check Firebase services
+ls web/src/core/firebase/*.ts
 
-If you marked `[NEEDS CLARIFICATION]` items:
-- Ask targeted questions (one at a time, multiple choice when helpful)
-- Update spec with answers in `## Clarifications` section
-- Stop when you have enough clarity to plan confidently
+# Check Cloud Functions
+ls web/functions/src/
 
-**Tip**: Don't over-clarify. If you can make a reasonable decision based on project patterns and constitution, do it.
+# Check existing components
+ls web/src/components/
 
-### 4. Plan Implementation
+# Check type definitions
+ls web/src/core/types/*.ts
+```
 
-Run: `.specify/scripts/bash/setup-plan.sh --json` (parse for `IMPL_PLAN`, `SPECS_DIR`)
+**Read feature documentation:**
+- `docs/features/` - Existing feature documentation
+- `design-system/BRAND_GUIDELINES.md` - Design patterns
+- `CLAUDE.md` - Project conventions
 
-**Create a thoughtful implementation plan** covering:
+### 3. Create Implementation Plan
 
-**Constitution Check** (from `.specify/memory/constitution.md`):
-- Review key principles (medical safety, existing patterns, mobile-first, TDD, brand consistency)
-- Document any justified deviations with clear rationale
+**Use the TodoWrite tool to create a structured plan:**
 
-**Research & Decisions** (`research.md`):
+**Research Phase:**
 - Technology choices and why
 - Integration patterns from existing codebase
 - Key libraries or approaches
 
-**Data Model** (`data-model.md`):
+**Data Model:**
 - Entities, relationships, validations
-- Check `frontend/src/types/database.ts` for existing schema
-- Design migrations if needed
+- Check `web/src/core/types/` for existing types
+- Design Firestore collections if needed
 
-**Contracts** (`contracts/`):
-- API endpoints, request/response schemas
-- Validation rules
-- Error handling patterns
-
-**Test Strategy** (`quickstart.md`):
+**Test Strategy:**
 - How will we know it works?
 - Critical test scenarios from user stories
-- Integration test approach
 
-**Agent Context Update**:
-- Run: `.specify/scripts/bash/update-agent-context.sh claude`
-- Incrementally update CLAUDE.md with new patterns (O(1) operation)
+### 4. Break Down Into Tasks
 
-### 5. Break Down Into Tasks
-
-**Create `tasks.md`** with concrete, ordered tasks:
+**Create tasks with TodoWrite:**
 
 **Organize by dependency order:**
-- Tests before implementation (TDD)
-- Models before services before UI
-- Mark `[P]` for parallel execution (independent files)
+- Database/types before services before UI
+- Mark tasks that can run in parallel
 
 **Make tasks actionable:**
 - Clear acceptance criteria
@@ -95,35 +88,28 @@ Run: `.specify/scripts/bash/setup-plan.sh --json` (parse for `IMPL_PLAN`, `SPECS
 
 **Typical structure:**
 ```
-## Setup
-- [T001] Install dependencies
-- [T002] Create database migration
+1. Setup
+   - Create TypeScript types
+   - Create Firestore service
 
-## Tests (run in parallel)
-- [T003] [P] Contract tests for API endpoints
-- [T004] [P] Model validation tests
-- [T005] [P] Integration test scenarios
+2. Implementation
+   - Implement data models
+   - Create hooks
+   - Build UI components
+   - Wire up routes
 
-## Implementation
-- [T006] Implement data models
-- [T007] Create service layer
-- [T008] Build UI components
-- [T009] Wire up API endpoints
-
-## Integration & Polish
-- [T010] End-to-end testing
-- [T011] Design review
-- [T012] Documentation
+3. Integration & Polish
+   - End-to-end testing
+   - Design review
+   - Documentation
 ```
 
-Use `.specify/templates/tasks-template.md` as reference, but adapt to your feature's reality.
-
-### 6. Execute Implementation
+### 5. Execute Implementation
 
 **Work through tasks progressively:**
-- Mark tasks `[x]` as you complete them
+- Mark tasks complete as you finish them
 - Run tests frequently
-- Validate against constitution principles
+- Validate against project conventions
 - Check existing patterns before inventing new ones
 
 **If blocked:**
@@ -133,16 +119,16 @@ Use `.specify/templates/tasks-template.md` as reference, but adapt to your featu
 
 **Key checkpoints:**
 - Tests pass before moving to next phase
-- UI matches design system (`frontend/DESIGN_SYSTEM.md`)
-- Database changes include migrations
+- UI matches design system (`design-system/`)
+- Firebase operations follow existing patterns
 - New patterns documented for future features
 
-### 7. Validate & Wrap Up
+### 6. Validate & Wrap Up
 
 **Before considering complete:**
-- All tasks marked `[x]` in tasks.md
-- Tests passing (contract, integration, unit)
-- Constitution principles followed
+- All tasks marked complete
+- Tests passing
+- Project conventions followed
 - Ready for PR (or explicitly document what's pending)
 
 **Report completion** with:
@@ -159,16 +145,16 @@ Use `.specify/templates/tasks-template.md` as reference, but adapt to your featu
 
 **Check Patterns First:**
 - Always grep for similar components before building new ones
-- Read `DESIGN_SYSTEM.md` before UI work
-- Check `database.ts` before schema assumptions
-- Follow existing service patterns
+- Read `design-system/` before UI work
+- Check `web/src/core/types/` before schema assumptions
+- Follow existing service patterns in `web/src/core/firebase/`
 
-**Constitution Matters:**
-- Medical safety boundaries are non-negotiable
-- Purple brand (#7f3dff, #6a2bff, #f4eaff) is sacred
-- Mobile-first (44px+ touch targets, no native inputs)
-- TDD (tests before implementation)
-- RLS policies for data security
+**Project Conventions Matter:**
+- All user-facing copy in Spanish (Colombia)
+- All code and comments in English
+- Use design system colors and components
+- Follow existing file naming conventions
+- Use Zustand for state management
 
 **Communicate Progress:**
 - Use TodoWrite to track phases
@@ -179,6 +165,24 @@ Use `.specify/templates/tasks-template.md` as reference, but adapt to your featu
 - Don't over-engineer
 - Don't under-clarify critical ambiguities
 - Build incrementally with validation loops
+
+## Key Discovery Paths
+
+When planning features, check these locations:
+
+| Looking for... | Check these paths |
+|----------------|-------------------|
+| Existing pages | `web/src/pages/*.tsx` |
+| Feature components | `web/src/features/*/` |
+| Shared components | `web/src/components/*/` |
+| Hooks | `web/src/hooks/*.ts` |
+| Firebase operations | `web/src/core/firebase/*.ts` |
+| Cloud Functions | `web/functions/src/` |
+| Type definitions | `web/src/core/types/*.ts` |
+| Feature documentation | `docs/features/*.md` |
+| Design system | `design-system/` |
+| Firestore rules | `web/firestore.rules` |
+| State stores | `web/src/core/store/*.ts` |
 
 ## When Things Don't Fit
 
@@ -208,14 +212,16 @@ This workflow assumes typical feature development. If your task is:
 (Likely skip full workflow, just fix and test)
 ```
 
-## Prerequisites
+## Reference Documentation
 
-Before starting, ensure:
-- Git repository initialized
-- `.specify/` directory exists with templates
-- Scripts executable (`chmod +x .specify/scripts/bash/*.sh`)
-
-If missing, set up specification infrastructure first.
+| Document | Purpose |
+|----------|---------|
+| `CLAUDE.md` | Project conventions, data models, tech stack |
+| `docs/features/*.md` | Existing feature documentation |
+| `design-system/BRAND_GUIDELINES.md` | Brand colors, typography, components |
+| `.claude/agents/database.md` | Firestore patterns and best practices |
+| `.claude/agents/cloud-functions.md` | Cloud Functions patterns |
+| `.claude/agents/frontend.md` | React/TypeScript patterns |
 
 ---
 
