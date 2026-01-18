@@ -1,2 +1,7 @@
-export { WeekPicker, getISOWeekNumber, getDateFromISOWeek, formatWeekRange } from './WeekPicker';
-export type { WeekValue, WeekPreset, WeekPickerProps } from './WeekPicker';
+// Component export
+export { WeekPicker } from './WeekPicker';
+export type { WeekPreset, WeekPickerProps } from './WeekPicker';
+
+// Utility exports (from separate file to avoid react-refresh warnings)
+export { getISOWeekNumber, getDateFromISOWeek, formatWeekRange } from './weekUtils';
+export type { WeekValue } from './weekUtils';

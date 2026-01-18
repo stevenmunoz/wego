@@ -13,11 +13,14 @@
 
 import { type FC, useState, useRef, useEffect } from 'react';
 import './WeekPicker.css';
+import {
+  type WeekValue,
+  getISOWeekNumber,
+  getDateFromISOWeek,
+  formatWeekRange,
+} from './weekUtils';
 
-export interface WeekValue {
-  year: number;
-  week: number;
-}
+// Note: WeekValue and utility functions are exported via index.ts from weekUtils.ts
 
 export interface WeekPreset {
   id: string;
@@ -43,82 +46,6 @@ export interface WeekPickerProps {
 }
 
 // Utility functions for week calculations
-
-/**
- * Get the Monday of the ISO week for a given date
- */
-function getMondayOfWeek(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-/**
- * Get the Sunday of the ISO week for a given date
- */
-function getSundayOfWeek(date: Date): Date {
-  const monday = getMondayOfWeek(date);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  return sunday;
-}
-
-/**
- * Get ISO week number and year from a date
- */
-function getISOWeekNumber(date: Date): WeekValue {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-  return { year: d.getUTCFullYear(), week: weekNo };
-}
-
-/**
- * Get a date from ISO week
- */
-function getDateFromISOWeek(year: number, week: number): Date {
-  const jan1 = new Date(year, 0, 1);
-  const jan1Day = jan1.getDay() || 7;
-  const daysToFirstMonday = jan1Day <= 4 ? 1 - jan1Day : 8 - jan1Day;
-  const firstMonday = new Date(year, 0, 1 + daysToFirstMonday);
-  const targetMonday = new Date(firstMonday);
-  targetMonday.setDate(firstMonday.getDate() + (week - 1) * 7);
-  return targetMonday;
-}
-
-/**
- * Format week range for display (e.g., "6-12 ene 2026")
- */
-function formatWeekRange(value: WeekValue): string {
-  const monday = getDateFromISOWeek(value.year, value.week);
-  const sunday = getSundayOfWeek(monday);
-
-  const startDay = monday.getDate();
-  const endDay = sunday.getDate();
-  const monthFormatter = new Intl.DateTimeFormat('es-CO', { month: 'short' });
-
-  // If same month
-  if (monday.getMonth() === sunday.getMonth()) {
-    const month = monthFormatter.format(monday);
-    return `${startDay}-${endDay} ${month} ${value.year}`;
-  }
-
-  // Different months
-  const startMonth = monthFormatter.format(monday);
-  const endMonth = monthFormatter.format(sunday);
-
-  // If different years
-  if (monday.getFullYear() !== sunday.getFullYear()) {
-    return `${startDay} ${startMonth} ${monday.getFullYear()} - ${endDay} ${endMonth} ${sunday.getFullYear()}`;
-  }
-
-  return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${value.year}`;
-}
 
 /**
  * Check if two week values are equal
@@ -308,5 +235,3 @@ export const WeekPicker: FC<WeekPickerProps> = ({
     </div>
   );
 };
-
-export { getISOWeekNumber, getDateFromISOWeek, formatWeekRange };
