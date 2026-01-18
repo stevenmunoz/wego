@@ -1,0 +1,148 @@
+/**
+ * DateInput Component Styles
+ *
+ * Consistent styling for all date inputs across the application.
+ * Uses design system tokens for colors, typography, and spacing.
+ */
+
+.date-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Label */
+.date-input__label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-neutral-700, #374151);
+}
+
+/* Container */
+.date-input__container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Input Base Styles */
+.date-input__input {
+  width: 100%;
+  font-family: 'JetBrains Mono', 'Inter', sans-serif;
+  color: var(--color-primary-800, #1e2a3a);
+  background-color: var(--color-white, #ffffff);
+  border: 1px solid var(--color-neutral-300, #d1d5db);
+  border-radius: 8px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+  color-scheme: light;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Size Variants */
+.date-input--small .date-input__input {
+  padding: 0.375rem 0.625rem;
+  font-size: 0.8125rem;
+}
+
+.date-input--medium .date-input__input {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.date-input--large .date-input__input {
+  padding: 0.625rem 1rem;
+  font-size: 1rem;
+}
+
+/* Hover State */
+.date-input__input:hover:not(:disabled) {
+  border-color: var(--color-neutral-400, #9ca3af);
+}
+
+/* Focus State */
+.date-input__input:focus {
+  outline: none;
+  border-color: var(--color-accent-600, #f05365);
+  box-shadow: 0 0 0 3px rgba(240, 83, 101, 0.15);
+}
+
+/* Disabled State */
+.date-input__input:disabled {
+  background-color: var(--color-neutral-100, #f3f4f6);
+  color: var(--color-neutral-500, #6b7280);
+  cursor: not-allowed;
+}
+
+/* Error State */
+.date-input--error .date-input__input {
+  border-color: var(--color-error-500, #ef4444);
+}
+
+.date-input--error .date-input__input:focus {
+  border-color: var(--color-error-500, #ef4444);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.date-input__error {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  color: var(--color-error-600, #dc2626);
+  margin-top: 0.25rem;
+}
+
+/* Calendar Icon - WebKit/Blink Browsers */
+.date-input__input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.7;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  transition: opacity 0.2s ease;
+}
+
+.date-input__input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Hide calendar icon variant */
+.date-input--no-icon .date-input__input::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+/* Date text styling - ensure visibility */
+.date-input__input::-webkit-datetime-edit {
+  color: var(--color-primary-800, #1e2a3a);
+}
+
+.date-input__input::-webkit-datetime-edit-fields-wrapper {
+  color: var(--color-primary-800, #1e2a3a);
+}
+
+.date-input__input::-webkit-datetime-edit-text {
+  color: var(--color-neutral-500, #6b7280);
+}
+
+.date-input__input::-webkit-datetime-edit-month-field,
+.date-input__input::-webkit-datetime-edit-day-field,
+.date-input__input::-webkit-datetime-edit-year-field {
+  color: var(--color-primary-800, #1e2a3a);
+}
+
+/* Placeholder styling */
+.date-input__input::placeholder {
+  color: var(--color-neutral-400, #9ca3af);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .date-input--medium .date-input__input,
+  .date-input--large .date-input__input {
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem; /* Larger font on mobile for better touch targets */
+  }
+}

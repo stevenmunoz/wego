@@ -7,6 +7,8 @@ import {
   getAllDrivers,
   updateInDriverRide,
   reassignRideToDriver,
+  deleteInDriverRide,
+  deleteAllRides as deleteAllRidesFromFirestore,
   getAllVehicles,
   type FirestoreInDriverRide,
   type DriverWithUser,
@@ -30,9 +32,12 @@ interface UseAdminRidesReturn {
   drivers: DriverWithUser[];
   vehicles: FirestoreVehicle[];
   isLoading: boolean;
+  isDeleting: boolean;
   error: string | null;
   refetch: () => Promise<void>;
   updateRide: (rideId: string, updates: Partial<FirestoreInDriverRide>) => Promise<void>;
+  deleteRide: (rideId: string) => Promise<void>;
+  deleteAllRides: () => Promise<{ success: boolean; deletedCount: number }>;
 }
 
 export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesReturn => {
@@ -40,6 +45,7 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
   const [drivers, setDrivers] = useState<DriverWithUser[]>([]);
   const [vehicles, setVehicles] = useState<FirestoreVehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Refs to always access latest state (avoids stale closure issues in callbacks)
@@ -229,6 +235,80 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
     [fetchRides, drivers]
   );
 
+  const deleteRide = useCallback(
+    async (rideId: string) => {
+      console.log('[useAdminRides] deleteRide called:', { rideId });
+
+      // Use refs to get latest state
+      const currentRides = ridesRef.current;
+
+      // Find the ride to get the driver_id and docPath
+      const ride = currentRides.find((r) => r.id === rideId);
+      if (!ride) {
+        console.log('[useAdminRides] Ride not found in local state');
+        setError('Viaje no encontrado');
+        return;
+      }
+
+      console.log(
+        '[useAdminRides] Found ride, driver_id:',
+        ride.driver_id,
+        '_docPath:',
+        ride._docPath
+      );
+
+      // Optimistically remove from local state
+      setRides((prevRides) => prevRides.filter((r) => r.id !== rideId));
+
+      try {
+        const result = await deleteInDriverRide(ride.driver_id, rideId, ride._docPath);
+        console.log('[useAdminRides] deleteInDriverRide result:', result);
+
+        if (!result.success) {
+          // Revert on error
+          setError(result.error || 'Error al eliminar el viaje');
+          await fetchRides(); // Refetch to get correct state
+        }
+      } catch (err) {
+        console.error('[useAdminRides] Error deleting ride:', err);
+        const message = err instanceof Error ? err.message : 'Error al eliminar el viaje';
+        setError(message);
+        await fetchRides(); // Refetch to get correct state
+      }
+    },
+    [fetchRides]
+  );
+
+  const deleteAllRides = useCallback(async (): Promise<{
+    success: boolean;
+    deletedCount: number;
+  }> => {
+    console.log('[useAdminRides] deleteAllRides called');
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const result = await deleteAllRidesFromFirestore();
+      console.log('[useAdminRides] deleteAllRides result:', result);
+
+      if (result.success) {
+        // Clear local state
+        setRides([]);
+      } else {
+        setError(result.error || 'Error al eliminar todos los viajes');
+      }
+
+      return { success: result.success, deletedCount: result.deletedCount };
+    } catch (err) {
+      console.error('[useAdminRides] Error deleting all rides:', err);
+      const message = err instanceof Error ? err.message : 'Error al eliminar todos los viajes';
+      setError(message);
+      return { success: false, deletedCount: 0 };
+    } finally {
+      setIsDeleting(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchRides();
   }, [fetchRides]);
@@ -238,8 +318,11 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
     drivers,
     vehicles,
     isLoading,
+    isDeleting,
     error,
     refetch: fetchRides,
     updateRide,
+    deleteRide,
+    deleteAllRides,
   };
 };

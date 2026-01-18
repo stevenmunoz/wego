@@ -16,7 +16,7 @@ This command creates comprehensive documentation for completed features, maintai
 
 **If feature name provided:**
 - Use it directly to find related code
-- Search in `web/src/features/`, `web/src/pages/`, `backend/src/`
+- Search in `web/src/features/`, `web/src/pages/`, `web/functions/src/`
 
 **If no arguments:**
 - Ask user for the feature name
@@ -25,9 +25,12 @@ This command creates comprehensive documentation for completed features, maintai
   - Vehicle Finances
   - External Rides
   - Reporting Dashboard
-  - Chat/Conversations
+  - AI Insights
   - User Management
   - Finance Categories
+  - Notifications
+  - Authentication
+  - Cloud Functions
 
 ### 2. Gather Feature Information
 
@@ -35,19 +38,23 @@ This command creates comprehensive documentation for completed features, maintai
 
 ```bash
 # Find related files
-find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.py" \) | xargs grep -l "<feature-name>" | head -20
-
-# Check for existing specs
-ls docs/specs/<feature-slug>/ 2>/dev/null
+grep -r "<feature-name>" web/src/ --include="*.ts" --include="*.tsx" | head -20
 
 # Find related pages
-grep -r "<FeatureName>" web/src/pages/ --include="*.tsx"
+ls web/src/pages/*.tsx
 
 # Find related hooks
-ls web/src/features/<feature-name>/hooks/ 2>/dev/null
+ls web/src/hooks/*.ts
 
-# Check Firebase collections
-grep -r "collection.*<feature>" web/src/core/firebase/ --include="*.ts"
+# Check Firebase collections/services
+ls web/src/core/firebase/*.ts
+
+# Check Cloud Functions
+ls web/functions/src/services/*.ts
+ls web/functions/src/triggers/*.ts
+
+# Check types
+ls web/src/core/types/*.ts
 ```
 
 **Identify key components:**
@@ -55,7 +62,7 @@ grep -r "collection.*<feature>" web/src/core/firebase/ --include="*.ts"
 - Components
 - Hooks
 - Firebase services
-- Backend endpoints
+- Cloud Functions
 - Types/interfaces
 - Constants/configuration
 
@@ -81,6 +88,11 @@ Use this template:
 
 [2-3 paragraph description of the feature, its purpose, and who uses it]
 
+**Key Capabilities:**
+- Capability 1
+- Capability 2
+- Capability 3
+
 ## Architecture
 
 ```
@@ -98,9 +110,9 @@ Use this template:
 │  ├─ Collection: [collection_name]                              │
 │  └─ Service: [firebase-service].ts                             │
 │                                                                 │
-│  Backend (Python/FastAPI) [if applicable]                       │
-│  ├─ Endpoint: /api/v1/[endpoint]                               │
-│  └─ Service: [service-file].py                                 │
+│  Cloud Functions (if applicable)                                │
+│  ├─ Trigger: [trigger-file].ts                                 │
+│  └─ Service: [service-file].ts                                 │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -121,12 +133,12 @@ Use this template:
 | `web/src/core/firebase/[service].ts` | Firebase operations |
 | `web/src/hooks/[hook].ts` | Custom hooks |
 
-### Backend (if applicable)
+### Cloud Functions (if applicable)
 
 | File | Purpose |
 |------|---------|
-| `backend/src/presentation/api/v1/endpoints/[endpoint].py` | API endpoints |
-| `backend/src/application/[service].py` | Business logic |
+| `web/functions/src/triggers/[trigger].ts` | Event triggers |
+| `web/functions/src/services/[service].ts` | Business logic |
 
 ## Data Model
 
@@ -139,59 +151,6 @@ interface [EntityName] {
   created_at: Timestamp;
   updated_at: Timestamp;
 }
-```
-
-### Firestore Indexes Required
-
-```json
-{
-  "collectionGroup": "[collection_name]",
-  "queryScope": "COLLECTION",
-  "fields": [
-    { "fieldPath": "[field1]", "order": "ASCENDING" },
-    { "fieldPath": "[field2]", "order": "DESCENDING" }
-  ]
-}
-```
-
-## API Endpoints (if applicable)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/[resource]` | Get all [resources] |
-| POST | `/api/v1/[resource]` | Create new [resource] |
-| PUT | `/api/v1/[resource]/{id}` | Update [resource] |
-| DELETE | `/api/v1/[resource]/{id}` | Delete [resource] |
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `VITE_[VAR]` | Description | Yes/No |
-
-### Firebase Security Rules
-
-```javascript
-match /[collection]/{docId} {
-  allow read: if [condition];
-  allow write: if [condition];
-}
-```
-
-## Usage Examples
-
-### Basic Usage
-
-```typescript
-// Example code showing how to use the feature
-```
-
-### Advanced Usage
-
-```typescript
-// More complex example
 ```
 
 ## Common Issues and Solutions
@@ -207,28 +166,9 @@ match /[collection]/{docId} {
 # Commands or code to fix
 ```
 
-## Testing
-
-### Unit Tests
-- `tests/unit/[feature]/...`
-
-### Integration Tests
-- `tests/integration/[feature]/...`
-
-### Manual Testing Checklist
-- [ ] Test case 1
-- [ ] Test case 2
-
 ## Related Documentation
 
 - [Link to related docs](./RELATED_DOC.md)
-- [External reference](https://external-link.com)
-
-## Changelog
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0 | YYYY-MM-DD | Initial implementation |
 
 ---
 
@@ -237,30 +177,12 @@ match /[collection]/{docId} {
 
 ### 4. Update Feature Index
 
-**Create or update `docs/features/README.md`:**
+**Update `docs/features/README.md`:**
+
+Add the new feature to the index table:
 
 ```markdown
-# Feature Documentation
-
-This directory contains documentation for all implemented features in the WeGo platform.
-
-## Features Index
-
-| Feature | Description | Status |
-|---------|-------------|--------|
-| [Feature Name](./FEATURE_NAME.md) | Brief description | ✅ Complete |
-
-## Quick Links
-
-- [InDriver Import](./INDRIVER_IMPORT.md) - OCR extraction from InDriver screenshots
-- [Vehicle Finances](./VEHICLE_FINANCES.md) - Income/expense tracking for vehicles
-- [External Rides](./EXTERNAL_RIDES.md) - Manual ride entry wizard
-- [Reporting Dashboard](./REPORTING.md) - Analytics and goal tracking
-- ...
-
-## Adding New Documentation
-
-Use the `/document-feature` command to create documentation for new features.
+| [Feature Name](./FEATURE_NAME.md) | Brief description | Complete |
 ```
 
 ### 5. Cross-Reference
@@ -272,7 +194,10 @@ Use the `/document-feature` command to create documentation for new features.
    - New conventions
    - Critical configuration
 
-2. **README.md** (root) - If the feature is user-facing
+2. **Agent files** - If the feature involves:
+   - New Cloud Functions patterns
+   - New Firestore patterns
+   - New component patterns
 
 ### 6. Generate Documentation
 
@@ -280,9 +205,9 @@ Use the `/document-feature` command to create documentation for new features.
 
 1. Real file paths from the codebase exploration
 2. Actual data models from TypeScript types
-3. Real API endpoints from backend routes
-4. Actual Firebase collections and indexes
-5. Common issues discovered during development
+3. Actual Firebase collections and indexes
+4. Common issues discovered during development
+5. Cloud Functions if applicable
 
 ## Documentation Standards
 
@@ -291,24 +216,25 @@ Use the `/document-feature` command to create documentation for new features.
 - Examples: `INDRIVER_IMPORT.md`, `VEHICLE_FINANCES.md`, `EXTERNAL_RIDES.md`
 
 ### Required Sections
-1. Overview
+1. Overview (with Key Capabilities list)
 2. Architecture (with ASCII diagram)
-3. Key Files
-4. Data Model
-5. Common Issues and Solutions
-6. Last Updated date
+3. User Stories
+4. Key Files (with actual paths)
+5. Data Model
+6. Common Issues and Solutions
+7. Last Updated date
 
 ### Optional Sections (include if applicable)
-- API Endpoints
+- API Endpoints (for Cloud Functions)
 - Configuration
 - Usage Examples
 - Testing
-- Changelog
+- Security Rules
 
 ### Quality Checklist
 - [ ] All file paths are accurate
 - [ ] Data models match actual TypeScript types
-- [ ] API endpoints are documented correctly
+- [ ] Cloud Functions documented if present
 - [ ] Common issues from development are included
 - [ ] No sensitive data (API keys, secrets) included
 - [ ] ASCII diagrams are readable and accurate
@@ -337,6 +263,12 @@ After running this command, you will have:
 1. New file: `docs/features/<FEATURE_NAME>.md`
 2. Updated: `docs/features/README.md` with new entry
 3. Cross-references updated where applicable
+
+## Reference
+
+**Gold standard example:** `docs/features/INDRIVER_IMPORT.md`
+
+Use this file as a reference for structure and detail level.
 
 ## Notes
 

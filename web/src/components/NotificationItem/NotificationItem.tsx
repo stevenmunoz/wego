@@ -4,6 +4,7 @@
  */
 
 import { type FC } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   useNotificationStore,
   getNotificationDate,
@@ -19,6 +20,7 @@ interface NotificationItemProps {
 }
 
 export const NotificationItem: FC<NotificationItemProps> = ({ notification, onClose }) => {
+  const navigate = useNavigate();
   const markAsRead = useNotificationStore((state) => state.markAsRead);
   const currentUserId = useNotificationStore((state) => state.currentUserId);
 
@@ -30,7 +32,13 @@ export const NotificationItem: FC<NotificationItemProps> = ({ notification, onCl
     if (!isRead) {
       markAsRead(notification.id);
     }
-    // For now, just close the dropdown (no navigation)
+
+    // Navigate to action URL if available
+    const actionUrl = notification.metadata?.action_url;
+    if (actionUrl) {
+      navigate(actionUrl);
+    }
+
     onClose?.();
   };
 

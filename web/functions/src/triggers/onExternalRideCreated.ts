@@ -62,7 +62,7 @@ export const onExternalRideCreated = functions
       // Create the notification
       const notificationId = await createNotification({
         type: 'external_driver_ride',
-        title: 'Nuevo viaje externo registrado',
+        title: 'Nuevo Viaje Externo Registrado',
         message,
         source_collection: 'driver_rides',
         source_document_id: rideId,

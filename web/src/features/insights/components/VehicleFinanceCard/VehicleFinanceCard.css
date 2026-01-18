@@ -1,0 +1,128 @@
+/**
+ * VehicleFinanceCard Component Styles
+ *
+ * Compact card showing vehicle weekly P/L.
+ */
+
+.vehicle-finance-card {
+  background: var(--color-white, #ffffff);
+  border: 1px solid var(--color-neutral-200, #e5e7eb);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.vehicle-finance-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Header */
+.vehicle-finance-card__header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.875rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-neutral-100, #f3f4f6);
+}
+
+.vehicle-finance-card__plate {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-primary-800, #1e2a3a);
+  letter-spacing: 0.02em;
+}
+
+.vehicle-finance-card__name {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  color: var(--color-neutral-500, #6b7280);
+}
+
+/* Body */
+.vehicle-finance-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+/* Row */
+.vehicle-finance-card__row {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.vehicle-finance-card__label {
+  font-weight: 500;
+  color: var(--color-neutral-600, #4b5563);
+}
+
+.vehicle-finance-card__value {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+}
+
+.vehicle-finance-card__value--income {
+  color: var(--color-neutral-800, #1f2937);
+}
+
+.vehicle-finance-card__value--expense {
+  color: var(--color-neutral-600, #4b5563);
+}
+
+.vehicle-finance-card__value--profit.positive {
+  color: var(--color-success-600, #16a34a);
+}
+
+.vehicle-finance-card__value--profit.negative {
+  color: var(--color-error-500, #ef4444);
+}
+
+/* Meta info (rides | km) */
+.vehicle-finance-card__meta {
+  grid-column: 2;
+  font-size: 0.8125rem;
+  color: var(--color-neutral-500, #6b7280);
+}
+
+/* Expense breakdown */
+.vehicle-finance-card__breakdown {
+  grid-column: 2;
+  font-size: 0.8125rem;
+  color: var(--color-neutral-500, #6b7280);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Profit row */
+.vehicle-finance-card__row--profit {
+  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+  border-top: 1px dashed var(--color-neutral-200, #e5e7eb);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .vehicle-finance-card {
+    padding: 0.875rem 1rem;
+  }
+
+  .vehicle-finance-card__header {
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .vehicle-finance-card__row {
+    grid-template-columns: 1fr;
+    gap: 0.125rem;
+  }
+
+  .vehicle-finance-card__meta,
+  .vehicle-finance-card__breakdown {
+    grid-column: 1;
+    padding-left: 0;
+  }
+}
