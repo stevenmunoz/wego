@@ -28,6 +28,8 @@ export {
   getInDriverRides,
   updateInDriverRide,
   reassignRideToDriver,
+  deleteInDriverRide,
+  deleteAllRides,
   getUserProfile,
   getAllUsers,
   createUserProfile,

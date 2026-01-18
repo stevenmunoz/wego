@@ -18,6 +18,26 @@ If data needs to be deleted or modified, **ALWAYS ask the user to do it manually
 
 ---
 
+## Production Data Debugging Rules
+
+When asked to investigate or debug **production data**:
+
+1. **READ-ONLY ACCESS ONLY** - Never modify, update, or delete production data
+2. **Use Firebase Console** - Direct the user to view data in Firebase Console
+3. **Log Analysis** - Check Cloud Function logs via `firebase functions:log`
+4. **No Direct Queries** - Avoid running scripts that could accidentally modify data
+5. **Document Findings** - Report observations without making changes
+6. **User Confirmation** - Any data fixes must be done manually by the user
+
+**NEVER** when debugging production:
+- Run any write/update/delete operations on production
+- Use admin SDKs to modify production Firestore
+- Execute migration scripts against production
+- Make "quick fixes" to production data
+- Switch to production project without explicit user permission
+
+---
+
 ## Project Overview
 
 WeGo is a transportation platform offering:

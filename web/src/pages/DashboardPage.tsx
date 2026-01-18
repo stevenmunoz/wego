@@ -16,6 +16,9 @@ import { useDriverRides } from '@/hooks/useDriverRides';
 import { useAdminRides } from '@/hooks/useAdminRides';
 import './DashboardPage.css';
 
+// Check if running in dev environment (never allow delete all in prod)
+const isDev = import.meta.env.VITE_FIREBASE_PROJECT_ID?.includes('dev');
+
 export const DashboardPage = () => {
   const user = useAuthStore((state) => state.user);
   const userRole = useAuthStore((state) => state.userRole);
@@ -26,6 +29,7 @@ export const DashboardPage = () => {
   const [statusFilter, setStatusFilter] = useState<StatusFilterOption>('all');
   const [sourceFilter, setSourceFilter] = useState<SourceFilterOption>('all');
   const [driverFilter, setDriverFilter] = useState<string>('all');
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
   const options = useMemo(
     () => ({
@@ -41,7 +45,13 @@ export const DashboardPage = () => {
 
   // Select the right data based on role
   const { rides, isLoading, error, refetch, updateRide } = isAdmin ? adminRides : driverRides;
-  const { drivers = [], vehicles = [] } = adminRides;
+  const {
+    drivers = [],
+    vehicles = [],
+    deleteRide,
+    deleteAllRides,
+    isDeleting,
+  } = adminRides;
 
   const handleDateFilterChange = (
     option: DateFilterOption,
@@ -49,6 +59,15 @@ export const DashboardPage = () => {
   ) => {
     setDateFilter(option);
     setDateRange(range);
+  };
+
+  const handleDeleteAllRides = async () => {
+    if (!deleteAllRides) return;
+
+    const result = await deleteAllRides();
+    if (result.success) {
+      setShowDeleteAllConfirm(false);
+    }
   };
 
   // Page titles based on role
@@ -69,9 +88,46 @@ export const DashboardPage = () => {
               </h1>
               <p className="page-subtitle">{pageSubtitle}</p>
             </div>
-            <button type="button" className="btn btn-outline" onClick={refetch}>
-              <span>🔄</span> Actualizar
-            </button>
+            <div className="page-header-actions">
+              <button type="button" className="btn btn-outline" onClick={refetch}>
+                <span>🔄</span> Actualizar
+              </button>
+              {/* Delete All Rides - DEV ONLY, Admin only */}
+              {isDev && isAdmin && (
+                <>
+                  {showDeleteAllConfirm ? (
+                    <div className="delete-all-confirm">
+                      <span className="delete-all-warning">¿Eliminar TODOS los viajes?</span>
+                      <button
+                        type="button"
+                        className="btn btn-danger btn-sm"
+                        onClick={handleDeleteAllRides}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? 'Eliminando...' : 'Confirmar'}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        onClick={() => setShowDeleteAllConfirm(false)}
+                        disabled={isDeleting}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-danger-outline btn-sm"
+                      onClick={() => setShowDeleteAllConfirm(true)}
+                      title="Solo disponible en entorno de desarrollo"
+                    >
+                      Eliminar Todos (DEV)
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
           <div className="page-header-filters">
             <DateFilter value={dateFilter} onChange={handleDateFilterChange} />
@@ -100,9 +156,11 @@ export const DashboardPage = () => {
           sourceFilter={sourceFilter}
           driverFilter={isAdmin ? driverFilter : 'all'}
           onUpdateRide={updateRide}
+          onDeleteRide={isAdmin ? deleteRide : undefined}
           showDriverColumn={isAdmin}
           showVehicleColumn={true}
           showSourceColumn={true}
+          showDeleteButton={isAdmin}
           drivers={isAdmin ? drivers : []}
           vehicles={isAdmin ? vehicles : []}
         />

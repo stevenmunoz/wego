@@ -34,25 +34,41 @@ IMPORTANT CONTEXT:
 - Time format: 12-hour with "a.m." or "p.m."
 - Commission rate is typically 9.5%
 
+CANCELLED RIDE DETECTION:
+A ride is ONLY cancelled if you see EXPLICIT cancellation indicators. Look for:
+- "tag_passenger_canceled_key" or "passenger_canceled" = cancelled BY PASSENGER (is_cancelled=true, cancelled_by_passenger=true)
+- "tag_driver_canceled_key" or "driver_canceled" = cancelled BY DRIVER (is_cancelled=true, cancelled_by_passenger=false)
+- "Viaje cancelado" or "Cancelado" in the header/title = cancelled ride
+- "Cancelado por el pasajero" = cancelled by passenger
+- "Cancelado por el conductor" = cancelled by driver
+
+IMPORTANT - DO NOT mark as cancelled if:
+- The ride has "Mis ingresos" with a value greater than 0
+- The ride has "Tarifa" or "Total recibido" with a positive value
+- "waiting_fee_minutes_key" appears (this is just a waiting fee label, NOT a cancellation indicator)
+- The ride shows duration, distance, and financial details
+
+A ride with actual earnings (mis_ingresos > 0) is ALWAYS a completed ride, even if OCR captured strange localization keys.
+
 FIELDS TO EXTRACT:
 1. date: Format as "YYYY-MM-DD" if found
 2. time: Format as "HH:MM" in 24-hour format if found
 3. destination_address: The destination shown (usually near top of receipt)
-4. duration_value/duration_unit: Ride duration (e.g., "20 min" -> value=20, unit="min")
-5. distance_value/distance_unit: Ride distance (e.g., "6,4 km" -> value=6.4, unit="km")
-6. passenger_name: The passenger's name (usually a capitalized name)
+4. duration_value/duration_unit: Ride duration (e.g., "20 min" -> value=20, unit="min"). Use null for cancelled rides with 0 duration.
+5. distance_value/distance_unit: Ride distance (e.g., "6,4 km" -> value=6.4, unit="km"). Use null for cancelled rides with 0 distance.
+6. passenger_name: The passenger's name (usually a capitalized name like "Laura", "Carlos", etc.)
 7. rating_given: Number of stars given (1-5) if visible
-8. is_cancelled: true if the ride was cancelled
-9. cancelled_by_passenger: true if cancelled by passenger
+8. is_cancelled: true ONLY if explicit cancellation text is present AND mis_ingresos is 0 (see CANCELLED RIDE DETECTION above)
+9. cancelled_by_passenger: true if cancelled by passenger, false if cancelled by driver
 10. payment_method: "cash" for "Pago en efectivo", "nequi" for Nequi, "other" otherwise
 11. Financial fields (all as numbers without thousands separators):
-    - tarifa: Base fare
-    - total_recibido: Total received from passenger
-    - comision_servicio: Service commission
-    - comision_porcentaje: Commission percentage (usually 9.5)
-    - iva_pago_servicio: IVA (tax) on service payment
-    - total_pagado: Total paid (commission + IVA)
-    - mis_ingresos: Net earnings (what driver keeps)
+    - tarifa: Base fare (0 for cancelled rides)
+    - total_recibido: Total received from passenger (0 for cancelled rides)
+    - comision_servicio: Service commission (0 for cancelled rides)
+    - comision_porcentaje: Commission percentage (usually 9.5, or null for cancelled rides)
+    - iva_pago_servicio: IVA (tax) on service payment (0 for cancelled rides)
+    - total_pagado: Total paid (commission + IVA) (0 for cancelled rides)
+    - mis_ingresos: Net earnings (what driver keeps) (0 for cancelled rides)
 
 12. extraction_confidence: Your confidence in the extraction accuracy (0.0-1.0)
 
@@ -60,7 +76,9 @@ IMPORTANT:
 - Return null for any field you cannot reliably extract
 - For financial values, convert from Colombian format (18.000,00) to plain numbers (18000.00)
 - If text is unclear or OCR has errors, make reasonable inferences but lower the confidence
-- Look for key Spanish labels like "Tarifa", "Total recibido", "Mis ingresos", "Pagos por el servicio"`;
+- Look for key Spanish labels like "Tarifa", "Total recibido", "Mis ingresos", "Pagos por el servicio"
+- ALWAYS extract the passenger name even for cancelled rides - it's usually a capitalized name on its own line
+- Cancelled rides are VALID data - do not skip them, just mark is_cancelled=true`;
 
 /**
  * JSON schema for structured output

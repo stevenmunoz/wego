@@ -11,6 +11,7 @@ import {
   getDocs,
   setDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -769,5 +770,84 @@ export async function reassignRideToDriver(
     console.error('[Firestore] Error reassigning ride:', error);
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Delete a single InDriver ride from Firestore
+ * @param driverId - Driver ID (used if docPath not provided)
+ * @param rideId - Ride document ID
+ * @param docPath - Optional full document path (preferred, more reliable)
+ */
+export async function deleteInDriverRide(
+  driverId: string,
+  rideId: string,
+  docPath?: string
+): Promise<{ success: boolean; error?: string }> {
+  console.log('[Firestore] deleteInDriverRide called:', { driverId, rideId, docPath });
+  try {
+    // Use the stored document path if available (more reliable), otherwise construct it
+    const rideDocRef = docPath
+      ? doc(db, docPath)
+      : doc(db, 'drivers', driverId, 'driver_rides', rideId);
+    console.log('[Firestore] Deleting document at path:', rideDocRef.path);
+
+    await deleteDoc(rideDocRef);
+    console.log('[Firestore] Delete successful');
+
+    return { success: true };
+  } catch (error) {
+    console.error('[Firestore] Error deleting ride:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Delete ALL rides from ALL drivers
+ * WARNING: This is a destructive operation! Only use in development/testing environments.
+ * @returns Result with count of deleted rides
+ */
+export async function deleteAllRides(): Promise<{
+  success: boolean;
+  deletedCount: number;
+  error?: string;
+}> {
+  console.log('[Firestore] deleteAllRides called - WARNING: Deleting all rides');
+
+  try {
+    // Use collection group query to get ALL rides across ALL drivers
+    const ridesCollectionGroup = collectionGroup(db, 'driver_rides');
+    const snapshot = await getDocs(ridesCollectionGroup);
+
+    console.log('[Firestore] Found', snapshot.docs.length, 'rides to delete');
+
+    if (snapshot.docs.length === 0) {
+      return { success: true, deletedCount: 0 };
+    }
+
+    // Delete in batches (Firestore batch limit is 500 operations)
+    const BATCH_SIZE = 500;
+    let deletedCount = 0;
+
+    for (let i = 0; i < snapshot.docs.length; i += BATCH_SIZE) {
+      const batch = writeBatch(db);
+      const batchDocs = snapshot.docs.slice(i, i + BATCH_SIZE);
+
+      batchDocs.forEach((docSnap) => {
+        batch.delete(docSnap.ref);
+      });
+
+      await batch.commit();
+      deletedCount += batchDocs.length;
+      console.log(`[Firestore] Deleted batch ${Math.floor(i / BATCH_SIZE) + 1}, total: ${deletedCount}`);
+    }
+
+    console.log('[Firestore] All rides deleted successfully, total:', deletedCount);
+    return { success: true, deletedCount };
+  } catch (error) {
+    console.error('[Firestore] Error deleting all rides:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, deletedCount: 0, error: errorMsg };
   }
 }

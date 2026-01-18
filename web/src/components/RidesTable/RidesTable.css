@@ -685,8 +685,14 @@ input[type='time'].editable-input::-webkit-calendar-picker-indicator:hover {
    ============================================================================ */
 
 .cell-actions {
-  width: 80px;
+  width: 120px;
   white-space: nowrap;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
 }
 
 .action-btn {
@@ -716,6 +722,52 @@ input[type='time'].editable-input::-webkit-calendar-picker-indicator:hover {
 
 .action-btn-label {
   display: none;
+}
+
+/* Delete Button Styles */
+.action-btn-delete {
+  padding: 0.375rem;
+  border-color: transparent;
+  color: var(--color-neutral-400, #9ca3af);
+}
+
+.action-btn-delete:hover {
+  background-color: var(--color-error-50, #fef2f2);
+  border-color: var(--color-error-200, #fecaca);
+  color: var(--color-error-600, #dc2626);
+}
+
+/* Delete Confirmation Inline */
+.delete-confirm-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.action-btn-confirm-delete {
+  padding: 0.375rem;
+  background-color: var(--color-error-500, #ef4444);
+  border-color: var(--color-error-500, #ef4444);
+  color: #fff;
+}
+
+.action-btn-confirm-delete:hover {
+  background-color: var(--color-error-600, #dc2626);
+  border-color: var(--color-error-600, #dc2626);
+  color: #fff;
+}
+
+.action-btn-cancel-delete {
+  padding: 0.375rem;
+  background-color: var(--color-neutral-100, #f3f4f6);
+  border-color: var(--color-neutral-300, #d1d5db);
+  color: var(--color-neutral-600, #4b5563);
+}
+
+.action-btn-cancel-delete:hover {
+  background-color: var(--color-neutral-200, #e5e7eb);
+  border-color: var(--color-neutral-400, #9ca3af);
+  color: var(--color-neutral-700, #374151);
 }
 
 @media (min-width: 1024px) {
