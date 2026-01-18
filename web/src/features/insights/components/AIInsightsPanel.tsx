@@ -29,11 +29,7 @@ function formatDateTime(date: Date): string {
   });
 }
 
-export const AIInsightsPanel: FC<AIInsightsPanelProps> = ({
-  insights,
-  generatedAt,
-  isLoading,
-}) => {
+export const AIInsightsPanel: FC<AIInsightsPanelProps> = ({ insights, generatedAt, isLoading }) => {
   if (isLoading) {
     return (
       <div className="ai-insights-panel">

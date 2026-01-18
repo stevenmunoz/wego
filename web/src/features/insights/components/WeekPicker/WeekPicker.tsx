@@ -13,12 +13,7 @@
 
 import { type FC, useState, useRef, useEffect } from 'react';
 import './WeekPicker.css';
-import {
-  type WeekValue,
-  getISOWeekNumber,
-  getDateFromISOWeek,
-  formatWeekRange,
-} from './weekUtils';
+import { type WeekValue, getISOWeekNumber, getDateFromISOWeek, formatWeekRange } from './weekUtils';
 
 // Note: WeekValue and utility functions are exported via index.ts from weekUtils.ts
 
@@ -221,9 +216,7 @@ export const WeekPicker: FC<WeekPickerProps> = ({
                     disabled={isDisabled}
                   >
                     <span className="week-picker__option-label">{preset.label}</span>
-                    <span className="week-picker__option-range">
-                      {formatWeekRange(presetWeek)}
-                    </span>
+                    <span className="week-picker__option-range">{formatWeekRange(presetWeek)}</span>
                     {isSelected && <span className="week-picker__check">✓</span>}
                   </button>
                 </li>

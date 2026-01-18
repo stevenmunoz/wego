@@ -205,7 +205,10 @@ export function formatWeekId(year: number, week: number): string {
 /**
  * Convert period-agnostic insights to WeeklyInsights format
  */
-function periodInsightsToWeeklyInsights(docId: string, data: FirestorePeriodInsights): WeeklyInsights {
+function periodInsightsToWeeklyInsights(
+  docId: string,
+  data: FirestorePeriodInsights
+): WeeklyInsights {
   return {
     id: docId,
     week_id: data.period_id,
@@ -251,7 +254,10 @@ function periodInsightsToWeeklyInsights(docId: string, data: FirestorePeriodInsi
  * @param week - The week number (1-53)
  * @returns WeeklyInsights or null if not found
  */
-export async function getWeeklyInsights(year: number, week: number): Promise<WeeklyInsights | null> {
+export async function getWeeklyInsights(
+  year: number,
+  week: number
+): Promise<WeeklyInsights | null> {
   const weekId = formatWeekId(year, week);
   const docId = `weekly_${weekId}`;
   const docRef = doc(db, 'insights', docId);
@@ -445,7 +451,12 @@ export async function getWeeklyInsightsList(
   let q = query(insightsCollection, orderBy('period_start', 'desc'), limit(pageSize * 4 + 1));
 
   if (lastDocument) {
-    q = query(insightsCollection, orderBy('period_start', 'desc'), startAfter(lastDocument), limit(pageSize * 4 + 1));
+    q = query(
+      insightsCollection,
+      orderBy('period_start', 'desc'),
+      startAfter(lastDocument),
+      limit(pageSize * 4 + 1)
+    );
   }
 
   try {

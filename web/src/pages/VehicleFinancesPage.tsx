@@ -10,11 +10,7 @@ import { PLSummaryCards } from '@/components/VehicleFinances/PLSummaryCards';
 import { TransactionsTable } from '@/components/VehicleFinances/TransactionsTable';
 import { IncomeForm } from '@/components/VehicleFinances/IncomeForm';
 import { ExpenseForm } from '@/components/VehicleFinances/ExpenseForm';
-import {
-  DateRangePicker,
-  getStartOfDay,
-  getEndOfDay,
-} from '@/components/DateRangePicker';
+import { DateRangePicker, getStartOfDay, getEndOfDay } from '@/components/DateRangePicker';
 import type { DateRange, DatePreset } from '@/components/DateRangePicker';
 import { useDriverVehicles } from '@/hooks/useDriverVehicles';
 import { useAllVehicles } from '@/hooks/useAllVehicles';
@@ -421,11 +417,7 @@ export const VehicleFinancesPage = () => {
           {/* Date Range Picker */}
           <div className="filter-group">
             <label>Período:</label>
-            <DateRangePicker
-              value={dateRange}
-              onChange={setDateRange}
-              presets={financePresets}
-            />
+            <DateRangePicker value={dateRange} onChange={setDateRange} presets={financePresets} />
           </div>
         </div>
 

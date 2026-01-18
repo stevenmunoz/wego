@@ -25,12 +25,5 @@ function getYesterday(): Date {
 }
 
 export const InsightsDateSelector: FC<InsightsDateSelectorProps> = ({ value, onChange }) => {
-  return (
-    <SingleDatePicker
-      label="Fecha:"
-      value={value}
-      onChange={onChange}
-      max={getYesterday()}
-    />
-  );
+  return <SingleDatePicker label="Fecha:" value={value} onChange={onChange} max={getYesterday()} />;
 };

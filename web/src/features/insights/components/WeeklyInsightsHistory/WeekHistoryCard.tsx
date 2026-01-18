@@ -21,7 +21,20 @@ interface WeekHistoryCardProps {
  * Example: "6-12 ene 2026" or "30 dic - 5 ene"
  */
 function formatWeekRange(startDate: Date, endDate: Date): string {
-  const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  const months = [
+    'ene',
+    'feb',
+    'mar',
+    'abr',
+    'may',
+    'jun',
+    'jul',
+    'ago',
+    'sep',
+    'oct',
+    'nov',
+    'dic',
+  ];
 
   const startDay = startDate.getDate();
   const endDay = endDate.getDate();
@@ -57,11 +70,7 @@ function formatCurrency(amount: number): string {
   return `$${amount.toLocaleString('es-CO')}`;
 }
 
-export const WeekHistoryCard: FC<WeekHistoryCardProps> = ({
-  summary,
-  isSelected,
-  onClick,
-}) => {
+export const WeekHistoryCard: FC<WeekHistoryCardProps> = ({ summary, isSelected, onClick }) => {
   const weekRange = formatWeekRange(summary.weekStart, summary.weekEnd);
   const formattedRevenue = formatCurrency(summary.totalRevenue);
 
@@ -73,7 +82,9 @@ export const WeekHistoryCard: FC<WeekHistoryCardProps> = ({
       aria-pressed={isSelected}
     >
       <div className="week-history-card__header">
-        <span className={`week-history-card__dot ${isSelected ? 'week-history-card__dot--filled' : ''}`} />
+        <span
+          className={`week-history-card__dot ${isSelected ? 'week-history-card__dot--filled' : ''}`}
+        />
         <span className="week-history-card__range">{weekRange}</span>
       </div>
       <div className="week-history-card__stats">

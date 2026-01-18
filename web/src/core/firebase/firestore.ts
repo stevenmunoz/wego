@@ -840,7 +840,9 @@ export async function deleteAllRides(): Promise<{
 
       await batch.commit();
       deletedCount += batchDocs.length;
-      console.log(`[Firestore] Deleted batch ${Math.floor(i / BATCH_SIZE) + 1}, total: ${deletedCount}`);
+      console.log(
+        `[Firestore] Deleted batch ${Math.floor(i / BATCH_SIZE) + 1}, total: ${deletedCount}`
+      );
     }
 
     console.log('[Firestore] All rides deleted successfully, total:', deletedCount);

@@ -200,7 +200,9 @@
   font-size: 0.875rem;
   color: var(--color-neutral-800, #1f2937);
   background-color: var(--color-white, #ffffff);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   color-scheme: light;
   -webkit-appearance: none;
   appearance: none;

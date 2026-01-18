@@ -39,7 +39,9 @@ export const AIRecommendationsList: FC<AIRecommendationsListProps> = ({ insights
         <li key={insight.id} className="ai-recommendations__item">
           <div className="ai-recommendations__header">
             <span className="ai-recommendations__number">{index + 1}.</span>
-            <span className={`ai-recommendations__badge ai-recommendations__badge--${insight.priority}`}>
+            <span
+              className={`ai-recommendations__badge ai-recommendations__badge--${insight.priority}`}
+            >
               {getPriorityLabel(insight.priority)}
             </span>
             <span className="ai-recommendations__title">{insight.title}</span>

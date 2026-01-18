@@ -6,10 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
-import {
-  getWeeklyInsightsList,
-  type WeeklyInsightsSummary,
-} from '@/core/firebase/insights';
+import { getWeeklyInsightsList, type WeeklyInsightsSummary } from '@/core/firebase/insights';
 
 interface UseWeeklyInsightsHistoryReturn {
   /** List of weekly insights summaries */

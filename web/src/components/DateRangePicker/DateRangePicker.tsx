@@ -229,7 +229,9 @@ export const DateRangePicker: FC<DateRangePickerProps> = ({
                         onClick={() => handleSelectPreset(preset)}
                       >
                         {preset.label}
-                        {isSelected && <span className="date-range-picker__check">{'\u{2713}'}</span>}
+                        {isSelected && (
+                          <span className="date-range-picker__check">{'\u{2713}'}</span>
+                        )}
                       </button>
                     </li>
                   );
@@ -245,7 +247,9 @@ export const DateRangePicker: FC<DateRangePickerProps> = ({
                   >
                     <span className="date-range-picker__custom-icon">{'\u{1F4C6}'}</span>
                     Personalizado
-                    {!matchedPreset && <span className="date-range-picker__check">{'\u{2713}'}</span>}
+                    {!matchedPreset && (
+                      <span className="date-range-picker__check">{'\u{2713}'}</span>
+                    )}
                   </button>
                 </>
               )}

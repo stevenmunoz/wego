@@ -72,7 +72,9 @@ export const InsightsSummaryCards: FC<InsightsSummaryCardsProps> = ({ metrics, i
         <div className="summary-card__icon">{'\u{1F4B0}'}</div>
         <div className="summary-card__content">
           <span className="summary-card__label">Ingresos Totales</span>
-          <span className="summary-card__value">${formatCurrency(metrics?.total_revenue ?? 0)}</span>
+          <span className="summary-card__value">
+            ${formatCurrency(metrics?.total_revenue ?? 0)}
+          </span>
           {revenueChange && (
             <span
               className={`summary-card__change ${revenueChange.positive ? 'summary-card__change--positive' : 'summary-card__change--negative'}`}

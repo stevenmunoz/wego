@@ -22,15 +22,8 @@ function formatCOP(amount: number): string {
 }
 
 export const VehicleFinanceCard: FC<VehicleFinanceCardProps> = ({ vehicle }) => {
-  const {
-    vehicle_plate,
-    vehicle_name,
-    rides_count,
-    total_km,
-    total_income,
-    expenses,
-    net_profit,
-  } = vehicle;
+  const { vehicle_plate, vehicle_name, rides_count, total_km, total_income, expenses, net_profit } =
+    vehicle;
 
   const isProfit = net_profit >= 0;
 
@@ -63,9 +56,7 @@ export const VehicleFinanceCard: FC<VehicleFinanceCardProps> = ({ vehicle }) => 
             ${formatCOP(expenses.total)} COP
           </span>
           {expenses.top_categories.length > 0 && (
-            <span className="vehicle-finance-card__breakdown">
-              └─ {expenseBreakdown}
-            </span>
+            <span className="vehicle-finance-card__breakdown">└─ {expenseBreakdown}</span>
           )}
         </div>
 

@@ -13,7 +13,10 @@ import { trackPageViewed } from '@/core/analytics';
 import { WeekPicker, getISOWeekNumber } from '@/features/insights/components/WeekPicker';
 import { formatWeekId } from '@/core/firebase/insights';
 import { InsightsSummary } from '@/features/insights/components/InsightsSummary';
-import { WeeklyInsightsHistory, HistoryDrawer } from '@/features/insights/components/WeeklyInsightsHistory';
+import {
+  WeeklyInsightsHistory,
+  HistoryDrawer,
+} from '@/features/insights/components/WeeklyInsightsHistory';
 import { useWeeklyInsights } from '@/features/insights/hooks/useWeeklyInsights';
 import { useWeeklyInsightsHistory } from '@/features/insights/hooks/useWeeklyInsightsHistory';
 import type { WeekValue } from '@/features/insights/components/WeekPicker';

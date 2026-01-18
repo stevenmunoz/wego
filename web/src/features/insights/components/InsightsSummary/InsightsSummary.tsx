@@ -56,19 +56,26 @@ function formatWeekRange(start: Date, end: Date): string {
 }
 
 export const InsightsSummary: FC<InsightsSummaryProps> = ({ data, userName = 'Usuario' }) => {
-  const { rides, cancellations, kilometers, vehicle_finances, insights, generated_at, week_start, week_end } =
-    data;
+  const {
+    rides,
+    cancellations,
+    kilometers,
+    vehicle_finances,
+    insights,
+    generated_at,
+    week_start,
+    week_end,
+  } = data;
 
   const weekRangeText = formatWeekRange(week_start, week_end);
 
   // Calculate cancellation percentages by reason
-  const cancellationTotal = cancellations.by_reason.by_passenger + cancellations.by_reason.by_driver;
-  const passengerPercent = cancellationTotal > 0
-    ? (cancellations.by_reason.by_passenger / cancellationTotal) * 100
-    : 0;
-  const driverPercent = cancellationTotal > 0
-    ? (cancellations.by_reason.by_driver / cancellationTotal) * 100
-    : 0;
+  const cancellationTotal =
+    cancellations.by_reason.by_passenger + cancellations.by_reason.by_driver;
+  const passengerPercent =
+    cancellationTotal > 0 ? (cancellations.by_reason.by_passenger / cancellationTotal) * 100 : 0;
+  const driverPercent =
+    cancellationTotal > 0 ? (cancellations.by_reason.by_driver / cancellationTotal) * 100 : 0;
 
   return (
     <article className="insights-summary">
@@ -86,33 +93,48 @@ export const InsightsSummary: FC<InsightsSummaryProps> = ({ data, userName = 'Us
           <p className="insights-summary__highlight">
             Se completaron <strong>{rides.completed}</strong> viajes esta semana
             {rides.change_vs_previous_week !== null && (
-              <span className={`insights-summary__change ${rides.change_vs_previous_week >= 0 ? 'positive' : 'negative'}`}>
-                {' '}({formatPercent(rides.change_vs_previous_week)} vs semana anterior)
+              <span
+                className={`insights-summary__change ${rides.change_vs_previous_week >= 0 ? 'positive' : 'negative'}`}
+              >
+                {' '}
+                ({formatPercent(rides.change_vs_previous_week)} vs semana anterior)
               </span>
-            )}.
+            )}
+            .
           </p>
 
           <ul className="insights-summary__breakdown">
             <li>
               <span className="insights-summary__source">InDriver:</span>
               <span className="insights-summary__source-data">
-                {rides.by_source.indriver.count} viajes ({rides.by_source.indriver.percentage.toFixed(0)}%) →{' '}
-                <span className="insights-summary__amount">${formatCOP(rides.by_source.indriver.revenue)} COP</span>
+                {rides.by_source.indriver.count} viajes (
+                {rides.by_source.indriver.percentage.toFixed(0)}%) →{' '}
+                <span className="insights-summary__amount">
+                  ${formatCOP(rides.by_source.indriver.revenue)} COP
+                </span>
               </span>
             </li>
             <li>
               <span className="insights-summary__source">Externos:</span>
               <span className="insights-summary__source-data">
-                {rides.by_source.external.count} viajes ({rides.by_source.external.percentage.toFixed(0)}%) →{' '}
-                <span className="insights-summary__amount">${formatCOP(rides.by_source.external.revenue)} COP</span>
+                {rides.by_source.external.count} viajes (
+                {rides.by_source.external.percentage.toFixed(0)}%) →{' '}
+                <span className="insights-summary__amount">
+                  ${formatCOP(rides.by_source.external.revenue)} COP
+                </span>
               </span>
             </li>
           </ul>
 
           <p className="insights-summary__total">
-            Ingreso total: <span className="insights-summary__amount">${formatCOP(rides.total_revenue)} COP</span>
+            Ingreso total:{' '}
+            <span className="insights-summary__amount">${formatCOP(rides.total_revenue)} COP</span>
             {' | '}
-            Promedio: <span className="insights-summary__amount">${formatCOP(rides.average_per_ride)} COP</span>/viaje
+            Promedio:{' '}
+            <span className="insights-summary__amount">
+              ${formatCOP(rides.average_per_ride)} COP
+            </span>
+            /viaje
           </p>
         </div>
       </section>
@@ -123,8 +145,8 @@ export const InsightsSummary: FC<InsightsSummaryProps> = ({ data, userName = 'Us
 
         <div className="insights-summary__content">
           <p className="insights-summary__highlight">
-            Hubo <strong>{cancellations.total}</strong> cancelaciones esta semana
-            {' '}(tasa: <strong>{cancellations.rate.toFixed(1)}%</strong>):
+            Hubo <strong>{cancellations.total}</strong> cancelaciones esta semana (tasa:{' '}
+            <strong>{cancellations.rate.toFixed(1)}%</strong>):
           </p>
 
           <ul className="insights-summary__breakdown">
@@ -150,18 +172,24 @@ export const InsightsSummary: FC<InsightsSummaryProps> = ({ data, userName = 'Us
 
         <div className="insights-summary__content">
           <p className="insights-summary__highlight">
-            Los vehículos recorrieron <strong>{formatCOP(kilometers.total_km)}</strong> km en total esta semana.
+            Los vehículos recorrieron <strong>{formatCOP(kilometers.total_km)}</strong> km en total
+            esta semana.
           </p>
 
           <ul className="insights-summary__breakdown">
             <li>
               <span className="insights-summary__source">Promedio por viaje:</span>
-              <span className="insights-summary__source-data">{kilometers.average_per_ride.toFixed(1)} km</span>
+              <span className="insights-summary__source-data">
+                {kilometers.average_per_ride.toFixed(1)} km
+              </span>
             </li>
             <li>
               <span className="insights-summary__source">Ingreso por km:</span>
               <span className="insights-summary__source-data">
-                <span className="insights-summary__amount">${formatCOP(kilometers.revenue_per_km)} COP</span>/km
+                <span className="insights-summary__amount">
+                  ${formatCOP(kilometers.revenue_per_km)} COP
+                </span>
+                /km
               </span>
             </li>
           </ul>
@@ -186,7 +214,8 @@ export const InsightsSummary: FC<InsightsSummaryProps> = ({ data, userName = 'Us
         <section className="insights-summary__section insights-summary__section--recommendations">
           <h2 className="insights-summary__section-title">RECOMENDACIONES (Claude AI)</h2>
           <p className="insights-summary__generated-at">
-            Generado: {new Intl.DateTimeFormat('es-CO', {
+            Generado:{' '}
+            {new Intl.DateTimeFormat('es-CO', {
               day: '2-digit',
               month: '2-digit',
               year: 'numeric',

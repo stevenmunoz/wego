@@ -45,13 +45,7 @@ export const DashboardPage = () => {
 
   // Select the right data based on role
   const { rides, isLoading, error, refetch, updateRide } = isAdmin ? adminRides : driverRides;
-  const {
-    drivers = [],
-    vehicles = [],
-    deleteRide,
-    deleteAllRides,
-    isDeleting,
-  } = adminRides;
+  const { drivers = [], vehicles = [], deleteRide, deleteAllRides, isDeleting } = adminRides;
 
   const handleDateFilterChange = (
     option: DateFilterOption,

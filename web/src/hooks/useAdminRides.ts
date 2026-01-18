@@ -279,7 +279,10 @@ export const useAdminRides = (options?: UseAdminRidesOptions): UseAdminRidesRetu
     [fetchRides]
   );
 
-  const deleteAllRides = useCallback(async (): Promise<{ success: boolean; deletedCount: number }> => {
+  const deleteAllRides = useCallback(async (): Promise<{
+    success: boolean;
+    deletedCount: number;
+  }> => {
     console.log('[useAdminRides] deleteAllRides called');
     setIsDeleting(true);
     setError(null);

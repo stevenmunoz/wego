@@ -6,15 +6,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import {
-  getInsights,
-  triggerGeneratePeriodInsights,
-} from '@/core/firebase/insights';
-import type {
-  PeriodType,
-  PeriodInsights,
-  UsePeriodInsightsReturn,
-} from '../types/insights.types';
+import { getInsights, triggerGeneratePeriodInsights } from '@/core/firebase/insights';
+import type { PeriodType, PeriodInsights, UsePeriodInsightsReturn } from '../types/insights.types';
 
 interface UseInsightsOptions {
   /** The type of period (daily, weekly, biweekly, monthly) */
