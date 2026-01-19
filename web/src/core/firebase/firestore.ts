@@ -19,6 +19,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { firebaseApp } from './config';
+import { toTimestamp } from '@/utils/date.utils';
 
 // Initialize Firestore
 export const db = getFirestore(firebaseApp);
@@ -516,14 +517,8 @@ export async function saveInDriverRides(
 
     for (const ride of rides) {
       try {
-        // Convert date string to Timestamp
-        let dateTimestamp: Timestamp | null = null;
-        if (ride.date) {
-          const parsedDate = new Date(ride.date);
-          if (!isNaN(parsedDate.getTime())) {
-            dateTimestamp = Timestamp.fromDate(parsedDate);
-          }
-        }
+        // Convert date string to Timestamp using noon strategy to avoid timezone bugs
+        const dateTimestamp = toTimestamp(ride.date);
 
         // Create Firestore document
         const firestoreRide: FirestoreInDriverRide = {
