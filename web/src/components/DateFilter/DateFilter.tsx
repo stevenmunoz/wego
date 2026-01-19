@@ -5,6 +5,7 @@
 
 import { type FC, useState, useRef, useEffect } from 'react';
 import { trackRidesDateFiltered } from '@/core/analytics';
+import { getStartOfDay, getEndOfDay, formatDateToInput, parseDateSafe } from '@/utils/date.utils';
 import './DateFilter.css';
 
 export type DateFilterOption =
@@ -33,18 +34,6 @@ interface FilterOptionConfig {
   label: string;
   getRange: () => DateRange;
 }
-
-const getStartOfDay = (date: Date): Date => {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
-};
-
-const getEndOfDay = (date: Date): Date => {
-  const d = new Date(date);
-  d.setHours(23, 59, 59, 999);
-  return d;
-};
 
 const filterOptions: FilterOptionConfig[] = [
   {
@@ -112,7 +101,7 @@ const filterOptions: FilterOptionConfig[] = [
 ];
 
 const formatDateInput = (date: Date): string => {
-  return date.toISOString().split('T')[0];
+  return formatDateToInput(date);
 };
 
 const formatDateDisplay = (date: Date): string => {
@@ -167,18 +156,20 @@ export const DateFilter: FC<DateFilterProps> = ({ value, customRange, onChange }
 
   const handleApplyCustom = () => {
     if (tempStartDate && tempEndDate) {
-      // Parse date string manually to avoid timezone issues
-      const [startYear, startMonth, startDay] = tempStartDate.split('-').map(Number);
-      const [endYear, endMonth, endDay] = tempEndDate.split('-').map(Number);
+      // Parse date strings using centralized utility to avoid timezone issues
+      const parsedStart = parseDateSafe(tempStartDate);
+      const parsedEnd = parseDateSafe(tempEndDate);
 
-      const startDate = getStartOfDay(new Date(startYear, startMonth - 1, startDay));
-      const endDate = getEndOfDay(new Date(endYear, endMonth - 1, endDay));
+      if (parsedStart && parsedEnd) {
+        const startDate = getStartOfDay(parsedStart);
+        const endDate = getEndOfDay(parsedEnd);
 
-      if (startDate <= endDate) {
-        trackRidesDateFiltered('custom');
-        onChange('custom', { startDate, endDate });
-        setIsOpen(false);
-        setShowCustomPicker(false);
+        if (startDate <= endDate) {
+          trackRidesDateFiltered('custom');
+          onChange('custom', { startDate, endDate });
+          setIsOpen(false);
+          setShowCustomPicker(false);
+        }
       }
     }
   };

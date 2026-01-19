@@ -1,26 +1,26 @@
 /**
  * DateInput Utilities
  *
- * Utility functions for date parsing and formatting with proper timezone handling.
+ * Re-exports from centralized date utilities for backward compatibility.
+ * All date logic is now in @/utils/date.utils.ts
  */
 
-/**
- * Format a Date to YYYY-MM-DD string using local timezone
- */
-export function formatDateToInput(date: Date | null): string {
-  if (!date) return '';
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+import {
+  formatDateToInput as formatDateToInputCentral,
+  parseDateSafe,
+  getStartOfDay,
+} from '@/utils/date.utils';
+
+// Re-export with same function names for backward compatibility
+export { formatDateToInputCentral as formatDateToInput };
 
 /**
- * Parse a YYYY-MM-DD string to Date using local timezone
+ * Parse a YYYY-MM-DD string to Date using local timezone with noon strategy
  */
 export function parseDateFromInput(dateStr: string): Date | null {
   if (!dateStr) return null;
-  const [year, month, day] = dateStr.split('-').map(Number);
-  if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
-  return new Date(year, month - 1, day, 0, 0, 0, 0);
+  const date = parseDateSafe(dateStr);
+  if (!date) return null;
+  // Return at start of day for consistency with original behavior
+  return getStartOfDay(date);
 }
