@@ -28,4 +28,14 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      // Disable unsafe date parsing rule for test files
+      // Test fixtures often need fixed dates for mocking
+      files: ['**/*.test.ts', '**/*.test.tsx', '**/tests/**/*.ts', '**/tests/**/*.tsx'],
+      rules: {
+        'no-restricted-syntax': 'off',
+      },
+    },
+  ],
 };
