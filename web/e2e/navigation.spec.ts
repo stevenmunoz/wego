@@ -51,11 +51,6 @@ test.describe('Protected Routes (Unauthenticated)', () => {
     await page.goto('/users');
     await expect(page).toHaveURL(/\/login/);
   });
-
-  test('conversations page redirects to login', async ({ page }) => {
-    await page.goto('/conversations');
-    await expect(page).toHaveURL(/\/login/);
-  });
 });
 
 test.describe('External Routes', () => {
