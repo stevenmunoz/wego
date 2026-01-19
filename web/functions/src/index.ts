@@ -14,3 +14,9 @@ export { onExternalRideCreated } from './triggers/onExternalRideCreated';
 
 // Export InDriver OCR processing trigger
 export { processInDriverDocument } from './triggers/processInDriverDocument';
+
+// Export insights functions
+export {
+  generateInsightsForPeriod,
+  generateWeeklyInsightsScheduled,
+} from './scheduled/generateInsights';

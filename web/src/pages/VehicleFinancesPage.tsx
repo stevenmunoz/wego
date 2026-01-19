@@ -2,7 +2,7 @@
  * Vehicle Finances page - P/L tracking for vehicles
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '@/core/store/auth-store';
 import { DashboardLayout } from '@/components/DashboardLayout';
@@ -10,6 +10,8 @@ import { PLSummaryCards } from '@/components/VehicleFinances/PLSummaryCards';
 import { TransactionsTable } from '@/components/VehicleFinances/TransactionsTable';
 import { IncomeForm } from '@/components/VehicleFinances/IncomeForm';
 import { ExpenseForm } from '@/components/VehicleFinances/ExpenseForm';
+import { DateRangePicker, getStartOfDay, getEndOfDay } from '@/components/DateRangePicker';
+import type { DateRange, DatePreset } from '@/components/DateRangePicker';
 import { useDriverVehicles } from '@/hooks/useDriverVehicles';
 import { useAllVehicles } from '@/hooks/useAllVehicles';
 import { useVehicleFinances } from '@/hooks/useVehicleFinances';
@@ -22,6 +24,70 @@ import type {
 } from '@/core/types';
 import './VehicleFinancesPage.css';
 
+// Custom presets for vehicle finances
+const financePresets: DatePreset[] = [
+  {
+    id: 'last7days',
+    label: 'Últimos 7 días',
+    getRange: () => {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(start.getDate() - 7);
+      return { startDate: getStartOfDay(start), endDate: getEndOfDay(end) };
+    },
+  },
+  {
+    id: 'last30days',
+    label: 'Últimos 30 días',
+    getRange: () => {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(start.getDate() - 30);
+      return { startDate: getStartOfDay(start), endDate: getEndOfDay(end) };
+    },
+  },
+  {
+    id: 'last3months',
+    label: 'Últimos 3 meses',
+    getRange: () => {
+      const end = new Date();
+      const start = new Date();
+      start.setMonth(start.getMonth() - 3);
+      return { startDate: getStartOfDay(start), endDate: getEndOfDay(end) };
+    },
+  },
+  {
+    id: 'last12months',
+    label: 'Último año',
+    getRange: () => {
+      const end = new Date();
+      const start = new Date();
+      start.setFullYear(start.getFullYear() - 1);
+      return { startDate: getStartOfDay(start), endDate: getEndOfDay(end) };
+    },
+  },
+  {
+    id: 'thisMonth',
+    label: 'Este mes',
+    getRange: () => {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      return { startDate: getStartOfDay(start), endDate: getEndOfDay(end) };
+    },
+  },
+  {
+    id: 'lastMonth',
+    label: 'Mes anterior',
+    getRange: () => {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const end = new Date(now.getFullYear(), now.getMonth(), 0);
+      return { startDate: getStartOfDay(start), endDate: getEndOfDay(end) };
+    },
+  },
+];
+
 type FormType = 'income' | 'expense' | null;
 
 export const VehicleFinancesPage = () => {
@@ -33,13 +99,17 @@ export const VehicleFinancesPage = () => {
   // Get vehicle ID from URL params
   const selectedVehicleId = searchParams.get('vehicleId');
 
-  // Date range state
-  const [startDate, setStartDate] = useState<Date>(() => {
-    const date = new Date();
-    date.setDate(date.getDate() - 30);
-    return date;
+  // Date range state - default to last 30 days
+  const [dateRange, setDateRange] = useState<DateRange>(() => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 30);
+    return { startDate: getStartOfDay(start), endDate: getEndOfDay(end) };
   });
-  const [endDate, setEndDate] = useState<Date>(() => new Date());
+
+  // Extract start/end for hook compatibility
+  const startDate = useMemo(() => dateRange.startDate, [dateRange]);
+  const endDate = useMemo(() => dateRange.endDate, [dateRange]);
 
   // Form state
   const [showForm, setShowForm] = useState<FormType>(null);
@@ -81,30 +151,6 @@ export const VehicleFinancesPage = () => {
   // Handle vehicle selection
   const handleVehicleChange = (vehicleId: string) => {
     setSearchParams({ vehicleId });
-  };
-
-  // Quick date range presets
-  const setDatePreset = (preset: 'week' | 'month' | 'quarter' | 'year') => {
-    const end = new Date();
-    const start = new Date();
-
-    switch (preset) {
-      case 'week':
-        start.setDate(end.getDate() - 7);
-        break;
-      case 'month':
-        start.setMonth(end.getMonth() - 1);
-        break;
-      case 'quarter':
-        start.setMonth(end.getMonth() - 3);
-        break;
-      case 'year':
-        start.setFullYear(end.getFullYear() - 1);
-        break;
-    }
-
-    setStartDate(start);
-    setEndDate(end);
   };
 
   // Income handlers
@@ -368,41 +414,10 @@ export const VehicleFinancesPage = () => {
             </select>
           </div>
 
-          {/* Date Range */}
+          {/* Date Range Picker */}
           <div className="filter-group">
-            <label htmlFor="start-date">Desde:</label>
-            <input
-              id="start-date"
-              type="date"
-              value={startDate.toISOString().split('T')[0]}
-              onChange={(e) => setStartDate(new Date(e.target.value))}
-            />
-          </div>
-
-          <div className="filter-group">
-            <label htmlFor="end-date">Hasta:</label>
-            <input
-              id="end-date"
-              type="date"
-              value={endDate.toISOString().split('T')[0]}
-              onChange={(e) => setEndDate(new Date(e.target.value))}
-            />
-          </div>
-
-          {/* Date Presets */}
-          <div className="date-presets">
-            <button type="button" className="btn-preset" onClick={() => setDatePreset('week')}>
-              7 días
-            </button>
-            <button type="button" className="btn-preset" onClick={() => setDatePreset('month')}>
-              30 días
-            </button>
-            <button type="button" className="btn-preset" onClick={() => setDatePreset('quarter')}>
-              3 meses
-            </button>
-            <button type="button" className="btn-preset" onClick={() => setDatePreset('year')}>
-              1 año
-            </button>
+            <label>Período:</label>
+            <DateRangePicker value={dateRange} onChange={setDateRange} presets={financePresets} />
           </div>
         </div>
 

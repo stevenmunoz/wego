@@ -110,6 +110,40 @@ service cloud.firestore {
     }
 
     // ============================================================================
+    // DAILY INSIGHTS COLLECTION (AI-generated business insights)
+    // ============================================================================
+    match /daily_insights/{dateId} {
+      // Only admins can read daily insights
+      allow read: if request.auth != null && isAdmin();
+
+      // Only Cloud Functions can write (no client writes)
+      allow create, update, delete: if false;
+    }
+
+    // ============================================================================
+    // WEEKLY INSIGHTS COLLECTION (AI-generated weekly business summaries)
+    // ============================================================================
+    match /weekly_insights/{weekId} {
+      // Only admins can read weekly insights
+      allow read: if request.auth != null && isAdmin();
+
+      // Only Cloud Functions can write (no client writes)
+      allow create, update, delete: if false;
+    }
+
+    // ============================================================================
+    // UNIFIED INSIGHTS COLLECTION (period-agnostic AI-generated insights)
+    // Document IDs: {period_type}_{period_id} (e.g., "weekly_2026-W02")
+    // ============================================================================
+    match /insights/{insightId} {
+      // Only admins can read insights
+      allow read: if request.auth != null && isAdmin();
+
+      // Only Cloud Functions can write (no client writes)
+      allow create, update, delete: if false;
+    }
+
+    // ============================================================================
     // TOP-LEVEL VEHICLES COLLECTION (new structure)
     // ============================================================================
     match /vehicles/{vehicleId} {

@@ -1,0 +1,95 @@
+/**
+ * AIRecommendationsList Component Styles
+ *
+ * Numbered list with priority badges.
+ */
+
+.ai-recommendations {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ai-recommendations__item {
+  margin: 0;
+  padding: 0;
+}
+
+/* Header with number, badge, title */
+.ai-recommendations__header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.ai-recommendations__number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-neutral-500, #6b7280);
+  min-width: 1.25rem;
+}
+
+/* Priority badge */
+.ai-recommendations__badge {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.ai-recommendations__badge--high {
+  background: var(--color-error-100, #fee2e2);
+  color: var(--color-error-700, #b91c1c);
+}
+
+.ai-recommendations__badge--medium {
+  background: var(--color-warning-100, #fef3c7);
+  color: var(--color-warning-700, #a16207);
+}
+
+.ai-recommendations__badge--low {
+  background: var(--color-info-100, #dbeafe);
+  color: var(--color-info-700, #1d4ed8);
+}
+
+/* Title */
+.ai-recommendations__title {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-primary-800, #1e2a3a);
+}
+
+/* Description */
+.ai-recommendations__description {
+  margin: 0;
+  padding-left: 1.75rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-neutral-600, #4b5563);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .ai-recommendations__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .ai-recommendations__description {
+    padding-left: 0;
+    margin-top: 0.25rem;
+  }
+}

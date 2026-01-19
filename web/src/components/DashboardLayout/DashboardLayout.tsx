@@ -32,6 +32,7 @@ const allNavItems: NavItem[] = [
   { path: '/finances', label: 'Finanzas', icon: '💰' },
   { path: '/indriver-import', label: 'Importar Viajes', icon: '📸' },
   { path: '/reporting', label: 'Reportes', icon: '📊', adminOnly: true },
+  { path: '/insights', label: 'Insights', icon: '💡', adminOnly: true },
   { path: '/users', label: 'Usuarios', icon: '👥', adminOnly: true },
   { path: '/admin/categories', label: 'Categorías', icon: '📁', adminOnly: true },
 ];

@@ -40,12 +40,14 @@ interface RidesTableProps {
   isLoading: boolean;
   onImportClick?: () => void;
   onUpdateRide?: (id: string, updates: Partial<FirestoreInDriverRide>) => void;
+  onDeleteRide?: (id: string) => void;
   statusFilter?: StatusFilterOption;
   sourceFilter?: SourceFilterOption;
   driverFilter?: string; // 'all' or driver ID
   showDriverColumn?: boolean;
   showVehicleColumn?: boolean;
   showSourceColumn?: boolean;
+  showDeleteButton?: boolean; // Admin only - show delete button
   drivers?: DriverWithUser[];
   vehicles?: FirestoreVehicle[];
 }
@@ -408,12 +410,14 @@ export const RidesTable: FC<RidesTableProps> = ({
   isLoading,
   onImportClick,
   onUpdateRide,
+  onDeleteRide,
   statusFilter = 'all',
   sourceFilter = 'all',
   driverFilter = 'all',
   showDriverColumn = false,
   showVehicleColumn = false,
   showSourceColumn = false,
+  showDeleteButton = false,
   drivers = [],
   vehicles = [],
 }) => {
@@ -424,6 +428,7 @@ export const RidesTable: FC<RidesTableProps> = ({
     (FirestoreInDriverRide & { driver_name?: string; vehicle_plate?: string }) | null
   >(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [deleteConfirmRideId, setDeleteConfirmRideId] = useState<string | null>(null);
 
   // Memoized dropdown options
   const driverOptions = useMemo(
@@ -963,27 +968,102 @@ export const RidesTable: FC<RidesTableProps> = ({
                   />
                 </td>
                 <td className="cell-actions">
-                  <button
-                    type="button"
-                    className="action-btn action-btn-view"
-                    onClick={() => setSelectedRide(ride)}
-                    title="Ver detalles"
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                  <div className="action-buttons">
+                    <button
+                      type="button"
+                      className="action-btn action-btn-view"
+                      onClick={() => setSelectedRide(ride)}
+                      title="Ver detalles"
                     >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                    <span className="action-btn-label">Ver</span>
-                  </button>
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                      <span className="action-btn-label">Ver</span>
+                    </button>
+                    {showDeleteButton && onDeleteRide && (
+                      <>
+                        {deleteConfirmRideId === ride.id ? (
+                          <div className="delete-confirm-inline">
+                            <button
+                              type="button"
+                              className="action-btn action-btn-confirm-delete"
+                              onClick={() => {
+                                onDeleteRide(ride.id);
+                                setDeleteConfirmRideId(null);
+                              }}
+                              title="Confirmar eliminar"
+                            >
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              className="action-btn action-btn-cancel-delete"
+                              onClick={() => setDeleteConfirmRideId(null)}
+                              title="Cancelar"
+                            >
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            className="action-btn action-btn-delete"
+                            onClick={() => setDeleteConfirmRideId(ride.id)}
+                            title="Eliminar viaje"
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              <line x1="10" y1="11" x2="10" y2="17" />
+                              <line x1="14" y1="11" x2="14" y2="17" />
+                            </svg>
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

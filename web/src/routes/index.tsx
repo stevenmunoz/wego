@@ -42,12 +42,6 @@ const DashboardPage = withSuspense(
 const VehiclesPage = withSuspense(
   lazy(() => import('../pages/VehiclesPage').then((m) => ({ default: m.VehiclesPage })))
 );
-const ChatPage = withSuspense(
-  lazy(() => import('../pages/ChatPage').then((m) => ({ default: m.ChatPage })))
-);
-const ConversationsPage = withSuspense(
-  lazy(() => import('../pages/ConversationsPage').then((m) => ({ default: m.ConversationsPage })))
-);
 const InDriverImportPage = withSuspense(
   lazy(() => import('../pages/InDriverImportPage').then((m) => ({ default: m.InDriverImportPage })))
 );
@@ -71,6 +65,9 @@ const FinanceCategoriesPage = withSuspense(
   lazy(() =>
     import('../pages/FinanceCategoriesPage').then((m) => ({ default: m.FinanceCategoriesPage }))
   )
+);
+const InsightsPage = withSuspense(
+  lazy(() => import('../pages/InsightsPage').then((m) => ({ default: m.InsightsPage })))
 );
 
 export const router = createBrowserRouter([
@@ -103,18 +100,6 @@ export const router = createBrowserRouter([
         element: <VehiclesPage />,
       },
       {
-        path: '/chat',
-        element: <ChatPage />,
-      },
-      {
-        path: '/chat/:conversationId',
-        element: <ChatPage />,
-      },
-      {
-        path: '/conversations',
-        element: <ConversationsPage />,
-      },
-      {
         path: '/indriver-import',
         element: <InDriverImportPage />,
       },
@@ -129,6 +114,10 @@ export const router = createBrowserRouter([
       {
         path: '/reporting',
         element: <ReportingPage />,
+      },
+      {
+        path: '/insights',
+        element: <InsightsPage />,
       },
       {
         path: '/admin/categories',

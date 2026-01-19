@@ -23,6 +23,7 @@ export const InDriverImportPage: FC = () => {
   const [view, setView] = useState<PageView>('upload');
   const [importSuccess, setImportSuccess] = useState(false);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
+  const [validationError, setValidationError] = useState<string | null>(null);
   const user = useAuthStore((state) => state.user);
   const userRole = useAuthStore((state) => state.userRole);
   const isAdmin = userRole === 'admin';
@@ -84,20 +85,35 @@ export const InDriverImportPage: FC = () => {
       return;
     }
 
-    // Determine the driver ID to save rides under
-    // Priority: assigned_driver_id > owner_id > logged-in user
-    // This ensures rides are attributed to the actual driver, not the vehicle owner
-    let driverId = user.id;
-    if (selectedVehicleId) {
-      const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
-      if (selectedVehicle) {
-        // Use assigned driver if exists, otherwise fall back to owner
-        driverId = selectedVehicle.assigned_driver_id || selectedVehicle.owner_id || user.id;
-      }
+    // Clear any previous validation error
+    setValidationError(null);
+
+    // Vehicle selection is required
+    if (!selectedVehicleId) {
+      setValidationError('Debes seleccionar un vehículo para importar los viajes.');
+      return;
     }
 
+    const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
+    if (!selectedVehicle) {
+      setValidationError('Vehículo no encontrado.');
+      return;
+    }
+
+    // STRICT: Only allow import if vehicle has an assigned driver
+    // No fallbacks to owner_id or logged-in user
+    if (!selectedVehicle.assigned_driver_id) {
+      setValidationError(
+        'El vehículo seleccionado no tiene un conductor asignado. Asigna un conductor al vehículo primero en la sección de Vehículos.'
+      );
+      return;
+    }
+
+    // Use ONLY the assigned driver - no fallbacks
+    const driverId = selectedVehicle.assigned_driver_id;
+
     // Pass selected vehicle ID for tracking
-    const success = await importRides(driverId, selectedVehicleId || undefined);
+    const success = await importRides(driverId, selectedVehicleId);
     if (success) {
       setImportSuccess(true);
       // Clear any existing timeout before setting a new one
@@ -124,10 +140,10 @@ export const InDriverImportPage: FC = () => {
       <div className="indriver-import-page">
         <div className="page-container">
           {/* Error Alert */}
-          {error && (
+          {(error || validationError) && (
             <div className="alert alert-error" role="alert">
               <span className="alert-icon">!</span>
-              <span className="alert-message">{error}</span>
+              <span className="alert-message">{error || validationError}</span>
             </div>
           )}
 
@@ -161,7 +177,10 @@ export const InDriverImportPage: FC = () => {
                     id="vehicle-select"
                     className="vehicle-select"
                     value={selectedVehicleId}
-                    onChange={(e) => setSelectedVehicleId(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedVehicleId(e.target.value);
+                      setValidationError(null); // Clear validation error on selection change
+                    }}
                     disabled={isImporting}
                   >
                     {vehicles.map((vehicle) => (

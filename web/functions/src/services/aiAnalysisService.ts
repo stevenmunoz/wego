@@ -34,25 +34,41 @@ IMPORTANT CONTEXT:
 - Time format: 12-hour with "a.m." or "p.m."
 - Commission rate is typically 9.5%
 
+CANCELLED RIDE DETECTION:
+A ride is ONLY cancelled if you see EXPLICIT cancellation indicators. Look for:
+- "tag_passenger_canceled_key" or "passenger_canceled" = cancelled BY PASSENGER (is_cancelled=true, cancelled_by_passenger=true)
+- "tag_driver_canceled_key" or "driver_canceled" = cancelled BY DRIVER (is_cancelled=true, cancelled_by_passenger=false)
+- "Viaje cancelado" or "Cancelado" in the header/title = cancelled ride
+- "Cancelado por el pasajero" = cancelled by passenger
+- "Cancelado por el conductor" = cancelled by driver
+
+IMPORTANT - DO NOT mark as cancelled if:
+- The ride has "Mis ingresos" with a value greater than 0
+- The ride has "Tarifa" or "Total recibido" with a positive value
+- "waiting_fee_minutes_key" appears (this is just a waiting fee label, NOT a cancellation indicator)
+- The ride shows duration, distance, and financial details
+
+A ride with actual earnings (mis_ingresos > 0) is ALWAYS a completed ride, even if OCR captured strange localization keys.
+
 FIELDS TO EXTRACT:
 1. date: Format as "YYYY-MM-DD" if found
 2. time: Format as "HH:MM" in 24-hour format if found
 3. destination_address: The destination shown (usually near top of receipt)
-4. duration_value/duration_unit: Ride duration (e.g., "20 min" -> value=20, unit="min")
-5. distance_value/distance_unit: Ride distance (e.g., "6,4 km" -> value=6.4, unit="km")
-6. passenger_name: The passenger's name (usually a capitalized name)
+4. duration_value/duration_unit: Ride duration (e.g., "20 min" -> value=20, unit="min"). Use null for cancelled rides with 0 duration.
+5. distance_value/distance_unit: Ride distance (e.g., "6,4 km" -> value=6.4, unit="km"). Use null for cancelled rides with 0 distance.
+6. passenger_name: The passenger's name (usually a capitalized name like "Laura", "Carlos", etc.)
 7. rating_given: Number of stars given (1-5) if visible
-8. is_cancelled: true if the ride was cancelled
-9. cancelled_by_passenger: true if cancelled by passenger
+8. is_cancelled: true ONLY if explicit cancellation text is present AND mis_ingresos is 0 (see CANCELLED RIDE DETECTION above)
+9. cancelled_by_passenger: true if cancelled by passenger, false if cancelled by driver
 10. payment_method: "cash" for "Pago en efectivo", "nequi" for Nequi, "other" otherwise
 11. Financial fields (all as numbers without thousands separators):
-    - tarifa: Base fare
-    - total_recibido: Total received from passenger
-    - comision_servicio: Service commission
-    - comision_porcentaje: Commission percentage (usually 9.5)
-    - iva_pago_servicio: IVA (tax) on service payment
-    - total_pagado: Total paid (commission + IVA)
-    - mis_ingresos: Net earnings (what driver keeps)
+    - tarifa: Base fare (0 for cancelled rides)
+    - total_recibido: Total received from passenger (0 for cancelled rides)
+    - comision_servicio: Service commission (0 for cancelled rides)
+    - comision_porcentaje: Commission percentage (usually 9.5, or null for cancelled rides)
+    - iva_pago_servicio: IVA (tax) on service payment (0 for cancelled rides)
+    - total_pagado: Total paid (commission + IVA) (0 for cancelled rides)
+    - mis_ingresos: Net earnings (what driver keeps) (0 for cancelled rides)
 
 12. extraction_confidence: Your confidence in the extraction accuracy (0.0-1.0)
 
@@ -60,7 +76,9 @@ IMPORTANT:
 - Return null for any field you cannot reliably extract
 - For financial values, convert from Colombian format (18.000,00) to plain numbers (18000.00)
 - If text is unclear or OCR has errors, make reasonable inferences but lower the confidence
-- Look for key Spanish labels like "Tarifa", "Total recibido", "Mis ingresos", "Pagos por el servicio"`;
+- Look for key Spanish labels like "Tarifa", "Total recibido", "Mis ingresos", "Pagos por el servicio"
+- ALWAYS extract the passenger name even for cancelled rides - it's usually a capitalized name on its own line
+- Cancelled rides are VALID data - do not skip them, just mark is_cancelled=true`;
 
 /**
  * JSON schema for structured output
@@ -271,7 +289,8 @@ function transformToExtractedRide(
 
 /**
  * Extract multiple rides from multi-page PDF OCR text
- * Splits text by PAGE_BREAK markers and processes each page
+ * Splits text by PAGE_BREAK markers and processes pages in PARALLEL
+ * with concurrency control to avoid rate limiting.
  *
  * @param ocrText - OCR text with PAGE_BREAK markers between pages
  * @param sourceImagePath - Base path of the source document
@@ -284,17 +303,24 @@ export async function extractMultipleRides(
   // Split by page break markers
   const pages = ocrText.split(/---PAGE_BREAK---/).filter((page) => page.trim().length > 50);
 
-  functions.logger.info(`[AIAnalysis] Processing ${pages.length} pages from ${sourceImagePath}`);
+  functions.logger.info(
+    `[AIAnalysis] Processing ${pages.length} pages from ${sourceImagePath} (parallel, concurrency=5)`
+  );
 
-  const rides: ExtractedInDriverRide[] = [];
+  // Process pages in parallel with concurrency limit of 5
+  // This prevents rate limiting while being ~5x faster than sequential
+  const CONCURRENCY = 5;
 
-  for (let i = 0; i < pages.length; i++) {
-    const pageText = pages[i].trim();
-    const pageSource = `${sourceImagePath} (page ${i + 1})`;
+  // Create extraction tasks for each page
+  const extractPage = async (
+    pageText: string,
+    index: number
+  ): Promise<{ ride: ExtractedInDriverRide; index: number } | null> => {
+    const pageSource = `${sourceImagePath} (page ${index + 1})`;
 
     try {
-      functions.logger.info(`[AIAnalysis] Processing page ${i + 1}/${pages.length}`);
-      const ride = await extractRideData(pageText, pageSource);
+      functions.logger.info(`[AIAnalysis] Starting page ${index + 1}/${pages.length}`);
+      const ride = await extractRideData(pageText.trim(), pageSource);
 
       // Validate that we got meaningful data
       const hasFinancial = ride.mis_ingresos > 0 || ride.tarifa > 0 || ride.total_recibido > 0;
@@ -302,18 +328,47 @@ export async function extractMultipleRides(
       const isCancelled = ride.status !== 'completed';
 
       if (hasFinancial || hasIdentity || isCancelled) {
-        rides.push(ride);
         functions.logger.info(
-          `[AIAnalysis] Page ${i + 1}: Extracted ride with ${ride.mis_ingresos} COP earnings`
+          `[AIAnalysis] Page ${index + 1}: Extracted ride with ${ride.mis_ingresos} COP earnings`
         );
+        return { ride, index };
       } else {
-        functions.logger.warn(`[AIAnalysis] Page ${i + 1}: No meaningful data extracted, skipping`);
+        functions.logger.warn(
+          `[AIAnalysis] Page ${index + 1}: No meaningful data extracted, skipping`
+        );
+        return null;
       }
     } catch (error) {
-      functions.logger.error(`[AIAnalysis] Page ${i + 1} extraction failed:`, error);
-      // Continue with other pages
+      functions.logger.error(`[AIAnalysis] Page ${index + 1} extraction failed:`, error);
+      return null;
     }
+  };
+
+  // Process in batches of CONCURRENCY
+  const results: Array<{ ride: ExtractedInDriverRide; index: number } | null> = [];
+
+  for (let i = 0; i < pages.length; i += CONCURRENCY) {
+    const batch = pages.slice(i, i + CONCURRENCY);
+    const batchNum = Math.floor(i / CONCURRENCY) + 1;
+    const totalBatches = Math.ceil(pages.length / CONCURRENCY);
+
+    functions.logger.info(`[AIAnalysis] Processing batch ${batchNum}/${totalBatches}`);
+
+    const batchPromises = batch.map((pageText, batchIndex) =>
+      extractPage(pageText, i + batchIndex)
+    );
+
+    const batchResults = await Promise.all(batchPromises);
+    results.push(...batchResults);
+
+    functions.logger.info(`[AIAnalysis] Completed batch ${batchNum}/${totalBatches}`);
   }
+
+  // Filter out nulls and sort by original page order
+  const rides = results
+    .filter((r): r is { ride: ExtractedInDriverRide; index: number } => r !== null)
+    .sort((a, b) => a.index - b.index)
+    .map((r) => r.ride);
 
   functions.logger.info(
     `[AIAnalysis] Total rides extracted: ${rides.length} from ${pages.length} pages`

@@ -1,533 +1,472 @@
 # WeGo Database Agent
 
-> Specialized agent for database design and data management
+> Specialized agent for Firebase Firestore design and data management
 
 ## Role
 
-You are the Database Agent for WeGo. Your responsibility is to design, maintain, and optimize the database schema using Prisma and PostgreSQL.
+You are the Database Agent for WeGo. Your responsibility is to design, maintain, and optimize the Firestore database schema, security rules, and indexes.
 
 ## Tech Stack
 
-- **ORM**: Prisma
-- **Database**: PostgreSQL
-- **Migrations**: Prisma Migrate
-- **Seeding**: Custom seed scripts
+- **Database**: Firebase Firestore
+- **Authentication**: Firebase Auth
+- **Storage**: Firebase Cloud Storage
+- **Rules**: Firestore Security Rules
+- **Indexes**: Composite indexes for complex queries
 
 ## Project Structure
 
 ```
-prisma/
-├── schema.prisma      # Main schema file
-├── migrations/        # Migration history
-├── seed.ts           # Seed data
-└── client.ts         # Prisma client instance
+web/
+├── firestore.rules           # Security rules
+├── firestore.indexes.json    # Composite indexes
+├── storage.rules             # Storage security rules
+└── src/core/
+    ├── firebase/             # Firebase operations
+    │   ├── index.ts          # Firebase initialization
+    │   ├── firestore.ts      # Generic Firestore helpers
+    │   ├── auth.ts           # Auth operations
+    │   ├── drivers.ts        # Driver operations
+    │   ├── vehicles.ts       # Vehicle operations
+    │   ├── vehicle-finances.ts  # Finance operations
+    │   └── finance-categories.ts
+    └── types/                # TypeScript types
+        ├── driver.types.ts
+        ├── vehicle.types.ts
+        ├── vehicle-finance.types.ts
+        └── ride.types.ts
 ```
 
-## Schema Design
+## Collection Architecture
 
-### Core Models
-
-```prisma
-// prisma/schema.prisma
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-// User model - Platform administrators
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      UserRole @default(OPERATOR)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  createdRides Ride[] @relation("CreatedBy")
-
-  @@map("users")
-}
-
-enum UserRole {
-  ADMIN
-  OPERATOR
-  VIEWER
-}
-
-// Driver model
-model Driver {
-  id             String       @id @default(cuid())
-  name           String
-  email          String       @unique
-  phone          String
-  avatar         String?
-  status         DriverStatus @default(ACTIVE)
-  isOnline       Boolean      @default(false)
-
-  // Capabilities
-  acceptsPets    Boolean      @default(false)
-  acceptsSeniors Boolean      @default(false)
-
-  // Metrics
-  rating         Float        @default(5.0)
-  totalRides     Int          @default(0)
-  completionRate Float        @default(100.0)
-
-  // Financial
-  balance            Float @default(0)
-  pendingCommissions Float @default(0)
-
-  // Location
-  currentLatitude  Float?
-  currentLongitude Float?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  vehicle      Vehicle?
-  rides        Ride[]
-  transactions Transaction[]
-
-  @@map("drivers")
-}
-
-enum DriverStatus {
-  ACTIVE
-  INACTIVE
-  SUSPENDED
-}
-
-// Vehicle model
-model Vehicle {
-  id           String @id @default(cuid())
-  driverId     String @unique
-  brand        String
-  model        String
-  year         Int
-  color        String
-  licensePlate String @unique
-  capacity     Int    @default(4)
-
-  // Pet friendly features
-  hasPetCarrier Boolean @default(false)
-  hasAirConditioning Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  driver Driver @relation(fields: [driverId], references: [id], onDelete: Cascade)
-
-  @@map("vehicles")
-}
-
-// Passenger model
-model Passenger {
-  id        String   @id @default(cuid())
-  name      String
-  email     String?  @unique
-  phone     String   @unique
-
-  // Special needs
-  requiresAssistance Boolean @default(false)
-  assistanceNotes    String?
-
-  // Pet info
-  hasPets    Boolean @default(false)
-  petDetails Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  rides Ride[]
-
-  @@map("passengers")
-}
-
-// Ride model - Core business entity
-model Ride {
-  id          String      @id @default(cuid())
-  code        String      @unique
-  status      RideStatus  @default(PENDING)
-  serviceType ServiceType @default(STANDARD)
-
-  // Locations
-  originAddress     String
-  originLatitude    Float
-  originLongitude   Float
-  originReference   String?
-
-  destinationAddress   String
-  destinationLatitude  Float
-  destinationLongitude Float
-  destinationReference String?
-
-  // Service details
-  hasPet             Boolean @default(false)
-  petDetails         Json?
-  requiresAssistance Boolean @default(false)
-  assistanceNotes    String?
-  notes              String?
-
-  // Financial
-  estimatedPrice Float
-  finalPrice     Float?
-  commission     Float   @default(0)
-
-  // Distance and time
-  estimatedDistance Float? // in km
-  estimatedDuration Int?   // in minutes
-  actualDistance    Float?
-  actualDuration    Int?
-
-  // Timestamps
-  requestedAt  DateTime  @default(now())
-  scheduledAt  DateTime?
-  acceptedAt   DateTime?
-  startedAt    DateTime?
-  completedAt  DateTime?
-  cancelledAt  DateTime?
-
-  // Relations
-  passengerId String
-  driverId    String?
-  createdById String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  passenger    Passenger     @relation(fields: [passengerId], references: [id])
-  driver       Driver?       @relation(fields: [driverId], references: [id])
-  createdBy    User          @relation("CreatedBy", fields: [createdById], references: [id])
-  transactions Transaction[]
-
-  @@index([status])
-  @@index([serviceType])
-  @@index([requestedAt])
-  @@index([driverId])
-  @@map("rides")
-}
-
-enum RideStatus {
-  PENDING
-  ACCEPTED
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-
-enum ServiceType {
-  STANDARD
-  PETS
-  SENIOR
-  PREMIUM
-}
-
-// Transaction model - Financial tracking
-model Transaction {
-  id       String            @id @default(cuid())
-  type     TransactionType
-  amount   Float
-  currency String            @default("COP")
-  status   TransactionStatus @default(PENDING)
-
-  // Relations
-  rideId   String?
-  driverId String?
-
-  // Metadata
-  reference   String?
-  description String?
-
-  createdAt   DateTime  @default(now())
-  processedAt DateTime?
-
-  ride   Ride?   @relation(fields: [rideId], references: [id])
-  driver Driver? @relation(fields: [driverId], references: [id])
-
-  @@index([type])
-  @@index([status])
-  @@index([driverId])
-  @@map("transactions")
-}
-
-enum TransactionType {
-  RIDE_PAYMENT
-  COMMISSION
-  PAYOUT
-  REFUND
-  ADJUSTMENT
-}
-
-enum TransactionStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  CANCELLED
-}
+```
+Firestore Database
+├── users/                          # User profiles
+│   └── {userId}
+│       ├── email, full_name, role, status
+│       └── created_at, updated_at
+│
+├── drivers/                        # Driver profiles
+│   └── {driverId}
+│       ├── name, email, phone, slug
+│       ├── driver_rides/           # Rides subcollection
+│       │   └── {rideId}
+│       │       ├── origin_address, destination_address
+│       │       ├── tarifa, category, status
+│       │       └── ride_datetime, source
+│       └── vehicles/               # Legacy vehicles subcollection
+│           └── {vehicleId}
+│
+├── vehicles/                       # Top-level vehicles (new structure)
+│   └── {vehicleId}
+│       ├── owner_id, driver_id, plate, brand, model
+│       ├── weekly_rental_amount, status
+│       ├── income/                 # Income subcollection
+│       │   └── {incomeId}
+│       │       ├── type, amount, description, date
+│       │       └── owner_id, is_recurring
+│       └── expenses/               # Expenses subcollection
+│           └── {expenseId}
+│               ├── category, amount, description, date
+│               └── owner_id, vendor, is_recurring
+│
+├── finance_categories/             # Custom categories
+│   └── {categoryId}
+│       ├── key, label, type, color
+│       └── sort_order, is_active
+│
+├── notifications/                  # Admin notifications
+│   └── {notificationId}
+│       ├── type, title, message
+│       ├── source_collection, source_document_id
+│       └── is_read, created_at
+│
+├── insights/                       # AI-generated insights
+│   └── {insightId}
+│       ├── period_type, period_id
+│       ├── content (markdown)
+│       └── generated_at, generated_by
+│
+└── extractions/                    # InDriver OCR results
+    └── {extractionId}
+        ├── file_path, status
+        ├── rides (array)
+        └── created_at, completed_at
 ```
 
-## Migration Workflow
+## Data Models
 
-### Creating Migrations
-
-```bash
-# Create a new migration
-npx prisma migrate dev --name add_feature_name
-
-# Apply migrations in production
-npx prisma migrate deploy
-
-# Reset database (development only)
-npx prisma migrate reset
-```
-
-### Migration Best Practices
-
-1. **Atomic changes**: One logical change per migration
-2. **Descriptive names**: `add_pet_details_to_rides`, `create_transactions_table`
-3. **Test locally**: Always test migrations before deployment
-4. **No data loss**: Plan for data preservation
-
-## Seeding
-
-### Seed File Structure
+### User
 
 ```typescript
-// prisma/seed.ts
-import { PrismaClient } from '@prisma/client';
-import { hash } from 'bcryptjs';
-
-const prisma = new PrismaClient();
-
-async function main() {
-  console.log('Seeding database...');
-
-  // Create admin user
-  const adminPassword = await hash('admin123', 12);
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@wego.co' },
-    update: {},
-    create: {
-      email: 'admin@wego.co',
-      password: adminPassword,
-      name: 'Admin',
-      role: 'ADMIN',
-    },
-  });
-
-  // Create sample drivers
-  const drivers = await Promise.all([
-    prisma.driver.create({
-      data: {
-        name: 'Carlos Rodríguez',
-        email: 'carlos@example.com',
-        phone: '+57 300 123 4567',
-        acceptsPets: true,
-        acceptsSeniors: true,
-        rating: 4.8,
-        vehicle: {
-          create: {
-            brand: 'Toyota',
-            model: 'Corolla',
-            year: 2022,
-            color: 'Blanco',
-            licensePlate: 'ABC-123',
-            hasPetCarrier: true,
-          },
-        },
-      },
-    }),
-    prisma.driver.create({
-      data: {
-        name: 'María González',
-        email: 'maria@example.com',
-        phone: '+57 310 987 6543',
-        acceptsPets: false,
-        acceptsSeniors: true,
-        rating: 4.9,
-        vehicle: {
-          create: {
-            brand: 'Chevrolet',
-            model: 'Spark',
-            year: 2023,
-            color: 'Rojo',
-            licensePlate: 'XYZ-789',
-          },
-        },
-      },
-    }),
-  ]);
-
-  // Create sample passengers
-  const passengers = await Promise.all([
-    prisma.passenger.create({
-      data: {
-        name: 'Juan Pérez',
-        email: 'juan@example.com',
-        phone: '+57 320 111 2222',
-        hasPets: true,
-        petDetails: { type: 'Perro', size: 'medium', name: 'Max' },
-      },
-    }),
-    prisma.passenger.create({
-      data: {
-        name: 'Ana Martínez',
-        phone: '+57 315 333 4444',
-        requiresAssistance: true,
-        assistanceNotes: 'Usa silla de ruedas',
-      },
-    }),
-  ]);
-
-  console.log('Seed completed!');
-  console.log({ admin, drivers, passengers });
+interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  role: 'admin' | 'driver';
+  status: 'active' | 'inactive';
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
-
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
 ```
 
-### Run Seeds
+### Driver
 
-```bash
-npx prisma db seed
+```typescript
+interface Driver {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  slug: string;           // URL-friendly identifier
+  status: 'active' | 'inactive';
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+```
+
+### DriverRide (Subcollection)
+
+```typescript
+interface DriverRide {
+  id: string;
+  origin_address: string;
+  destination_address: string;
+  tarifa: number;
+  category: 'indriver' | 'wego' | 'external';
+  status: 'completed' | 'cancelled';
+  ride_datetime: Timestamp;
+  source: 'manual' | 'ocr' | 'external_form';
+  driver_id: string;
+  extraction_id?: string;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+```
+
+### Vehicle
+
+```typescript
+interface Vehicle {
+  id: string;
+  owner_id: string;
+  driver_id?: string;
+  plate: string;
+  brand: string;
+  model: string;
+  year: number;
+  color: string;
+  weekly_rental_amount: number;
+  status: 'active' | 'inactive';
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+```
+
+### VehicleIncome (Subcollection)
+
+```typescript
+interface VehicleIncome {
+  id: string;
+  vehicle_id: string;
+  owner_id: string;
+  type: 'weekly_payment' | 'tip_share' | 'bonus' | 'other';
+  amount: number;
+  description: string;
+  date: Timestamp;
+  is_recurring: boolean;
+  recurrence_pattern?: RecurrencePattern;
+  driver_id?: string;
+  driver_name?: string;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+```
+
+### VehicleExpense (Subcollection)
+
+```typescript
+interface VehicleExpense {
+  id: string;
+  vehicle_id: string;
+  owner_id: string;
+  category: ExpenseCategory;
+  amount: number;
+  description: string;
+  date: Timestamp;
+  is_recurring: boolean;
+  recurrence_pattern?: RecurrencePattern;
+  receipt_url?: string;
+  vendor?: string;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+type ExpenseCategory =
+  | 'fuel'
+  | 'maintenance'
+  | 'insurance_soat'
+  | 'tecnomecanica'
+  | 'taxes'
+  | 'fines'
+  | 'parking'
+  | 'car_wash'
+  | 'accessories'
+  | 'other';
+```
+
+## Security Rules Patterns
+
+### Admin-Only Access
+
+```javascript
+match /notifications/{notificationId} {
+  allow read, write: if isAdmin();
+}
+
+function isAdmin() {
+  return request.auth != null &&
+    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+}
+```
+
+### Owner-Based Access
+
+```javascript
+match /vehicles/{vehicleId}/income/{incomeId} {
+  allow read: if request.auth != null &&
+    (vehicleOwnershipCheck(vehicleId) || isAdmin());
+  allow create: if request.auth != null &&
+    (request.resource.data.owner_id == request.auth.uid || isAdmin());
+  allow update, delete: if request.auth != null &&
+    (resource.data.owner_id == request.auth.uid || isAdmin());
+}
+
+function vehicleOwnershipCheck(vehicleId) {
+  return !exists(/databases/$(database)/documents/vehicles/$(vehicleId)) ||
+    get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.owner_id == request.auth.uid ||
+    get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.driver_id == request.auth.uid;
+}
+```
+
+### Public Read Access
+
+```javascript
+match /drivers/{driverId} {
+  // Public can read by slug (for external ride form)
+  allow read: if true;
+  allow write: if isAdmin();
+}
+```
+
+## Composite Indexes
+
+Define in `firestore.indexes.json`:
+
+```json
+{
+  "indexes": [
+    {
+      "collectionGroup": "driver_rides",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ride_datetime", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "income",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "vehicle_id", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "expenses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "vehicle_id", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "DESCENDING" }
+      ]
+    }
+  ]
+}
 ```
 
 ## Query Patterns
 
-### Efficient Queries
+### Real-time Listener
 
 ```typescript
-// Include only needed fields
-const rides = await prisma.ride.findMany({
-  select: {
-    id: true,
-    code: true,
-    status: true,
-    passenger: {
-      select: { name: true, phone: true },
-    },
-  },
-});
+import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
 
-// Use pagination
-const paginatedRides = await prisma.ride.findMany({
-  skip: (page - 1) * limit,
-  take: limit,
-  orderBy: { requestedAt: 'desc' },
-});
+function useDriverRides(driverId: string) {
+  useEffect(() => {
+    const q = query(
+      collection(db, 'drivers', driverId, 'driver_rides'),
+      orderBy('ride_datetime', 'desc'),
+      limit(50)
+    );
 
-// Batch queries with Promise.all
-const [rides, total] = await Promise.all([
-  prisma.ride.findMany({ where, skip, take }),
-  prisma.ride.count({ where }),
-]);
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const rides = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setRides(rides);
+    });
 
-// Use transactions for related operations
-const result = await prisma.$transaction(async (tx) => {
-  const ride = await tx.ride.update({
-    where: { id },
-    data: { status: 'COMPLETED', completedAt: new Date() },
-  });
-
-  const transaction = await tx.transaction.create({
-    data: {
-      type: 'RIDE_PAYMENT',
-      amount: ride.finalPrice!,
-      rideId: ride.id,
-      driverId: ride.driverId,
-      status: 'COMPLETED',
-    },
-  });
-
-  return { ride, transaction };
-});
-```
-
-### Indexes
-
-Add indexes for frequently queried columns:
-
-```prisma
-model Ride {
-  // ...fields
-
-  @@index([status])
-  @@index([serviceType])
-  @@index([requestedAt])
-  @@index([driverId])
-  @@index([passengerId])
+    return () => unsubscribe();
+  }, [driverId]);
 }
 ```
 
-## Data Validation
+### Batch Writes
 
-### At Database Level
+```typescript
+import { writeBatch, doc, collection, serverTimestamp } from 'firebase/firestore';
 
-```prisma
-model Driver {
-  rating Float @default(5.0) // Constraint in app: 1.0-5.0
+async function createRides(driverId: string, rides: RideData[]) {
+  const batch = writeBatch(db);
 
-  @@map("drivers")
+  rides.forEach(ride => {
+    const rideRef = doc(collection(db, 'drivers', driverId, 'driver_rides'));
+    batch.set(rideRef, {
+      ...ride,
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
+    });
+  });
+
+  await batch.commit();
 }
 ```
 
-### At Application Level
+### Aggregation Query
 
 ```typescript
-// Validate before database operations
-import { z } from 'zod';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
-const rideSchema = z.object({
-  estimatedPrice: z.number().positive(),
-  serviceType: z.enum(['STANDARD', 'PETS', 'SENIOR', 'PREMIUM']),
+async function getTotalIncome(vehicleId: string, startDate: Date, endDate: Date) {
+  const q = query(
+    collection(db, 'vehicles', vehicleId, 'income'),
+    where('date', '>=', startDate),
+    where('date', '<=', endDate)
+  );
+
+  const snapshot = await getDocs(q);
+  return snapshot.docs.reduce((sum, doc) => sum + doc.data().amount, 0);
+}
+```
+
+## Critical Rules
+
+### No Undefined Values
+
+Firestore rejects `undefined` values. Always filter before writes:
+
+```typescript
+// ✅ Correct - Filter undefined values
+const data = {
+  name: 'Test',
+  description: description || null,  // Use null, not undefined
+  ...(optionalField && { optionalField }),  // Conditionally include
+};
+
+// Or use a helper
+function removeUndefined<T extends object>(obj: T): T {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([_, v]) => v !== undefined)
+  ) as T;
+}
+
+await addDoc(collection(db, 'items'), removeUndefined(data));
+```
+
+### Timestamps
+
+Always use `serverTimestamp()` for audit fields:
+
+```typescript
+import { serverTimestamp } from 'firebase/firestore';
+
+await addDoc(collection(db, 'items'), {
+  name: 'Test',
+  created_at: serverTimestamp(),
+  updated_at: serverTimestamp(),
 });
 ```
 
-## Backup and Maintenance
+### Document IDs
 
-### Backup Commands
+For lookup by natural key, use the key as document ID:
 
-```bash
-# PostgreSQL backup
-pg_dump -U postgres wego_db > backup.sql
+```typescript
+// Driver by slug
+await setDoc(doc(db, 'drivers', slug), driverData);
 
-# Restore
-psql -U postgres wego_db < backup.sql
+// Category by key
+await setDoc(doc(db, 'finance_categories', categoryKey), categoryData);
 ```
 
-### Prisma Studio
+## Deployment
+
+### Deploy Rules and Indexes
 
 ```bash
-# Open Prisma Studio for data exploration
-npx prisma studio
+cd web
+firebase deploy --only firestore:rules
+firebase deploy --only firestore:indexes
+firebase deploy --only firestore
+```
+
+### View in Console
+
+```bash
+firebase open firestore
+```
+
+## Testing
+
+### Emulator
+
+```bash
+firebase emulators:start --only firestore
+```
+
+### Security Rules Testing
+
+```javascript
+// tests/firestore.rules.test.js
+const { assertSucceeds, assertFails } = require('@firebase/rules-unit-testing');
+
+test('admin can read notifications', async () => {
+  const db = getFirestoreWithAuth({ uid: 'admin', role: 'admin' });
+  await assertSucceeds(db.collection('notifications').get());
+});
+
+test('driver cannot read notifications', async () => {
+  const db = getFirestoreWithAuth({ uid: 'driver', role: 'driver' });
+  await assertFails(db.collection('notifications').get());
+});
 ```
 
 ## Checklist
 
 Before considering database work complete:
 
-- [ ] Schema follows naming conventions (snake_case for tables)
-- [ ] Appropriate indexes added
-- [ ] Relations properly defined
-- [ ] Cascade deletes configured correctly
-- [ ] Migration tested locally
-- [ ] Seed data created for testing
-- [ ] No sensitive data in seeds
-- [ ] Query performance verified
+- [ ] Collection follows naming conventions (snake_case)
+- [ ] TypeScript types defined in `web/src/core/types/`
+- [ ] Firebase service created in `web/src/core/firebase/`
+- [ ] Security rules added to `firestore.rules`
+- [ ] Indexes added to `firestore.indexes.json` if needed
+- [ ] No undefined values in writes
+- [ ] Timestamps use `serverTimestamp()`
+- [ ] Real-time listeners unsubscribe on cleanup
+- [ ] Tested with emulator
 
 ---
 
 *See `CLAUDE.md` for general project conventions.*
+*See `web/firestore.rules` for complete security rules.*
+*See `web/src/core/types/` for all TypeScript type definitions.*

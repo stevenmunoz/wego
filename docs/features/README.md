@@ -1,92 +1,76 @@
 # Feature Documentation
 
-This directory contains comprehensive documentation for all implemented features in the WeGo platform.
-
-## Purpose
-
-Feature documentation serves as a knowledge base that:
-- Helps new developers understand how features work
-- Documents architecture decisions and patterns
-- Captures common issues and their solutions
-- Provides quick reference for maintenance and debugging
+This directory contains comprehensive documentation for all implemented features in the WeGo transportation management platform.
 
 ## Features Index
 
-| Feature | Description | Status | Last Updated |
-|---------|-------------|--------|--------------|
-| *No features documented yet* | Use `/document-feature` to add | - | - |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| [Ride Management](./RIDE_MANAGEMENT.md) | Dashboard for tracking and managing all rides | Complete |
+| [Vehicle Management](./VEHICLE_MANAGEMENT.md) | Fleet vehicle tracking with documents | Complete |
+| [Vehicle Finances](./VEHICLE_FINANCES.md) | Income/expense tracking and P/L analysis | Complete |
+| [Reporting Dashboard](./REPORTING_DASHBOARD.md) | Analytics, charts, and goal tracking | Complete |
+| [AI Insights](./AI_INSIGHTS.md) | Claude-powered weekly business summaries | Complete |
+| [User Management](./USER_MANAGEMENT.md) | Admin user and driver management | Complete |
+| [External Rides](./EXTERNAL_RIDES.md) | Public form for driver ride registration | Complete |
+| [InDriver Import](./INDRIVER_IMPORT.md) | OCR extraction from InDriver receipts | Complete |
+| [Finance Categories](./FINANCE_CATEGORIES.md) | Custom income/expense category management | Complete |
+| [Notifications](./NOTIFICATIONS.md) | Real-time admin notification system | Complete |
+| [Authentication](./AUTHENTICATION.md) | Firebase Auth with role-based access | Complete |
+| [Cloud Functions](./CLOUD_FUNCTIONS.md) | Backend serverless architecture | Complete |
 
-## Quick Start
+## Quick Links
 
-To document a new feature, use the Claude Code slash command:
+### Core Operations
+- [Ride Management](./RIDE_MANAGEMENT.md) - Main dashboard showing all rides with filtering
+- [Vehicle Management](./VEHICLE_MANAGEMENT.md) - Manage fleet vehicles and documents
+- [Vehicle Finances](./VEHICLE_FINANCES.md) - Track vehicle profitability (P/L)
 
-```bash
-/document-feature <Feature Name>
-```
+### Admin Features (Admin Only)
+- [Reporting Dashboard](./REPORTING_DASHBOARD.md) - Business analytics with goals
+- [AI Insights](./AI_INSIGHTS.md) - AI-generated weekly business summaries
+- [User Management](./USER_MANAGEMENT.md) - Manage users, drivers, and roles
+- [Finance Categories](./FINANCE_CATEGORIES.md) - Customize income/expense categories
 
-Example:
-```bash
-/document-feature InDriver Import
-```
+### Data Import
+- [InDriver Import](./INDRIVER_IMPORT.md) - Import rides from InDriver screenshots/PDFs
+- [External Rides](./EXTERNAL_RIDES.md) - Manual ride entry via public driver form
 
-## Documentation Structure
+### Technical Infrastructure
+- [Cloud Functions](./CLOUD_FUNCTIONS.md) - Backend serverless functions
+- [Authentication](./AUTHENTICATION.md) - Firebase Auth and access control
+- [Notifications](./NOTIFICATIONS.md) - Real-time notification system
 
-Each feature document follows this structure:
+## Feature Documentation Structure
 
-```
-docs/features/
-├── README.md                    # This index file
-├── INDRIVER_IMPORT.md          # InDriver OCR extraction feature
-├── VEHICLE_FINANCES.md         # Vehicle income/expense tracking
-├── EXTERNAL_RIDES.md           # Manual ride entry wizard
-├── REPORTING.md                # Analytics and goal tracking
-└── ...
-```
+Each feature document includes:
 
-## Feature Categories
-
-### Core Features
-- **Dashboard** - Main analytics and overview
-- **Reporting** - Goals, metrics, and analytics
-- **User Management** - User CRUD and roles
-
-### Ride Management
-- **InDriver Import** - OCR extraction from screenshots
-- **External Rides** - Manual ride entry
-
-### Financial
-- **Vehicle Finances** - P/L tracking for vehicles
-- **Finance Categories** - Custom expense/income categories
-
-### Communication
-- **Chat** - AI-powered conversations
-- **Notifications** - System notifications
+1. **Overview** - What the feature does and who uses it
+2. **Architecture** - ASCII diagram showing components and data flow
+3. **User Stories** - Who does what and why
+4. **Key Files** - Important file paths for implementation
+5. **Data Model** - TypeScript interfaces and Firestore collections
+6. **Common Issues** - Known problems and solutions
+7. **Last Updated** - When documentation was last revised
 
 ## Adding New Documentation
 
-When documenting a feature, include:
+Use the `/document-feature` command to create documentation for new features:
 
-1. **Overview** - What the feature does and why
-2. **Architecture** - ASCII diagram of component structure
-3. **Key Files** - Important files with their purposes
-4. **Data Model** - Firestore collections and TypeScript types
-5. **Common Issues** - Problems encountered and solutions
+```bash
+/document-feature Vehicle Finances
+```
 
-## Quality Standards
-
-- Use accurate file paths from the actual codebase
-- Include real code examples
-- Document known issues and workarounds
-- Keep information up-to-date with code changes
-- Never include sensitive data (API keys, secrets)
+This will analyze the codebase and generate a structured documentation file.
 
 ## Related Documentation
 
 - [CLAUDE.md](../../CLAUDE.md) - AI agent guidelines and conventions
-- [TESTING_STRATEGY.md](../TESTING_STRATEGY.md) - Testing patterns
-- [SECURITY_AUDIT_REPORT.md](../SECURITY_AUDIT_REPORT.md) - Security findings
-- [DEPLOYMENT.md](../deployment/DEPLOYMENT.md) - Deployment procedures
+- [Architecture](../architecture/CLEAN_ARCHITECTURE.md) - System architecture overview
+- [Development Setup](../setup/DEVELOPMENT_SETUP.md) - Local development guide
+- [Deployment](../deployment/DEPLOYMENT.md) - Deployment procedures
+- [Testing Strategy](../TESTING_STRATEGY.md) - Testing patterns
 
 ---
 
-**Last Updated**: 2024-12-23
+**Last Updated**: January 2025

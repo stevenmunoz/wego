@@ -200,6 +200,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     }
 
     set({ isLoading: true });
+    console.log('[NotificationStore] Initializing listener for user:', currentUserId);
 
     const notificationsRef = collection(db, 'notifications');
     const q = query(
@@ -212,10 +213,15 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const notifications: Notification[] = snapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        })) as Notification[];
+        console.log('[NotificationStore] Snapshot received, docs:', snapshot.docs.length);
+        const notifications: Notification[] = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          console.log('[NotificationStore] Notification:', docSnap.id, data.type, data.title);
+          return {
+            id: docSnap.id,
+            ...data,
+          };
+        }) as Notification[];
 
         const unreadCount = notifications.filter((n) => !n.read_by.includes(currentUserId)).length;
 

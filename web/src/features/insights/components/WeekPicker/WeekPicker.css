@@ -1,0 +1,213 @@
+/**
+ * WeekPicker Component Styles
+ *
+ * Dropdown week selector with preset options.
+ * Similar visual style to SingleDatePicker with navigation arrows.
+ */
+
+.week-picker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.week-picker__label-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-neutral-700, #374151);
+}
+
+/* Controls Container */
+.week-picker__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Navigation Buttons */
+.week-picker__nav-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 36px;
+  background: var(--color-white, #ffffff);
+  border: 1px solid var(--color-neutral-300, #d1d5db);
+  border-radius: 6px;
+  font-size: 1.25rem;
+  color: var(--color-neutral-600, #4b5563);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.week-picker__nav-button:hover:not(:disabled) {
+  border-color: var(--color-primary-700, #2c3e50);
+  background: var(--color-neutral-50, #f9fafb);
+  color: var(--color-primary-700, #2c3e50);
+}
+
+.week-picker__nav-button:disabled {
+  background: var(--color-neutral-100, #f3f4f6);
+  color: var(--color-neutral-400, #9ca3af);
+  cursor: not-allowed;
+}
+
+/* Trigger Button */
+.week-picker__trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-white, #ffffff);
+  border: 1px solid var(--color-neutral-300, #d1d5db);
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-primary-700, #2c3e50);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 200px;
+}
+
+.week-picker__trigger:hover:not(.disabled) {
+  border-color: var(--color-primary-700, #2c3e50);
+  background: var(--color-neutral-50, #f9fafb);
+}
+
+.week-picker__trigger.disabled {
+  background: var(--color-neutral-100, #f3f4f6);
+  color: var(--color-neutral-500, #6b7280);
+  cursor: not-allowed;
+}
+
+.week-picker__icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.week-picker__label {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'JetBrains Mono', 'Inter', sans-serif;
+}
+
+.week-picker__chevron {
+  font-size: 0.625rem;
+  transition: transform 0.2s ease;
+  color: var(--color-neutral-400, #9ca3af);
+}
+
+.week-picker__chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Dropdown */
+.week-picker__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 280px;
+  background: var(--color-white, #ffffff);
+  border: 1px solid var(--color-neutral-200, #e5e7eb);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  overflow: hidden;
+}
+
+/* Options List */
+.week-picker__options {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+.week-picker__options li {
+  margin: 0;
+}
+
+/* Option Button */
+.week-picker__option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  color: var(--color-neutral-700, #374151);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.week-picker__option:hover:not(.disabled) {
+  background: var(--color-neutral-50, #f9fafb);
+}
+
+.week-picker__option.selected {
+  background: var(--color-accent-50, #fef2f2);
+}
+
+.week-picker__option.disabled {
+  color: var(--color-neutral-400, #9ca3af);
+  cursor: not-allowed;
+}
+
+.week-picker__option-label {
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.week-picker__option-range {
+  flex: 1;
+  text-align: right;
+  font-family: 'JetBrains Mono', 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  color: var(--color-neutral-500, #6b7280);
+}
+
+.week-picker__option.selected .week-picker__option-label,
+.week-picker__option.selected .week-picker__option-range {
+  color: var(--color-accent-600, #f05365);
+}
+
+.week-picker__check {
+  color: var(--color-accent-600, #f05365);
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .week-picker {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .week-picker__controls {
+    width: 100%;
+  }
+
+  .week-picker__trigger {
+    flex: 1;
+    min-width: auto;
+  }
+
+  .week-picker__dropdown {
+    left: 0;
+    transform: none;
+    width: 100%;
+    min-width: auto;
+  }
+}

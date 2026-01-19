@@ -18,6 +18,26 @@ If data needs to be deleted or modified, **ALWAYS ask the user to do it manually
 
 ---
 
+## Production Data Debugging Rules
+
+When asked to investigate or debug **production data**:
+
+1. **READ-ONLY ACCESS ONLY** - Never modify, update, or delete production data
+2. **Use Firebase Console** - Direct the user to view data in Firebase Console
+3. **Log Analysis** - Check Cloud Function logs via `firebase functions:log`
+4. **No Direct Queries** - Avoid running scripts that could accidentally modify data
+5. **Document Findings** - Report observations without making changes
+6. **User Confirmation** - Any data fixes must be done manually by the user
+
+**NEVER** when debugging production:
+- Run any write/update/delete operations on production
+- Use admin SDKs to modify production Firestore
+- Execute migration scripts against production
+- Make "quick fixes" to production data
+- Switch to production project without explicit user permission
+
+---
+
 ## Project Overview
 
 WeGo is a transportation platform offering:
@@ -45,15 +65,15 @@ This is the **internal management platform** for:
 - **Tables**: TanStack Table
 - **Charts**: Recharts or Chart.js
 
-### Backend
-- **Runtime**: Python 3.11+
-- **Framework**: FastAPI
+### Backend (Cloud Functions)
+- **Runtime**: Node.js 20 with TypeScript
+- **Platform**: Firebase Cloud Functions (2nd generation)
+- **Triggers**: Storage, Firestore, Scheduled, HTTP Callable
 - **Database**: Firebase Firestore
-- **Auth**: Firebase Authentication + JWT
-- **Validation**: Pydantic
-- **OCR**: Tesseract (pytesseract)
-- **PDF Processing**: pdf2image, pdfplumber
-- **Deployment**: Google Cloud Run
+- **Auth**: Firebase Authentication
+- **OCR**: Google Cloud Vision API
+- **AI**: OpenAI GPT-4o, Anthropic Claude
+- **Deployment**: Firebase Functions
 
 ### Infrastructure
 - **Monorepo**: Turborepo (if applicable)
@@ -75,19 +95,31 @@ wego/
 │   ├── tokens/           # CSS variables (colors, typography, spacing)
 │   ├── components/       # Base component styles
 │   └── BRAND_GUIDELINES.md
-├── src/
-│   ├── components/       # Reusable React components
-│   ├── pages/            # Application pages/views
-│   ├── hooks/            # Custom hooks
-│   ├── services/         # API calls
-│   ├── stores/           # Global state
-│   ├── types/            # TypeScript types/interfaces
-│   └── utils/            # Utilities and helpers
-├── api/                  # Backend (if monorepo)
-├── tests/                # Tests
+├── docs/
+│   ├── features/         # Feature documentation (11 files)
+│   ├── setup/            # Development setup guides
+│   ├── architecture/     # System architecture
+│   └── deployment/       # Deployment procedures
+├── web/
+│   ├── src/
+│   │   ├── components/   # Reusable React components
+│   │   ├── pages/        # Application pages/views
+│   │   ├── features/     # Feature-specific code
+│   │   ├── hooks/        # Custom hooks
+│   │   ├── core/
+│   │   │   ├── firebase/ # Firestore operations
+│   │   │   ├── store/    # Zustand stores
+│   │   │   └── types/    # TypeScript types
+│   │   └── utils/        # Utilities and helpers
+│   ├── functions/
+│   │   └── src/
+│   │       ├── triggers/   # Event-driven functions
+│   │       ├── scheduled/  # Cron-based functions
+│   │       └── services/   # Business logic
+│   ├── firestore.rules     # Security rules
+│   └── firestore.indexes.json
 ├── CLAUDE.md             # This file
-├── AGENTS.md             # Agent definitions
-└── .cursorrules          # Cursor IDE rules
+└── AGENTS.md             # Agent definitions
 ```
 
 ---
@@ -444,6 +476,16 @@ function vehicleOwnershipCheck(vehicleId) {
 ### User-Facing Copy
 **All user-visible copy must be in Spanish (Colombia).**
 
+**Use proper Spanish accent marks (tildes).** Words must include their correct accents:
+- vehículo (not vehiculo)
+- kilómetro (not kilometro)
+- operación (not operacion)
+- información (not informacion)
+- número (not numero)
+- día (not dia)
+- más (not mas)
+- están (not estan)
+
 ### Code and Documentation
 **All code, comments, variable names, and documentation must be in English.**
 
@@ -579,25 +621,48 @@ export const useRidesStore = create<RidesState>((set) => ({
 
 ---
 
+## Key Discovery Paths
+
+When planning features or exploring the codebase, check these locations:
+
+| Looking for... | Check these paths |
+|----------------|-------------------|
+| Existing pages | `web/src/pages/*.tsx` |
+| Feature components | `web/src/features/*/` |
+| Shared components | `web/src/components/*/` |
+| Hooks | `web/src/hooks/*.ts` |
+| Firebase operations | `web/src/core/firebase/*.ts` |
+| Cloud Functions | `web/functions/src/` |
+| Type definitions | `web/src/core/types/*.ts` |
+| Feature documentation | `docs/features/*.md` |
+| Design system | `design-system/` |
+| Firestore rules | `web/firestore.rules` |
+| State stores | `web/src/core/store/*.ts` |
+
+---
+
 ## Reference Files
 
 | File | Purpose |
 |------|---------|
+| `docs/features/README.md` | Feature documentation index |
+| `docs/features/*.md` | Individual feature documentation |
+| `docs/setup/DEVELOPMENT_SETUP.md` | Development environment setup |
+| `docs/architecture/CLEAN_ARCHITECTURE.md` | System architecture overview |
 | `design-system/BRAND_GUIDELINES.md` | Complete brand guide |
+| `design-system/DATEPICKER_GUIDELINES.md` | Date picker components usage guide |
 | `design-system/tokens/colors.css` | Color variables |
 | `design-system/tokens/typography.css` | Typography system |
-| `design-system/components/*.css` | Component styles |
-| `AGENTS.md` | Specialized agent definitions |
-| `.cursorrules` | Cursor IDE rules |
-| `web/src/core/types/vehicle-finance.types.ts` | Vehicle finance TypeScript types |
-| `web/src/core/firebase/vehicle-finances.ts` | Vehicle finance CRUD operations |
-| `web/src/hooks/useVehicleFinances.ts` | React hook for vehicle finances |
+| `.claude/agents/cloud-functions.md` | Cloud Functions development patterns |
+| `.claude/agents/database.md` | Firestore patterns and best practices |
+| `.claude/agents/frontend.md` | React/TypeScript patterns |
+| `web/src/core/types/*.ts` | TypeScript type definitions |
+| `web/src/core/firebase/*.ts` | Firebase operations |
+| `web/functions/src/` | Cloud Functions source |
 | `web/firestore.rules` | Firestore security rules |
 | `web/firestore.indexes.json` | Firestore composite indexes |
-| `web/src/core/analytics/gtag.ts` | Google Analytics 4 initialization and tracking |
 | `docs/SECURITY_AUDIT_REPORT.md` | Security audit findings and remediation status |
-| `docs/TESTING_STRATEGY.md` | Testing patterns, coverage requirements, and best practices |
-| `docs/archive/FIREBASE_MIGRATION_SUMMARY.md` | Historical Firebase migration documentation |
+| `docs/TESTING_STRATEGY.md` | Testing patterns and best practices |
 
 ---
 
@@ -784,22 +849,27 @@ The pipeline includes automated AI code review using Claude:
 ## Useful Commands
 
 ```bash
-# Development
+# Development (run from web/)
 npm run dev          # Start development server
 npm run build        # Production build
 npm run test         # Run tests
 npm run lint         # Check linting
 npm run type-check   # Check types
 
-# Firebase (local)
+# Firebase
 firebase use dev     # Switch to dev project
 firebase use prod    # Switch to prod project
 firebase deploy --only firestore:rules  # Deploy Firestore rules
+firebase deploy --only firestore:indexes  # Deploy Firestore indexes
 
-# Database
-npm run db:migrate   # Run migrations
-npm run db:seed      # Seed test data
-npm run db:studio    # Open Prisma Studio
+# Cloud Functions (run from web/functions/)
+npm run build        # Build functions
+firebase deploy --only functions  # Deploy all functions
+firebase deploy --only functions:processInDriverDocument  # Deploy specific function
+firebase functions:log  # View function logs
+
+# Emulators
+firebase emulators:start --only functions,firestore,storage
 ```
 
 ---
@@ -815,7 +885,8 @@ npm run db:studio    # Open Prisma Studio
 7. **Validate** data with Zod at boundaries (API, forms)
 8. **Maintain** consistency with existing code
 9. **Document** complex components with JSDoc comments
+10. **Use date picker components** - For date selection, use `SingleDatePicker` (single dates with presets) or `DateRangePicker` (date ranges with presets). See `design-system/DATEPICKER_GUIDELINES.md`
 
 ---
 
-*Last updated: December 2024 - Added Claude AI Code Review to CI/CD pipeline*
+*Last updated: January 2025 - Documentation overhaul, added Key Discovery Paths, updated tech stack to Cloud Functions*
