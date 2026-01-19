@@ -9,6 +9,11 @@ on:
     branches: [main, develop]
   workflow_dispatch: # Allow manual trigger
 
+# Prevent duplicate deploys - cancel in-progress deploys when a new one starts
+concurrency:
+  group: deploy-${{ github.event.workflow_run.head_branch || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
