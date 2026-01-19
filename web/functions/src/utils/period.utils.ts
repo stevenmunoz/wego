@@ -65,24 +65,27 @@ export function getISOWeekYear(date: Date): number {
 
 /**
  * Get Monday of the week containing the given date
+ * Note: We use noon (12:00) instead of midnight to avoid timezone issues
+ * when converting between UTC and local timezones (e.g., Colombia UTC-5)
  */
 export function getMondayOfWeek(date: Date): Date {
   const d = new Date(date);
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
+  d.setHours(12, 0, 0, 0); // Use noon to avoid timezone day shifts
   return d;
 }
 
 /**
  * Get Sunday of the week containing the given date
+ * Note: We use noon (12:00) instead of end-of-day to avoid timezone issues
  */
 export function getSundayOfWeek(date: Date): Date {
   const monday = getMondayOfWeek(date);
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
+  sunday.setHours(12, 0, 0, 0); // Use noon to avoid timezone day shifts
   return sunday;
 }
 
@@ -174,6 +177,7 @@ export function parsePeriodId(
 
 /**
  * Get the first day of a specific ISO week
+ * Note: We use noon (12:00) instead of midnight to avoid timezone issues
  */
 function getFirstDayOfISOWeek(year: number, week: number): Date {
   const jan4 = new Date(year, 0, 4);
@@ -183,20 +187,22 @@ function getFirstDayOfISOWeek(year: number, week: number): Date {
 
   const result = new Date(firstMonday);
   result.setDate(firstMonday.getDate() + (week - 1) * 7);
-  result.setHours(0, 0, 0, 0);
+  result.setHours(12, 0, 0, 0); // Use noon to avoid timezone day shifts
   return result;
 }
 
 /**
  * Calculate period range for a given type and reference date
+ * Note: We use noon (12:00) for dates to avoid timezone issues when
+ * converting between UTC (Cloud Functions) and local timezone (frontend)
  */
 export function getPeriodRange(type: PeriodType, referenceDate: Date): PeriodRange {
   switch (type) {
     case 'daily': {
       const start = new Date(referenceDate);
-      start.setHours(0, 0, 0, 0);
+      start.setHours(12, 0, 0, 0); // Use noon to avoid timezone day shifts
       const end = new Date(referenceDate);
-      end.setHours(23, 59, 59, 999);
+      end.setHours(12, 0, 0, 0); // Use noon to avoid timezone day shifts
 
       return {
         type,
@@ -229,7 +235,7 @@ export function getPeriodRange(type: PeriodType, referenceDate: Date): PeriodRan
       const start = getFirstDayOfISOWeek(year, biWeekStartWeek);
       const end = new Date(start);
       end.setDate(start.getDate() + 13); // 2 weeks - 1 day
-      end.setHours(23, 59, 59, 999);
+      end.setHours(12, 0, 0, 0); // Use noon to avoid timezone day shifts
 
       return {
         type,
@@ -242,9 +248,9 @@ export function getPeriodRange(type: PeriodType, referenceDate: Date): PeriodRan
 
     case 'monthly': {
       const start = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
-      start.setHours(0, 0, 0, 0);
+      start.setHours(12, 0, 0, 0); // Use noon to avoid timezone day shifts
       const end = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0);
-      end.setHours(23, 59, 59, 999);
+      end.setHours(12, 0, 0, 0); // Use noon to avoid timezone day shifts
 
       return {
         type,
@@ -420,11 +426,12 @@ export function formatPeriodCompactLabel(type: PeriodType, periodId: string): st
 
 /**
  * Get yesterday's date
+ * Note: We use noon (12:00) to avoid timezone day shifts
  */
 export function getYesterday(): Date {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  yesterday.setHours(0, 0, 0, 0);
+  yesterday.setHours(12, 0, 0, 0);
   return yesterday;
 }
 
