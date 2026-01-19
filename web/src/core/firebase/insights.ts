@@ -19,6 +19,8 @@ import {
   Timestamp,
   QueryDocumentSnapshot,
   DocumentData,
+  onSnapshot,
+  Unsubscribe,
 } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { db } from './firestore';
@@ -430,6 +432,56 @@ export interface WeeklyInsightsListResult {
   summaries: WeeklyInsightsSummary[];
   lastDoc: QueryDocumentSnapshot<DocumentData> | null;
   hasMore: boolean;
+}
+
+/**
+ * Subscribe to real-time updates of weekly insights summaries for history sidebar
+ *
+ * Listens to the `insights` collection and filters by period_type='weekly'.
+ * Automatically updates when new insights are generated.
+ *
+ * @param pageSize - Number of items to fetch (default: 10)
+ * @param onData - Callback when data is received
+ * @param onError - Callback when an error occurs
+ * @returns Unsubscribe function
+ */
+export function subscribeToWeeklyInsightsList(
+  pageSize: number = 10,
+  onData: (summaries: WeeklyInsightsSummary[]) => void,
+  onError: (error: Error) => void
+): Unsubscribe {
+  const insightsCollection = collection(db, 'insights');
+  // Fetch more since we filter by period_type
+  const q = query(insightsCollection, orderBy('period_start', 'desc'), limit(pageSize * 4));
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const summaries: WeeklyInsightsSummary[] = [];
+
+      for (const docSnapshot of snapshot.docs) {
+        const data = docSnapshot.data() as FirestorePeriodInsights;
+        if (data.period_type === 'weekly') {
+          summaries.push({
+            weekId: data.period_id,
+            weekStart: data.period_start.toDate(),
+            weekEnd: data.period_end.toDate(),
+            totalRides: data.metrics?.rides?.completed ?? 0,
+            totalRevenue: data.metrics?.rides?.total_revenue ?? 0,
+            generatedAt: data.generated_at.toDate(),
+          });
+
+          if (summaries.length >= pageSize) break;
+        }
+      }
+
+      onData(summaries);
+    },
+    (error) => {
+      console.error('[insights] Error in weekly insights subscription:', error);
+      onError(error);
+    }
+  );
 }
 
 /**
