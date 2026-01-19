@@ -1,12 +1,17 @@
 /**
  * useWeeklyInsightsHistory Hook
  *
- * Fetches paginated list of weekly insights summaries for the history sidebar.
+ * Subscribes to real-time updates of weekly insights summaries for the history sidebar.
+ * Automatically refreshes when new insights are generated.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
-import { getWeeklyInsightsList, type WeeklyInsightsSummary } from '@/core/firebase/insights';
+import {
+  getWeeklyInsightsList,
+  subscribeToWeeklyInsightsList,
+  type WeeklyInsightsSummary,
+} from '@/core/firebase/insights';
 
 interface UseWeeklyInsightsHistoryReturn {
   /** List of weekly insights summaries */
@@ -32,37 +37,53 @@ export function useWeeklyInsightsHistory(): UseWeeklyInsightsHistoryReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const loadedCountRef = useRef(0);
 
-  // Initial load
-  const loadInitial = useCallback(async () => {
+  // Subscribe to real-time updates on mount
+  useEffect(() => {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const result = await getWeeklyInsightsList(PAGE_SIZE);
-      setSummaries(result.summaries);
-      setLastDoc(result.lastDoc);
-      setHasMore(result.hasMore);
-    } catch (err) {
-      console.error('[useWeeklyInsightsHistory] Error loading history:', err);
-      setError('Error al cargar el historial');
-    } finally {
-      setIsLoading(false);
-    }
+    const unsubscribe = subscribeToWeeklyInsightsList(
+      PAGE_SIZE,
+      (newSummaries) => {
+        setSummaries(newSummaries);
+        loadedCountRef.current = newSummaries.length;
+        // If we got a full page, there might be more
+        setHasMore(newSummaries.length >= PAGE_SIZE);
+        setIsLoading(false);
+      },
+      (err) => {
+        console.error('[useWeeklyInsightsHistory] Subscription error:', err);
+        setError('Error al cargar el historial');
+        setIsLoading(false);
+      }
+    );
+
+    // Cleanup subscription on unmount
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
-  // Load more items
+  // Load more items (uses one-time fetch for pagination beyond initial subscription)
   const loadMore = useCallback(async () => {
-    if (isLoadingMore || !hasMore || !lastDoc) return;
+    if (isLoadingMore || !hasMore) return;
 
     setIsLoadingMore(true);
     setError(null);
 
     try {
+      // Use lastDoc if available, otherwise fetch based on current summaries count
       const result = await getWeeklyInsightsList(PAGE_SIZE, lastDoc);
-      setSummaries((prev) => [...prev, ...result.summaries]);
+      setSummaries((prev) => {
+        // Merge new summaries, avoiding duplicates based on weekId
+        const existingIds = new Set(prev.map((s) => s.weekId));
+        const newUniqueSummaries = result.summaries.filter((s) => !existingIds.has(s.weekId));
+        return [...prev, ...newUniqueSummaries];
+      });
       setLastDoc(result.lastDoc);
       setHasMore(result.hasMore);
     } catch (err) {
@@ -73,16 +94,12 @@ export function useWeeklyInsightsHistory(): UseWeeklyInsightsHistoryReturn {
     }
   }, [isLoadingMore, hasMore, lastDoc]);
 
-  // Refresh the list
+  // Refresh the list (subscription auto-updates, so this is mainly for resetting pagination)
   const refresh = useCallback(async () => {
     setLastDoc(null);
-    await loadInitial();
-  }, [loadInitial]);
-
-  // Load on mount
-  useEffect(() => {
-    loadInitial();
-  }, [loadInitial]);
+    setHasMore(true);
+    // The subscription will automatically provide fresh data
+  }, []);
 
   return {
     summaries,

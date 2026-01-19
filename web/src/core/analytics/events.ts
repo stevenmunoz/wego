@@ -36,7 +36,8 @@ type DateFilterValue =
   | 'last7days'
   | 'last30days'
   | 'thisMonth'
-  | 'lastMonth';
+  | 'lastMonth'
+  | 'custom';
 
 type StatusFilterValue =
   | 'all'

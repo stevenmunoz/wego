@@ -117,6 +117,142 @@
   font-size: 0.875rem;
 }
 
+/* Filter options list */
+.filter-options {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0;
+}
+
+.filter-options li {
+  margin: 0;
+}
+
+/* Divider */
+.filter-divider {
+  height: 1px;
+  background: var(--color-gray-200, #e5e7eb);
+  margin: 0.25rem 0;
+}
+
+/* Custom option */
+.custom-option {
+  gap: 0.5rem;
+}
+
+.custom-icon {
+  font-size: 1rem;
+}
+
+/* Custom Date Picker */
+.custom-date-picker {
+  padding: 1rem;
+}
+
+.picker-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.back-button {
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  border: none;
+  font-size: 0.875rem;
+  color: var(--color-gray-600, #4b5563);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.back-button:hover {
+  color: var(--color-primary-800, #1e2a3a);
+}
+
+.picker-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-gray-800, #1f2937);
+}
+
+.date-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.date-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.date-input-group label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-gray-500, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.date-input-group input[type='date'] {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-gray-300, #d1d5db);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: var(--color-gray-800, #1f2937);
+  background-color: var(--color-white, #ffffff);
+  transition: border-color 0.15s ease;
+  color-scheme: light;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Ensure text is visible in date inputs */
+.date-input-group input[type='date']::-webkit-datetime-edit {
+  color: var(--color-gray-800, #1f2937);
+}
+
+.date-input-group input[type='date']::-webkit-datetime-edit-fields-wrapper {
+  color: var(--color-gray-800, #1f2937);
+}
+
+.date-input-group input[type='date']::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.date-input-group input[type='date']:focus {
+  outline: none;
+  border-color: var(--color-accent-600, #f05365);
+  box-shadow: 0 0 0 3px rgba(240, 83, 101, 0.1);
+}
+
+.apply-button {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  background: var(--color-primary-800, #1e2a3a);
+  color: var(--color-white, #ffffff);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.apply-button:hover:not(:disabled) {
+  background: var(--color-primary-700, #2c3e50);
+}
+
+.apply-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .date-filter-trigger {
