@@ -136,14 +136,20 @@ jobs:
         working-directory: ./web/functions
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          # Validate that OPENAI_API_KEY secret is set
+          # Validate that required secrets are set
           if [ -z "$OPENAI_API_KEY" ]; then
             echo "ERROR: OPENAI_API_KEY secret is not set in GitHub repository secrets"
             exit 1
           fi
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "ERROR: ANTHROPIC_API_KEY secret is not set in GitHub repository secrets"
+            exit 1
+          fi
           # Use printf to avoid shell interpretation issues with special characters
           printf 'OPENAI_API_KEY=%s\n' "$OPENAI_API_KEY" > .env
+          printf 'ANTHROPIC_API_KEY=%s\n' "$ANTHROPIC_API_KEY" >> .env
           # Verify the file was created and has content
           if [ ! -s .env ]; then
             echo "ERROR: Failed to create .env file"
