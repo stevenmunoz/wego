@@ -5,12 +5,7 @@
  * All date logic is now in @/utils/date.utils.ts
  */
 
-import {
-  getStartOfDay,
-  getEndOfDay,
-  formatDateToInput,
-  parseDateSafe,
-} from '@/utils/date.utils';
+import { getStartOfDay, getEndOfDay, formatDateToInput, parseDateSafe } from '@/utils/date.utils';
 
 // Re-export core functions
 export { getStartOfDay, getEndOfDay };

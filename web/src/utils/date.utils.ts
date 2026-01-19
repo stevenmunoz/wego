@@ -143,10 +143,7 @@ export function formatDateToInput(date: Date | null): string {
  * @param options - Optional Intl.DateTimeFormat options to override defaults
  * @returns Formatted date string, or empty string if null
  */
-export function formatDateDisplay(
-  date: Date | null,
-  options?: Intl.DateTimeFormatOptions
-): string {
+export function formatDateDisplay(date: Date | null, options?: Intl.DateTimeFormatOptions): string {
   if (!date) return '';
   return new Intl.DateTimeFormat('es-CO', {
     day: 'numeric',

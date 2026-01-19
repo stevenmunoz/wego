@@ -5,12 +5,7 @@
 
 import { type FC, useState, useRef, useEffect } from 'react';
 import { trackRidesDateFiltered } from '@/core/analytics';
-import {
-  getStartOfDay,
-  getEndOfDay,
-  formatDateToInput,
-  parseDateSafe,
-} from '@/utils/date.utils';
+import { getStartOfDay, getEndOfDay, formatDateToInput, parseDateSafe } from '@/utils/date.utils';
 import './DateFilter.css';
 
 export type DateFilterOption =
