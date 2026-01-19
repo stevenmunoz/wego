@@ -1,6 +1,6 @@
 /**
  * Date Filter Component
- * Gmail-style dropdown with predefined date range options
+ * Gmail-style dropdown with predefined date range options and custom range picker
  */
 
 import { type FC, useState, useRef, useEffect } from 'react';
@@ -14,7 +14,8 @@ export type DateFilterOption =
   | 'last7days'
   | 'last30days'
   | 'thisMonth'
-  | 'lastMonth';
+  | 'lastMonth'
+  | 'custom';
 
 interface DateRange {
   startDate: Date | undefined;
@@ -23,6 +24,7 @@ interface DateRange {
 
 interface DateFilterProps {
   value: DateFilterOption;
+  customRange?: DateRange | null;
   onChange: (option: DateFilterOption, range: DateRange) => void;
 }
 
@@ -109,16 +111,31 @@ const filterOptions: FilterOptionConfig[] = [
   },
 ];
 
-export const DateFilter: FC<DateFilterProps> = ({ value, onChange }) => {
+const formatDateInput = (date: Date): string => {
+  return date.toISOString().split('T')[0];
+};
+
+const formatDateDisplay = (date: Date): string => {
+  return new Intl.DateTimeFormat('es-CO', {
+    day: 'numeric',
+    month: 'short',
+  }).format(date);
+};
+
+export const DateFilter: FC<DateFilterProps> = ({ value, customRange, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const [tempStartDate, setTempStartDate] = useState<string>('');
+  const [tempEndDate, setTempEndDate] = useState<string>('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const selectedOption = filterOptions.find((opt) => opt.id === value) || filterOptions[0];
+  const selectedOption = filterOptions.find((opt) => opt.id === value);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setShowCustomPicker(false);
       }
     };
 
@@ -130,6 +147,47 @@ export const DateFilter: FC<DateFilterProps> = ({ value, onChange }) => {
     trackRidesDateFiltered(option.id);
     onChange(option.id, option.getRange());
     setIsOpen(false);
+    setShowCustomPicker(false);
+  };
+
+  const handleCustomClick = () => {
+    setShowCustomPicker(true);
+    // Initialize with current range or default to last 7 days
+    if (customRange?.startDate && customRange?.endDate) {
+      setTempStartDate(formatDateInput(customRange.startDate));
+      setTempEndDate(formatDateInput(customRange.endDate));
+    } else {
+      const now = new Date();
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 6);
+      setTempStartDate(formatDateInput(weekAgo));
+      setTempEndDate(formatDateInput(now));
+    }
+  };
+
+  const handleApplyCustom = () => {
+    if (tempStartDate && tempEndDate) {
+      // Parse date string manually to avoid timezone issues
+      const [startYear, startMonth, startDay] = tempStartDate.split('-').map(Number);
+      const [endYear, endMonth, endDay] = tempEndDate.split('-').map(Number);
+
+      const startDate = getStartOfDay(new Date(startYear, startMonth - 1, startDay));
+      const endDate = getEndOfDay(new Date(endYear, endMonth - 1, endDay));
+
+      if (startDate <= endDate) {
+        trackRidesDateFiltered('custom');
+        onChange('custom', { startDate, endDate });
+        setIsOpen(false);
+        setShowCustomPicker(false);
+      }
+    }
+  };
+
+  const getDisplayLabel = (): string => {
+    if (value === 'custom' && customRange?.startDate && customRange?.endDate) {
+      return `${formatDateDisplay(customRange.startDate)} - ${formatDateDisplay(customRange.endDate)}`;
+    }
+    return selectedOption?.label || filterOptions[0].label;
   };
 
   return (
@@ -142,25 +200,84 @@ export const DateFilter: FC<DateFilterProps> = ({ value, onChange }) => {
         aria-haspopup="listbox"
       >
         <span className="filter-icon">📅</span>
-        <span className="filter-label">{selectedOption.label}</span>
+        <span className="filter-label">{getDisplayLabel()}</span>
         <span className={`filter-chevron ${isOpen ? 'open' : ''}`}>▼</span>
       </button>
 
       {isOpen && (
-        <ul className="date-filter-dropdown" role="listbox">
-          {filterOptions.map((option) => (
-            <li key={option.id} role="option" aria-selected={option.id === value}>
+        <div className="date-filter-dropdown">
+          {!showCustomPicker ? (
+            <>
+              <ul className="filter-options" role="listbox">
+                {filterOptions.map((option) => (
+                  <li key={option.id} role="option" aria-selected={option.id === value}>
+                    <button
+                      type="button"
+                      className={`dropdown-option ${option.id === value ? 'selected' : ''}`}
+                      onClick={() => handleSelect(option)}
+                    >
+                      {option.label}
+                      {option.id === value && <span className="check-icon">✓</span>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <div className="filter-divider"></div>
               <button
                 type="button"
-                className={`dropdown-option ${option.id === value ? 'selected' : ''}`}
-                onClick={() => handleSelect(option)}
+                className={`dropdown-option custom-option ${value === 'custom' ? 'selected' : ''}`}
+                onClick={handleCustomClick}
               >
-                {option.label}
-                {option.id === value && <span className="check-icon">✓</span>}
+                <span className="custom-icon">📆</span>
+                Personalizado
+                {value === 'custom' && <span className="check-icon">✓</span>}
               </button>
-            </li>
-          ))}
-        </ul>
+            </>
+          ) : (
+            <div className="custom-date-picker">
+              <div className="picker-header">
+                <button
+                  type="button"
+                  className="back-button"
+                  onClick={() => setShowCustomPicker(false)}
+                >
+                  ← Volver
+                </button>
+                <span className="picker-title">Rango personalizado</span>
+              </div>
+              <div className="date-inputs">
+                <div className="date-input-group">
+                  <label htmlFor="start-date">Desde</label>
+                  <input
+                    type="date"
+                    id="start-date"
+                    value={tempStartDate}
+                    onChange={(e) => setTempStartDate(e.target.value)}
+                    max={tempEndDate || undefined}
+                  />
+                </div>
+                <div className="date-input-group">
+                  <label htmlFor="end-date">Hasta</label>
+                  <input
+                    type="date"
+                    id="end-date"
+                    value={tempEndDate}
+                    onChange={(e) => setTempEndDate(e.target.value)}
+                    min={tempStartDate || undefined}
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                className="apply-button"
+                onClick={handleApplyCustom}
+                disabled={!tempStartDate || !tempEndDate}
+              >
+                Aplicar
+              </button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

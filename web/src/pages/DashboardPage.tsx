@@ -124,7 +124,15 @@ export const DashboardPage = () => {
             </div>
           </div>
           <div className="page-header-filters">
-            <DateFilter value={dateFilter} onChange={handleDateFilterChange} />
+            <DateFilter
+              value={dateFilter}
+              customRange={
+                dateFilter === 'custom' && dateRange.startDate && dateRange.endDate
+                  ? { startDate: dateRange.startDate, endDate: dateRange.endDate }
+                  : null
+              }
+              onChange={handleDateFilterChange}
+            />
             <StatusFilter value={statusFilter} onChange={setStatusFilter} />
             <SourceFilter value={sourceFilter} onChange={setSourceFilter} />
             {isAdmin && (
